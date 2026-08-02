@@ -1,0 +1,58 @@
+Copyright (c) 2026 Venugopalan Iyengar
+
+---------------------------------- Commentary ----------------------------------
+
+This repository holds two different kinds of thing, and they want two
+different licenses.
+
+The labs are meant to be run, forked, pasted into your own harness, and
+argued with. A book that tells you to check its numbers and then makes
+the checking code awkward to reuse would be a bad joke. So everything
+executable here is MIT, which is about as close to "help yourself" as a
+license gets.
+
+The prose is different. The chapters are written in a particular voice,
+and the site's look is part of what the book is. I would rather not
+find a near-copy of it online with the sentences shuffled, or a print
+edition of it for sale that I had nothing to do with and cannot vouch
+for. So the writing and the design are under a Creative Commons license
+that allows sharing with attribution but not commercial use and not
+derivative versions.
+
+None of this is meant to stop you learning from it, quoting it, linking
+to it, or telling people they are wrong about fsync using arguments you
+found here. Do all of that.
+
+---------------------------------- License(s) ----------------------------------
+
+Each file in this repository falls under one of two licenses.
+
+Files whose extension is ".c", ".h", ".py", ".sh", or ".ipynb", along
+with "experiments/Makefile" and "experiments/Dockerfile", use the MIT
+license:
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to
+    deal in the Software without restriction, including without limitation the
+    rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+    sell copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+
+All other files, including (but not limited to) ".md", ".css", ".hbs",
+".svg", ".png", ".toml", and ".yml", use this Creative Commons license:
+
+    Attribution-NonCommercial-NoDerivatives 4.0
+    International (CC BY-NC-ND 4.0)
+
+    https://creativecommons.org/licenses/by-nc-nd/4.0/

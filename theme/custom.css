@@ -179,29 +179,35 @@ html {
 .challenges li { margin-bottom: 1.1rem; }
 
 /* --- Footer -------------------------------------------------
-   Proportioned after craftinginterpreters.com's: a named
-   next-chapter link over the byline, separated from the text by a
-   rule with generous space on both sides (48px there, same here).
+   Rebuilt to match craftinginterpreters.com's geometry, which was
+   measured rather than eyeballed:
+
+     - the rule runs the full column width
+     - the next-chapter link is absolutely positioned at the RIGHT
+       end and pulled up by half its line-height, so it sits ON the
+       rule rather than under it
+     - it carries the page background, which knocks the rule out
+       behind the text and produces the "line stops, label starts"
+       effect
+     - the byline sits centred below, smaller and quieter
 
    Lives in theme/index.hbs, a fork of mdBook 0.4.52's default
    template. See CLAUDE.md before upgrading mdBook.
-
-   `margin-top: auto` inside a flex column is what keeps it at the
-   bottom of short pages instead of stranded mid-screen.
    ------------------------------------------------------------ */
 .content main {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 10rem);
 }
-/* The gap above the rule is padding, not margin, so `auto` cannot
-   collapse it away on a long page. */
+/* The gap above the rule is padding, not margin, so `margin-top:
+   auto` cannot collapse it away once a page is long enough. */
 .content main > .book-footer {
   margin-top: auto;
   margin-bottom: 4.8rem;
   padding-top: 4.8rem;
 }
 .book-footer .footer-rule {
+  position: relative;
   border-top: 1px solid var(--graticule);
   padding-top: 4.8rem;              /* 48px, matching the reference */
 }
@@ -212,16 +218,38 @@ html {
   text-align: center;
 }
 .book-footer .next-chapter {
-  display: block;
-  margin-bottom: 1.4rem;
+  position: absolute;
+  right: 0;
+  top: -1.2rem;                     /* half the line-height, to centre
+                                       the label on the rule */
+  line-height: 2.4rem;
+  padding-left: 0.8rem;
+  background: var(--paper);         /* knocks the rule out behind it */
   font-size: 1.7rem;                /* 17px */
   text-transform: uppercase;
   letter-spacing: 0.1rem;
   color: var(--signal);
   text-decoration: none;
+  white-space: nowrap;
 }
 .book-footer .next-chapter:hover { text-decoration: underline; }
 .book-footer .sep { padding: 0 0.4rem; color: var(--graticule); }
+.book-footer .copyright { color: var(--signal); text-decoration: none; }
+.book-footer .copyright:hover { text-decoration: underline; }
+
+/* Absolute positioning would push a long chapter title off a narrow
+   screen, so drop back to normal flow there. */
+@media (max-width: 700px) {
+  .book-footer .next-chapter {
+    position: static;
+    display: block;
+    white-space: normal;
+    padding-left: 0;
+    margin-bottom: 1.4rem;
+    background: none;
+  }
+  .book-footer .footer-rule { padding-top: 3rem; }
+}
 
 /* --- Quality floor ------------------------------------------ */
 a:focus-visible, button:focus-visible {
