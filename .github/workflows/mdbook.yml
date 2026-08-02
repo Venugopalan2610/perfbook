@@ -1,7 +1,8 @@
-# Sample workflow for building and deploying a mdBook site to GitHub Pages
+# Build the mdBook site and deploy it to GitHub Pages.
 #
-# To get started with mdBook see: https://rust-lang.github.io/mdBook/index.html
-#
+# This is GitHub's starter workflow with one change: mdBook is installed
+# from its prebuilt release binary instead of `cargo install`, which
+# compiled it from source and took minutes on every run.
 name: Deploy mdBook site to Pages
 
 on:
@@ -29,14 +30,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      MDBOOK_VERSION: 0.4.36
+      # Keep in sync with the version you build with locally — the theme's
+      # type scale and chart sizing were verified against this one.
+      MDBOOK_VERSION: 0.4.52
     steps:
       - uses: actions/checkout@v4
       - name: Install mdBook
         run: |
-          curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -y | sh
-          rustup update
-          cargo install --version ${MDBOOK_VERSION} mdbook
+          curl -sSL "https://github.com/rust-lang/mdBook/releases/download/v${MDBOOK_VERSION}/mdbook-v${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -xz -C /usr/local/bin
+          mdbook --version
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
