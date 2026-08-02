@@ -179,19 +179,48 @@ html {
 .challenges li { margin-bottom: 1.1rem; }
 
 /* --- Footer -------------------------------------------------
-   Lives in theme/index.hbs, which is a fork of mdBook 0.4.52's
-   default template. See CLAUDE.md before upgrading mdBook.
-   The separator is a middot, not an em dash, because the book
-   does not use em dashes anywhere. ------------------------- */
-.book-footer {
-  margin-top: 6rem;
-  padding-top: 1.6rem;
+   Proportioned after craftinginterpreters.com's: a named
+   next-chapter link over the byline, separated from the text by a
+   rule with generous space on both sides (48px there, same here).
+
+   Lives in theme/index.hbs, a fork of mdBook 0.4.52's default
+   template. See CLAUDE.md before upgrading mdBook.
+
+   `margin-top: auto` inside a flex column is what keeps it at the
+   bottom of short pages instead of stranded mid-screen.
+   ------------------------------------------------------------ */
+.content main {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 10rem);
+}
+/* The gap above the rule is padding, not margin, so `auto` cannot
+   collapse it away on a long page. */
+.content main > .book-footer {
+  margin-top: auto;
+  margin-bottom: 4.8rem;
+  padding-top: 4.8rem;
+}
+.book-footer .footer-rule {
   border-top: 1px solid var(--graticule);
+  padding-top: 4.8rem;              /* 48px, matching the reference */
+}
+.book-footer {
   font-family: var(--display);
-  font-size: 1.5rem;      /* 15px */
+  font-size: 1.5rem;                /* 15px */
   color: var(--muted);
   text-align: center;
 }
+.book-footer .next-chapter {
+  display: block;
+  margin-bottom: 1.4rem;
+  font-size: 1.7rem;                /* 17px */
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+  color: var(--signal);
+  text-decoration: none;
+}
+.book-footer .next-chapter:hover { text-decoration: underline; }
 .book-footer .sep { padding: 0 0.4rem; color: var(--graticule); }
 
 /* --- Quality floor ------------------------------------------ */

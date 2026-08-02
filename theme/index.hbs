@@ -221,9 +221,16 @@
                         {{{ content }}}
 
                         <footer class="book-footer">
-                            Handcrafted by Venugopalan Iyengar
-                            <span class="sep">&middot;</span>
-                            &copy; 2026
+                            <div class="footer-rule">
+                                {{#next}}
+                                <a class="next-chapter" href="{{ path_to_root }}{{link}}">Next chapter: &ldquo;{{title}}&rdquo; &rarr;</a>
+                                {{/next}}
+                                <span class="byline">
+                                    Handcrafted by Venugopalan Iyengar
+                                    <span class="sep">&middot;</span>
+                                    &copy; 2026
+                                </span>
+                            </div>
                         </footer>
                     </main>
 
