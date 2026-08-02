@@ -1,0 +1,8 @@
+book/
+.DS_Store
+pipeline/.venv/
+__pycache__/
+
+# Stage 1 of the pipeline: raw conversation transcripts. Kept local —
+# they're personal, and nothing in src/ links to them.
+raw/

@@ -1,0 +1,194 @@
+/* ============================================================
+   Deriving Systems — "instrument panel"
+   Palette, type and components are derived from the subject:
+   measurement, orders of magnitude, and things that are read
+   off a scale rather than looked up.
+
+   ⚠ SIZING: mdBook sets the root font-size to 62.5%, so in this
+   file **1rem = 10px**, NOT 16px. Every rem value below is
+   therefore "the px number, divided by ten": 1.9rem is 19px,
+   70rem is 700px. Getting this wrong once already shipped a
+   400px-wide column of 12.5px text. When adding a size, write
+   the px you want and move the decimal point.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap");
+
+:root {
+  --paper:     #f7f8fa;
+  --ink:       #14181f;
+  --graticule: #dde2ea;
+  --signal:    #0b6e75;
+  --flag:      #a81e4d;
+  --muted:     #5c6675;
+
+  --display: "IBM Plex Sans Condensed", ui-sans-serif, sans-serif;
+  --body:    "IBM Plex Serif", Georgia, serif;
+  --meter:   "IBM Plex Mono", ui-monospace, monospace;
+
+  --measure: 70rem;   /* 700px reading column */
+}
+
+/* --- mdBook variable overrides ------------------------------ */
+html {
+  --bg: var(--paper);
+  --fg: var(--ink);
+  --sidebar-bg: #eef0f4;
+  --sidebar-fg: var(--ink);
+  --sidebar-non-existant: var(--muted);
+  --sidebar-active: var(--flag);
+  --sidebar-spacer: var(--graticule);
+  --scrollbar: var(--muted);
+  --icons: var(--muted);
+  --icons-hover: var(--ink);
+  --links: var(--signal);
+  --inline-code-color: var(--flag);
+  --theme-popup-bg: var(--paper);
+  --theme-popup-border: var(--graticule);
+  --quote-bg: #eef1f5;
+  --quote-border: var(--signal);
+  --table-border-color: var(--graticule);
+  --table-header-bg: #eef0f4;
+  --table-alternate-bg: #f2f4f7;
+  --searchbar-border-color: var(--graticule);
+  --searchbar-bg: #fff;
+  --searchbar-fg: var(--ink);
+  --searchresults-header-fg: var(--muted);
+  --searchresults-border-color: var(--graticule);
+  --search-mark-bg: #ffe08a;
+}
+
+/* --- Type --------------------------------------------------- */
+.content {
+  font-family: var(--body);
+  font-size: 1.9rem;      /* 19px */
+  line-height: 1.62;
+}
+.content main { max-width: var(--measure); }
+
+.content h1, .content h2, .content h3, .content h4 {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  line-height: 1.15;
+}
+.content h1 { font-size: 4.2rem; margin-bottom: 0.15em; }   /* 42px */
+.content h2 {
+  font-size: 2.55rem;                                        /* 25.5px */
+  margin-top: 2.2em;
+  padding-top: 0.5em;
+  border-top: 1px solid var(--graticule);
+}
+.content h3 { font-size: 1.95rem; margin-top: 2em; color: var(--muted); }
+
+/* Chapter numbers read like channel labels on an instrument. */
+.content h1 .header-num,
+.chapter li.chapter-item strong {
+  font-family: var(--meter);
+  font-weight: 500;
+  color: var(--flag);
+}
+
+.content code,
+.content pre code { font-family: var(--meter); font-size: 0.86em; }
+
+.content pre {
+  background: #eef1f5;
+  border: 1px solid var(--graticule);
+  border-left: 3px solid var(--signal);
+  border-radius: 0;
+  line-height: 1.45;
+}
+
+.content table { font-size: 0.9em; }
+
+.sidebar .chapter { font-family: var(--display); font-size: 1.5rem; }
+.sidebar .part-title {
+  font-family: var(--meter);
+  font-size: 1.2rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ============================================================
+   SIGNATURE: the magnitude ruler, and other generated charts.
+   These are matplotlib SVGs (see pipeline/make_charts.py), not
+   hand-positioned HTML/CSS — regenerate with
+   `pipeline/.venv/bin/python pipeline/make_charts.py` after
+   changing any numbers.
+   ============================================================ */
+.content img.ruler-chart,
+.content img.chart {
+  display: block;
+  width: 100%;        /* SVG — scales losslessly, and every chart
+                         then shares the text column's edges */
+  max-width: 100%;
+  height: auto;
+  margin: 2.6rem auto;
+}
+.content img.ruler-chart {
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--graticule);
+  padding: 1rem 0;
+}
+
+/* --- The rule box: one sentence you carry out of the room ---- */
+.rule {
+  font-family: var(--display);
+  font-size: 2rem;            /* 20px */
+  line-height: 1.4;
+  margin: 2.8rem 0;
+  padding: 1.5rem 1.7rem;
+  background: #fff;
+  border: 1px solid var(--ink);
+  border-left: 5px solid var(--flag);
+  scroll-margin-top: 4rem;
+}
+.rule .rule-id {
+  display: block;
+  font-family: var(--meter);
+  font-size: 1.15rem;         /* 11.5px */
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--flag);
+  margin-bottom: 0.6rem;
+}
+
+/* --- Margin notes (Crafting Interpreters' habit) -------------
+   Always inline, never floated. A float-into-the-margin version
+   with a hardcoded negative margin used to live here; it clipped
+   off-screen at real-world viewport/zoom combinations we couldn't
+   reproduce reliably enough to trust a numeric fix. Inline can't
+   overflow the viewport because it never leaves normal document
+   flow — worth the lost "margin note" flourish. -------------- */
+.aside {
+  font-family: var(--display);
+  font-size: 1.65rem;         /* 16.5px */
+  line-height: 1.5;
+  color: var(--muted);
+  border-left: 2px solid var(--graticule);
+  padding-left: 1.4rem;
+  margin: 2rem 0;
+}
+
+/* --- Challenges --------------------------------------------- */
+.challenges { border-top: 2px solid var(--ink); margin-top: 4rem; padding-top: 0.4rem; }
+.challenges h2 { border-top: none; margin-top: 0.8em; }
+.challenges ol { padding-left: 1.8rem; }
+.challenges li { margin-bottom: 1.1rem; }
+
+/* --- Quality floor ------------------------------------------ */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--flag);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+@media (max-width: 700px) {
+  .content { font-size: 1.75rem; }   /* 17.5px */
+  .content h1 { font-size: 3.2rem; } /* 32px */
+  .content h2 { font-size: 2.2rem; }
+  .rule { font-size: 1.8rem; padding: 1.2rem 1.3rem; }
+}
