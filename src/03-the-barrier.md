@@ -114,6 +114,12 @@ row's worth of data. Group commit (chapter 5) is what happens once we
 let the queue fill before drawing the line.
 </div>
 
+<div class="aside">
+<strong>Run it.</strong> <code>experiments/03_fsync_cost.c</code> syncs
+payloads from 8 B to 8 MB and prints how far the cost moved against how far
+the size moved. Predict that ratio first. See <a href="./experiments.md">Experiments</a>.
+</div>
+
 <div class="challenges">
 
 ## Challenges

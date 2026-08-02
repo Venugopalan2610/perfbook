@@ -124,6 +124,13 @@ lands somewhere between "fully written" and "not written at all," and
 recovery code has to assume every last record might be exactly that.
 </div>
 
+<div class="aside">
+<strong>Run it.</strong> <code>experiments/06_crc_zero_seed.c</code> shows
+the all-zero record passing a zero-seeded check and failing a properly
+seeded one. It is deterministic, so it prints the same thing on your
+machine as on mine. See <a href="./experiments.md">Experiments</a>.
+</div>
+
 <div class="challenges">
 
 ## Challenges

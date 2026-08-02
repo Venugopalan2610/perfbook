@@ -6,3 +6,9 @@ __pycache__/
 # Stage 1 of the pipeline: raw conversation transcripts. Kept local —
 # they're personal, and nothing in src/ links to them.
 raw/
+
+# Compiled experiment binaries and their scratch files
+experiments/01_write_latency
+experiments/03_fsync_cost
+experiments/06_crc_zero_seed
+experiments/.perfbook_*.tmp

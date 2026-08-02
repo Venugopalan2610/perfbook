@@ -236,6 +236,12 @@ Which sets up everything in Part II. That last arrow turns out to be
 expensive enough that entire database architectures exist just to avoid
 taking it more than they have to.
 
+<div class="aside">
+<strong>Run it.</strong> <code>experiments/01_write_latency.c</code> writes
+a megabyte four ways and prints each one against the floors above. Commit
+to your four numbers before you run it. See <a href="./experiments.md">Experiments</a>.
+</div>
+
 <div class="challenges">
 
 ## Challenges

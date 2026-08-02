@@ -25,3 +25,4 @@
 
 - [Rules Index](./rules.md)
 - [Challenges](./challenges.md)
+- [Experiments](./experiments.md)
