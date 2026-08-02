@@ -178,6 +178,22 @@ html {
 .challenges ol { padding-left: 1.8rem; }
 .challenges li { margin-bottom: 1.1rem; }
 
+/* --- Footer -------------------------------------------------
+   Lives in theme/index.hbs, which is a fork of mdBook 0.4.52's
+   default template. See CLAUDE.md before upgrading mdBook.
+   The separator is a middot, not an em dash, because the book
+   does not use em dashes anywhere. ------------------------- */
+.book-footer {
+  margin-top: 6rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--graticule);
+  font-family: var(--display);
+  font-size: 1.5rem;      /* 15px */
+  color: var(--muted);
+  text-align: center;
+}
+.book-footer .sep { padding: 0 0.4rem; color: var(--graticule); }
+
 /* --- Quality floor ------------------------------------------ */
 a:focus-visible, button:focus-visible {
   outline: 2px solid var(--flag);
