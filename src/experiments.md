@@ -8,11 +8,25 @@ They live in [`experiments/`](https://github.com/Venugopalan2610/perfbook/tree/m
 in the repository.
 
 ```bash
-cd experiments && make run
+cd experiments && ./run-labs.sh
 ```
 
-Nothing needs root. Nothing writes outside the working directory. Each
-program cleans up after itself.
+Exit code 0 means every claim in the book that this can reach held on
+your machine. Nonzero means one did not, and the output names it.
+Nothing needs root, and each lab cleans up after itself.
+
+## They check claims, not numbers
+
+A benchmark prints a number, and you cannot tell a correct run from a
+broken one. So these assert **ratios** and **exact invariants**
+instead, because those are what survive the change of hardware that
+absolute latency does not.
+
+A 700 µs fsync and a 100 µs fsync are both ordinary. An fsync that
+costs the same as a buffered write means you are not measuring storage
+at all, and every conclusion under it is void. That is a claim, so it
+is a check: run the labs against a `tmpfs` and `measuring-real-storage`
+fails loudly rather than quietly reporting that RAM is quick.
 
 ## Point them at the right filesystem first
 
@@ -32,16 +46,50 @@ the result; the latency is just a number attached to it.
 
 ## What each one tests
 
-| Program | Chapter | The claim |
+| Lab | Chapter | Claims |
 |---|---|---|
-| `01_write_latency` | [Five Microseconds](./01-five-microseconds.md) | A 1 MB write can return faster than any path that could have moved the bytes |
-| `03_fsync_cost` | [The Barrier](./03-the-barrier.md) | fsync's cost is the round trip, not the payload |
-| `06_crc_zero_seed` | [Where the Truth Stops](./06-where-the-truth-stops.md) | A zero-seeded CRC accepts an all-zero torn write |
+| `02_ladder_survival` | [The Ladder](./02-the-ladder.md) | 3, exact byte counts |
+| `03_fsync_cost` | [The Barrier](./03-the-barrier.md) | 3, all ratios |
+| `06_crc_zero_seed` | [Where the Truth Stops](./06-where-the-truth-stops.md) | 6, exact, including a CRC-32 known-answer test |
+| `01_write_latency` | [Five Microseconds](./01-five-microseconds.md) | timing survey |
 
-The first two will give you different numbers than they gave me, and
-that is the point. The third is deterministic: it prints the same thing
-on every machine, which is what makes it checkable rather than
-anecdotal.
+## Where the data has been, located by survival
+
+`02_ladder_survival` forks a writer, kills it with `SIGKILL` at three
+moments, and counts what is left:
+
+| killed after | survives | so the bytes were |
+|---|---|---|
+| `fwrite` | 0 bytes | in the process's own memory, rung 1 |
+| `fwrite` + `fflush` | all of them | in the kernel's page cache, rung 2 |
+| + `fsync` | all of them | rung 2 at least; this test sees no further |
+
+Those counts are identical on every Linux machine. The third row is
+the instructive one: it passes and proves nothing the second did not.
+A test that cannot reach rung 3 tells you nothing about rung 3, which
+is Rule 4, and the lab is a worked example of the mistake that rule
+warns about.
+
+<div class="aside">
+An earlier version located the data with <code>mincore()</code> and
+<code>posix_fadvise(DONTNEED)</code> instead. It was dropped: a control
+file written with <code>O_DIRECT</code>, which by definition never
+enters the page cache, still reported 100% resident. The probe was
+measuring itself. Survival is cruder and correct.
+</div>
+
+The timing labs will give you different numbers than they gave me, and
+that is expected. Their *claims* should still hold, because the claims
+are ratios. The exact-invariant labs print the same values on every
+machine, which is what makes them checkable rather than anecdotal.
+
+## results.json
+
+Every run appends a manifest recording the git commit, whether the tree
+was dirty, the compiler, and a hash of each source file, then one
+object per lab with its environment and every claim's outcome. Send
+that file rather than a screenshot. It is the difference between "it
+was fast on my laptop" and a result somebody can argue with.
 
 ## Your numbers will not match the book's
 

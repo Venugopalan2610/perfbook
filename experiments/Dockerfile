@@ -24,22 +24,39 @@
 # detected virtualization. Check that block before comparing numbers
 # with anyone.
 
-FROM debian:bookworm-20250203-slim
+# PIN THIS BEFORE YOU RELY ON IT.
+#
+# A tag can be repointed at a new image; a digest cannot. Until you
+# append a digest, two people building this Dockerfile a month apart
+# can get different compilers, which is exactly the thing a container
+# is supposed to prevent.
+#
+#   docker buildx imagetools inspect debian:bookworm-slim
+#
+# then change the line below to:
+#   FROM debian:bookworm-slim@sha256:<the digest you just saw>
+#
+# It is deliberately not pinned here: a digest I cannot verify is
+# worse than none, because it fails to pull for reasons that look
+# like your mistake rather than mine.
+FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        gcc=4:12.2.0-3 \
+        gcc \
         libc6-dev \
         make \
         util-linux \
         systemd \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && cc --version | head -1
 
 WORKDIR /experiments
-COPY common.h Makefile *.c ./
+COPY common.h lab.h Makefile run-labs.sh *.c ./
+RUN chmod +x run-labs.sh
 RUN make all
 
 # Default to /scratch so the common case is a bind-mounted host path.
 ENV PERFBOOK_DIR=/scratch
 VOLUME /scratch
 
-CMD ["make", "run"]
+CMD ["./run-labs.sh"]

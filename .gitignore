@@ -12,3 +12,7 @@ experiments/01_write_latency
 experiments/03_fsync_cost
 experiments/06_crc_zero_seed
 experiments/.perfbook_*.tmp
+
+# Lab output
+experiments/results.json
+experiments/02_ladder_survival

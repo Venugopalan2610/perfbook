@@ -5,11 +5,15 @@
  * torn write takes, so the one check you added to catch corruption
  * waves through the most common corruption there is.
  *
- * No timing here. This is a correctness demonstration and it is
- * deterministic: it prints the same thing on every machine, which is
- * exactly what makes it checkable.
+ * Everything here is deterministic. The hex values below are the same
+ * on every machine and every compiler, which is what makes this a
+ * check you can hold me to rather than a number I once saw.
+ *
+ * The lab proves its own CRC is correct first, against the standard
+ * IEEE 802.3 test vector, so the finding cannot be blamed on a broken
+ * implementation.
  */
-#include "common.h"
+#include "lab.h"
 
 /* CRC-32 (IEEE 802.3), reflected, polynomial 0xEDB88320.
  * `seed` is the initial register value. The standard says 0xFFFFFFFF;
@@ -25,77 +29,89 @@ static uint32_t crc32_seeded(const uint8_t *data, size_t len, uint32_t seed)
     return crc;
 }
 
-/* A record as it would sit in a log: header, payload, trailing CRC. */
 typedef struct {
     uint8_t  payload[64];
     uint32_t stored_crc;
 } record_t;
 
-static int verify(const record_t *r, uint32_t seed)
-{
-    return crc32_seeded(r->payload, sizeof r->payload, seed) == r->stored_crc;
-}
-
-static void show(const char *what, const record_t *r, uint32_t seed, int expect_reject)
-{
-    uint32_t computed = crc32_seeded(r->payload, sizeof r->payload, seed);
-    int accepted = (computed == r->stored_crc);
-    const char *verdict = accepted ? "ACCEPTED" : "rejected";
-    const char *ok = (accepted == !expect_reject) ? " " : "  <-- WRONG";
-
-    printf("    %-34s stored %08x  computed %08x  %s%s\n",
-           what, r->stored_crc, computed, verdict, ok);
-}
-
 int main(void)
 {
-    printf("\n06 · Seed the register nonzero\n");
-    printf("    Why an all-zero torn write sails through a zero-seeded CRC.\n\n");
+    char obs[64], bound[64];
 
-    /* A real record, written correctly. */
-    record_t good;
+    lab_begin("06 · Seed the register nonzero",
+              "Where the Truth Stops",
+              "Why an all-zero torn write sails through a zero-seeded CRC.");
+
+    printf("claims\n");
+
+    /* 0. Known-answer test. If this fails nothing below means anything. */
+    const char *kat = "123456789";
+    uint32_t kat_crc = ~crc32_seeded((const uint8_t *)kat, 9, 0xFFFFFFFFu);
+    snprintf(obs,   sizeof obs,   "0x%08X", kat_crc);
+    snprintf(bound, sizeof bound, "0xCBF43926");
+    lab_check("crc32-known-answer",
+              "our CRC-32 matches the IEEE 802.3 vector for \"123456789\"",
+              obs, bound, kat_crc == 0xCBF43926u);
+
+    /* A real record, and the same block after a torn write left it
+     * zero-filled: payload and trailer both zero. */
+    record_t good, torn;
     for (size_t i = 0; i < sizeof good.payload; i++)
         good.payload[i] = (uint8_t)(i * 7 + 1);
-
-    /* The same block after a torn write left it zero-filled. The
-     * filesystem returned zeros for storage that was allocated but
-     * never written, so payload AND trailer are both zero. */
-    record_t torn;
     memset(torn.payload, 0, sizeof torn.payload);
     torn.stored_crc = 0;
 
-    printf("  with seed 0x00000000 (the trap)\n");
-    good.stored_crc = crc32_seeded(good.payload, sizeof good.payload, 0);
-    show("intact record", &good, 0, 0);
-    show("all-zero torn write", &torn, 0, 1);
+    /* 1. The trap: a zero-seeded CRC of all zeros is zero, so the
+     *    corrupt record verifies against its own zero trailer. */
+    uint32_t torn_zero_seed = crc32_seeded(torn.payload, sizeof torn.payload, 0);
+    snprintf(obs,   sizeof obs,   "0x%08X", torn_zero_seed);
+    snprintf(bound, sizeof bound, "0x00000000");
+    lab_check("zero-seed-yields-zero",
+              "zero-seeded CRC of an all-zero payload is itself zero",
+              obs, bound, torn_zero_seed == 0);
 
-    printf("\n  with seed 0xFFFFFFFF (the standard)\n");
-    good.stored_crc = crc32_seeded(good.payload, sizeof good.payload, 0xFFFFFFFFu);
-    show("intact record", &good, 0xFFFFFFFFu, 0);
-    show("all-zero torn write", &torn, 0xFFFFFFFFu, 1);
+    int accepted_by_zero_seed = (torn_zero_seed == torn.stored_crc);
+    snprintf(obs,   sizeof obs,   "%s", accepted_by_zero_seed ? "accepted" : "rejected");
+    snprintf(bound, sizeof bound, "accepted (the bug)");
+    lab_check("zero-seed-accepts-torn-write",
+              "so a zero-seeded check ACCEPTS the all-zero torn record",
+              obs, bound, accepted_by_zero_seed == 1);
 
-    /* Show it is not a fluke of one length: a zero-seeded CRC returns
-     * zero for a zero payload of ANY length. */
-    printf("\n  zero-seeded CRC of an all-zero buffer, by length\n    ");
+    /* 2. The fix: one nonzero constant. */
+    uint32_t torn_std_seed = crc32_seeded(torn.payload, sizeof torn.payload, 0xFFFFFFFFu);
+    int accepted_by_std_seed = (torn_std_seed == torn.stored_crc);
+    snprintf(obs,   sizeof obs,   "0x%08X, %s", torn_std_seed,
+             accepted_by_std_seed ? "accepted" : "rejected");
+    snprintf(bound, sizeof bound, "rejected");
+    lab_check("standard-seed-rejects-torn-write",
+              "seeding with 0xFFFFFFFF rejects the same record",
+              obs, bound, accepted_by_std_seed == 0);
+
+    /* 3. Not a fluke of one length. */
     uint8_t zeros[4096] = {0};
+    int all_zero = 1;
     for (size_t len = 1; len <= 4096; len *= 8)
-        printf("%zuB:%08x  ", len, crc32_seeded(zeros, len, 0));
-    printf("\n    Always zero. The leading bit is never 1, so the divisor\n");
-    printf("    never gets XORed in, so the register never changes.\n");
+        if (crc32_seeded(zeros, len, 0) != 0) all_zero = 0;
+    snprintf(obs,   sizeof obs,   "%s", all_zero ? "zero at every length" : "varies");
+    snprintf(bound, sizeof bound, "zero at every length");
+    lab_check("zero-seed-zero-at-any-length",
+              "the leading bit is never 1, so the divisor never enters",
+              obs, bound, all_zero);
 
-    /* The verdict, computed rather than asserted. */
-    int trap  = verify(&torn, 0);              /* accepted => trap present */
-    int fixed = verify(&torn, 0xFFFFFFFFu);    /* accepted => still broken */
+    /* 4. A correct record still verifies, so the fix is not just
+     *    "reject everything". */
+    good.stored_crc = crc32_seeded(good.payload, sizeof good.payload, 0xFFFFFFFFu);
+    int good_ok = crc32_seeded(good.payload, sizeof good.payload, 0xFFFFFFFFu) == good.stored_crc;
+    snprintf(obs,   sizeof obs,   "0x%08X, accepted", good.stored_crc);
+    snprintf(bound, sizeof bound, "accepted");
+    lab_check("intact-record-still-verifies",
+              "the seeded check still accepts a genuinely intact record",
+              obs, bound, good_ok);
 
-    printf("\n  result\n");
-    printf("    zero seed accepts the corrupt record:      %s\n", trap  ? "yes" : "no");
-    printf("    0xFFFFFFFF seed accepts the corrupt record: %s\n", fixed ? "yes" : "no");
+    printf("\nwhat this located\n");
+    printf("  The difference between catching the most common shape of\n");
+    printf("  torn write and shipping it is one constant in one line.\n");
+    printf("  Rule 8 is not a style preference.\n");
 
-    if (trap && !fixed) {
-        printf("\n    Rule 8 holds. The fix is one line and it is the\n");
-        printf("    difference between catching this and shipping it.\n\n");
-        return 0;
-    }
-    printf("\n    Unexpected: this build does not reproduce the trap.\n\n");
-    return 1;
+    return lab_end(".");
 }

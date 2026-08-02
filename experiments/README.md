@@ -1,93 +1,130 @@
-# Experiments
+# Labs
 
-Every number in this book is supposed to be one you can check. These
-are the programs that let you check them.
+Every number in this book is meant to be one you can check. These are
+the programs that check them, on your hardware, and tell you plainly
+whether the book's claims held.
 
 ```
-make run
+./run-labs.sh
 ```
 
-That builds three experiments and runs them in order. Nothing needs
-root, nothing writes outside the current directory, and each one
-cleans up after itself.
+Exit code 0 means every claim held. Nonzero means one did not, and the
+output says which. Nothing needs root, nothing writes outside the
+working directory, and each lab cleans up after itself.
+
+## Why these are labs and not benchmarks
+
+A benchmark prints a number. You cannot tell a correct run from a
+broken one, and you cannot compare your run to mine, because your
+drive is not my drive.
+
+So these do not assert absolute numbers. They assert **ratios** and
+**exact invariants**, which are the things that survive a change of
+hardware:
+
+- A 700 µs fsync and a 100 µs fsync are both perfectly normal.
+- An fsync that costs the same as a buffered write means you are not
+  measuring storage at all, and every conclusion below it is void.
+
+That second statement is a claim, so it is a check. Run these against
+a `tmpfs` and `measuring-real-storage` fails with a real error rather
+than quietly reporting that RAM is very fast storage.
+
+## Where the data has been, located by survival
+
+`02_ladder_survival` is the one that pins down location. It forks a
+writer, kills it with `SIGKILL` at three different moments, and counts
+what is left on disk:
+
+| killed after | survives | so the bytes were |
+|---|---|---|
+| `fwrite` | 0 bytes | in the process's own memory, rung 1 |
+| `fwrite` + `fflush` | all of them | in the kernel's page cache, rung 2 |
+| `fwrite` + `fflush` + `fsync` | all of them | at least rung 2; this test cannot see further |
+
+Those byte counts are identical on every Linux machine, which is what
+makes them checkable rather than anecdotal. The third row is the
+interesting one: it passes, and it proves nothing the second row did
+not. A test that cannot reach rung 3 tells you nothing about rung 3.
+That is Rule 4, and the lab is a worked example of the mistake it
+warns about.
+
+An earlier version of this lab tried to locate the data with
+`mincore()` and `posix_fadvise(DONTNEED)`. That approach was dropped:
+a control file written with `O_DIRECT`, which by definition never
+enters the page cache, still reported 100% resident. The probe was
+measuring itself. Survival is cruder and correct.
+
+## The labs
+
+| Lab | Chapter | Claims checked |
+|---|---|---|
+| `02_ladder_survival` | The Ladder | 3, all exact byte counts |
+| `03_fsync_cost` | The Barrier | 3, all ratios |
+| `06_crc_zero_seed` | Where the Truth Stops | 6, all exact, including a CRC-32 known-answer test |
+| `01_write_latency` | Five Microseconds | timing survey, no pass/fail yet |
+
+`06` proves its own CRC against the IEEE 802.3 vector for `123456789`
+before it claims anything, so the zero-seed finding cannot be blamed
+on a broken implementation.
 
 ## Point them at the right filesystem
 
-This matters more than anything else here. The default is the current
-directory, which is probably fine. But if you run these on `/tmp` and
-`/tmp` is `tmpfs`, you are measuring RAM and every result is a lie.
+This matters more than anything else here.
 
 ```
-PERFBOOK_DIR=/mnt/nvme make run
+PERFBOOK_DIR=/mnt/nvme ./run-labs.sh
 ```
 
-Every experiment prints the filesystem, device, and whether it detected
-a hypervisor before it prints a single measurement. If that block does
-not say what you expected, stop and fix it before reading the numbers.
+The default is the current directory. Run these on `/tmp` when `/tmp`
+is `tmpfs` and you are measuring RAM. The labs will catch it, but it
+is faster to point them somewhere real to begin with.
 
-## What each one is for
+## results.json
 
-| | Chapter | The claim it tests |
-|---|---|---|
-| `01_write_latency` | [Five Microseconds](../src/01-five-microseconds.md) | A 1 MB write can return faster than any path that could have moved the bytes |
-| `03_fsync_cost` | [The Barrier](../src/03-the-barrier.md) | fsync's cost is the round trip, not the payload |
-| `06_crc_zero_seed` | [Where the Truth Stops](../src/06-where-the-truth-stops.md) | A zero-seeded CRC accepts an all-zero torn write |
+Every run appends to `results.json`: a manifest, then one object per
+lab.
 
-The first two are timing experiments and will give you different
-numbers than they gave me. That is the point. The third is
-deterministic and prints the same thing everywhere, which is what
-makes it checkable rather than anecdotal.
+The manifest records the git commit, whether the tree was dirty, the
+compiler version, and a SHA-256 prefix of every source file. Each lab
+object records the kernel, the mount line, whether a hypervisor was
+detected, and every claim with its observed value, its bound, and
+whether it held.
 
-## Method, and why it is this way
+Send that file, not a screenshot. It is the difference between "it was
+fast on my laptop" and a result someone else can argue with.
 
-**Percentiles, never the mean.** A mean latency is an average of a
-number you care about and a number you care about much more. Each
-experiment reports min, p50, p95, p99, and the count.
+## What will move your numbers
 
-**Warmup runs, discarded.** The first few iterations pay for page
-faults and cold caches that steady-state operation does not.
-
-**The clock is measured too.** Every run prints its own
-`clock_gettime` overhead. If a result is within an order of magnitude
-of that number, you are measuring the instrument.
-
-**The environment is printed with the result.** A latency figure
-without its kernel, filesystem, device, and virtualization status is
-not a result. It is an anecdote. Paste the whole block when you
-compare notes with someone.
-
-## Things that will skew your numbers
-
-- **A hypervisor in the path.** `fsync` on a cloud VM often returns
-  when the host cache has it, not when the media does. The experiments
-  detect this and say so.
-- **A drive with a volatile write cache.** Consumer SSDs frequently
-  acknowledge a flush early. This is chapter 2's whole point, and it
-  is why an `fsync` number alone does not prove durability.
+- **A hypervisor.** `fsync` on a cloud VM often returns when the host
+  cache has it, not the media. Recorded in every lab object.
+- **A volatile drive write cache.** Consumer SSDs acknowledge flushes
+  early. That is chapter 2's point, and it is why an `fsync` latency
+  alone never proves durability.
 - **Filesystem journalling.** `ext4` with `data=ordered` commits its
-  journal on `fsync`, so you are timing two writes, not one. `findmnt`
-  output in the environment block shows your mount options.
-- **A laptop on battery.** Frequency scaling will make the same
-  program produce different numbers ten minutes apart.
+  journal on `fsync`, so you are timing two writes. The mount options
+  are in the output.
+- **A laptop on battery.** Frequency scaling will change the same
+  program's numbers ten minutes apart.
 
-## Reproducibility, honestly
+## Reproducibility, stated honestly
 
-`Dockerfile` pins the compiler and the base image, which makes the
-*build* reproducible. It does not make the *measurement* reproducible,
-because the storage stack under the container is still whatever your
-machine has, plus an overlayfs layer that your host does not have.
+`Dockerfile` pins the base image by digest and the compiler by
+version, which makes the **build** reproducible.
 
-Use it for a consistent toolchain, bind-mount a real directory, and
-read the environment block. Do not use it to claim your numbers match
-someone else's.
+It does not make the **measurement** reproducible. The storage stack
+under a container is still your machine's, plus an overlayfs layer
+your host does not have, and on Docker Desktop everything runs inside
+a Linux VM whose virtual disk is what you would actually be timing.
 
-## What is not here yet
+Use it for a consistent toolchain. Bind-mount a real directory. Then
+compare ratios and claim outcomes, not microseconds.
 
-- **Chapter 2 (The Ladder)** wants a power-loss test. You cannot do
-  that honestly from inside the machine losing power, which is the
-  chapter's entire argument. It needs a managed PDU or an IPMI
-  power-cycle and a second machine to verify from.
-- **Chapter 5 (Group Commit)** wants a load generator with real
-  concurrent writers.
-- **Chapters 7 and 8** want a GPU, and the arithmetic is checkable
-  with a calculator in the meantime.
+## Not here yet
+
+- **Rungs 3 and 4** need a real power cut: a managed PDU or an IPMI
+  power cycle, and a second machine to verify from. It cannot be done
+  honestly from inside the machine losing power, which is the whole
+  argument of chapter 2.
+- **Chapter 5** wants concurrent writers.
+- **Chapters 7 and 8** want a GPU.

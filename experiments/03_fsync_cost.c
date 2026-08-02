@@ -9,7 +9,7 @@
  * than 8 B. If it is barrier-bound, the small sizes should all cost
  * about the same, and only the large ones should start to climb.
  */
-#include "common.h"
+#include "lab.h"
 #include <fcntl.h>
 #include <errno.h>
 
@@ -35,8 +35,9 @@ int main(void)
     char path[1024];
     snprintf(path, sizeof path, "%s/.perfbook_03.tmp", dir);
 
-    printf("\n03 · What does fsync actually charge you for?\n");
-    printf("    Same call, payloads spanning six orders of magnitude.\n\n");
+    lab_begin("03 · What does fsync actually charge you for?",
+              "The Barrier",
+              "Same call, payloads spanning six orders of magnitude.");
     print_environment(dir);
 
     char *buf = malloc(SIZES[NSIZES - 1]);
@@ -44,7 +45,7 @@ int main(void)
     memset(buf, 'x', SIZES[NSIZES - 1]);
 
     uint64_t *v = malloc(ITERS * sizeof *v);
-    uint64_t p50_smallest = 0, p50_largest = 0;
+    uint64_t p50_smallest = 0, p50_largest = 0, p50_4k = 0;
 
     printf("cost of one write() + fsync(), by payload\n");
 
@@ -70,28 +71,49 @@ int main(void)
         print_stats(label, s);
 
         if (si == 0)            p50_smallest = s.p50;
+        if (sz == 4096)         p50_4k       = s.p50;
         if (si == NSIZES - 1)   p50_largest  = s.p50;
     }
 
-    /* The whole argument in one ratio. */
+    /* The whole argument, as claims a reader can hold me to. These
+     * are ratios on purpose: they survive a change of hardware that
+     * absolute latency does not. */
     size_t size_ratio = SIZES[NSIZES - 1] / SIZES[0];
     double cost_ratio = p50_smallest ? (double)p50_largest / (double)p50_smallest : 0.0;
+    char obs[64], bound[64];
 
-    printf("\nthe ratio that decides it\n");
-    printf("  payload grew   %zu×  (8 B to 8 MB)\n", size_ratio);
-    printf("  cost grew      %.1f×\n", cost_ratio);
+    printf("\nclaims\n");
 
-    printf("\n  If cost were bandwidth-bound those two numbers would match.\n");
-    if (cost_ratio < size_ratio / 100.0)
-        printf("  They do not. The bytes are not what you are paying for:\n"
-               "  you are paying for the round trip to the barrier.\n");
-    else
-        printf("  On this device they are closer than chapter 3 predicts.\n"
-               "  Worth asking what is different here: a slow bus, a\n"
-               "  hypervisor in the path, or a device that batches flushes.\n");
+    /* 1. Are we measuring storage at all? On tmpfs an fsync is close
+     *    to free and every claim below becomes meaningless. */
+    snprintf(obs,   sizeof obs,   "%s", fmt_ns(p50_smallest));
+    snprintf(bound, sizeof bound, "> 20 µs");
+    lab_check("measuring-real-storage",
+              "an 8 B fsync costs real time, so this is not tmpfs or a no-op",
+              obs, bound, p50_smallest > 20000);
 
-    /* Bandwidth floor for the 8 B case, so the reader can run the
-     * chapter's own arithmetic against their measurement. */
+    /* 2. The chapter's actual claim. Payload grew a million fold; if
+     *    cost were bandwidth-bound it would have too. A factor of 100
+     *    is a deliberately loose bound: the claim is about orders of
+     *    magnitude, not a tuned threshold. */
+    snprintf(obs,   sizeof obs,   "%.1f× for %zu× data", cost_ratio, size_ratio);
+    snprintf(bound, sizeof bound, "< %zu× (100× slack)", size_ratio / 100);
+    lab_check("cost-is-not-bandwidth-bound",
+              "cost grows far slower than payload: the bytes are not the bill",
+              obs, bound, cost_ratio < (double)size_ratio / 100.0);
+
+    /* 3. The small payloads should be nearly indistinguishable from
+     *    each other, because they are all paying for the same trip. */
+    snprintf(obs,   sizeof obs,   "%s vs %s", fmt_ns(p50_smallest), fmt_ns(p50_4k));
+    snprintf(bound, sizeof bound, "within 3×");
+    {
+        double r = (double)p50_4k / (double)p50_smallest;
+        if (r < 1.0) r = 1.0 / r;
+        lab_check("small-payloads-cost-the-same",
+                  "8 B and 4 KB cost about the same: both buy one barrier",
+                  obs, bound, r < 3.0);
+    }
+
     printf("\nfloor test on the 8 B case\n");
     printf("  8 B at 2 GB/s would be           %s\n", fmt_ns(4));
     printf("  you measured (p50)               %s\n", fmt_ns(p50_smallest));
@@ -101,5 +123,5 @@ int main(void)
     printf("\n");
     unlink(path);
     free(buf); free(v);
-    return 0;
+    return lab_end(dir);
 }
