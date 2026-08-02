@@ -65,16 +65,43 @@ power cut.
 
 ## 2.3 Doing the Division
 
-There's no arithmetic to do here. The table above *is* the division.
-What kills a byte is entirely determined by which row it's sitting in,
-not by how long it's been sitting there.
+There is arithmetic here, and it isn't the arithmetic the harness
+looked like it was doing.
 
-Which is what makes that ten-thousand-run test misleading, in
-hindsight. `kill -9` only ever reaches row one. It could run forever
-and never once touch rows two through four, because the thing it
-deletes (the process) never owned anything past the userspace buffer
-to begin with. The test wasn't flaky and it wasn't lucky. It measured a
-claim one row deep while the data lived three rows deeper.
+Ten thousand clean runs is a real statistical result. When we see zero
+failures in n trials, the ninety-five percent upper bound on the true
+failure rate is about 3/n, so the harness bought us a genuinely
+precise number:
+
+```
+     10,000 runs, 0 failures  ->  failure rate below 1 in 3,339
+  1,000,000 runs, 0 failures  ->  failure rate below 1 in 333,809
+```
+
+That is defensible, and it wasn't free. Which makes it worth being
+exact about what it is a number *about*.
+
+`kill -9` deletes a process, and a process owns row one. So every one
+of those ten thousand trials was a trial of row one, and not one of
+them was a trial of anything else. Run the division again with that
+column added:
+
+```
+  trials that reached row 1        10,000
+  trials that reached row 3             0
+
+  95% bound, row 1 data loss   1 in 3,339
+  95% bound, row 3 data loss          100%
+```
+
+Zero trials support no bound at all. After ten thousand runs, our
+honest upper bound on losing acknowledged data to a power cut is one
+hundred percent, exactly where it stood before the harness was
+written. Ten million runs would leave it at one hundred percent too.
+
+The test wasn't flaky and it wasn't lucky. It was accurate to three
+significant figures, about row one, while the data we were worried
+about lived three rows further down.
 
 <div class="rule" id="failure-fidelity">
 <span class="rule-id">Rule 4 · Test the failure you claim to survive</span>

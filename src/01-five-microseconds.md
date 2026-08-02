@@ -2,21 +2,19 @@
 
 > Any sufficiently advanced measurement is indistinguishable from a lie.
 
-Here's a small experiment you can picture without leaving this page:
-write a megabyte to a file, time the call, and see what comes back. On
-an ordinary machine, on an ordinary day, it returns in about five
-microseconds.
+Let's start with a measurement we can set up without leaving this
+page: write a megabyte to a file, time the call, and see what comes
+back. On an ordinary machine, on an ordinary day, it returns in about
+five microseconds.
 
-If you've run something like this a hundred times, that number probably
-slides right past you. It's small, the write worked, the test passed,
-on to the next thing. But five microseconds is going to turn out to be
-the loudest thing that happens to you all week, and this chapter is
-about learning to actually hear it.
+Run that a hundred times and the number stops registering. It's small,
+the write worked, the test passed, on to the next thing. But five
+microseconds is the loudest thing that will happen to us all week, and
+this chapter is about learning to actually hear it.
 
 We're not going to look anything up. By the end we'll know exactly
 where that megabyte is sitting, and we'll have gotten there with four
-numbers and some long division, the same tools you have at your desk
-right now.
+numbers and some long division, which is all this ever really takes.
 
 ## 1.1 Two Candidates and a Missing Number
 
@@ -53,12 +51,12 @@ asking it early is procrastination wearing a lab coat.
 
 ## 1.2 The Axioms
 
-Here's the part nobody quite says out loud: some of this you cannot
-derive, no matter how cleverly you reason. A cache line is 64 bytes
+Here's the part nobody quite says out loud: some of this we cannot
+derive, no matter how cleverly we reason. A cache line is 64 bytes
 because someone, once, chose 64. DRAM latency is whatever physics and
 market economics happened to settle on. There's no first-principles
-path to either number. You just have to know it, the way you have to
-know a stop sign is red.
+path to either number. We just have to know it, the way we know a stop
+sign is red.
 
 So let's take them as given. There's no shame in being handed a
 constant. The only real shame is needing to be handed the conclusion
@@ -76,7 +74,7 @@ do with them is the actual skill.
 ## 1.3 Doing the Division
 
 One megabyte, three plausible paths home. Before reading on, it's worth
-committing to a number of your own, not because the arithmetic is
+committing to a number of our own, not because the arithmetic is
 hard, but because writing down a value you might be *wrong* about is
 the entire point of the exercise.
 
@@ -116,7 +114,7 @@ skipped, and now we get to go find out what.
 The textbook reflex here is *page cache*. The kernel took the bytes,
 parked them in its own memory, and returned without ever touching the
 device. Deferred write-back: clever, well documented, and it feels
-like an answer the moment you say it out loud.
+like an answer the moment we say it out loud.
 
 So let's turn the floor test on it, the same way we'd turn it on anyone
 else's claim.
@@ -188,8 +186,8 @@ What survives is the asynchronous submission: the syscall that queued
 a pointer and returned without touching the bytes. Buffering explains
 plenty of fast returns, just smaller ones. Ask for four kilobytes
 instead of a megabyte and the copy costs well under a microsecond, and
-buffering becomes the likeliest answer in the room. The mechanism you
-land on depends on the size you asked about, which is why the megabyte
+buffering becomes the likeliest answer in the room. The mechanism we
+land on depends on the size we asked about, which is why the megabyte
 was in the question at all.
 
 ## 1.6 Resisting `strace`
@@ -251,7 +249,7 @@ And `fsync()` isn't "send it to the kernel"; it's already there.
 
 Most people already know about `fsync`. What catches people off guard
 is subtler: the default path in nearly every file API stops one level
-short of durable, and you have to opt into that last step on purpose.
+short of durable, and we have to opt into that last step on purpose.
 Closing a file flushes userspace into the kernel. It does not sync.
 
 Which sets up everything in Part II. That last arrow turns out to be
@@ -294,15 +292,15 @@ re-read, you'd have the chat log.
 
 There's a specific failure mode that looks exactly like diligence.
 
-You have a question. Instead of estimating an answer, you instrument.
+We have a question. Instead of estimating an answer, we instrument.
 Flame graphs, tracing, a benchmark harness, an argument about
-statistical significance. Three days later you have beautiful data
-about something a single division would have settled in ten seconds.
+statistical significance. Three days later we have beautiful data about
+something a single division would have settled in ten seconds.
 
-The tell is that you never wrote down what you *expected*.
+The tell is that we never wrote down what we *expected*.
 Instrumentation without a prediction has no failure condition: every
-result looks interesting, nothing is surprising, and you learn
-surprisingly little, because nothing you believed was ever actually put
+result looks interesting, nothing is surprising, and we learn
+surprisingly little, because nothing we believed was ever actually put
 at risk.
 
 The discipline is cheap, and it stings a little: before you measure,

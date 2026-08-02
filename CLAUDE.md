@@ -11,9 +11,13 @@ mdbook serve --open     # local, live reload
 mdbook build            # outputs to book/ (gitignored)
 ```
 
-Deploy is automatic: push to `main`, `.github/workflows/deploy.yml` builds
-and publishes to GitHub Pages. Repo Settings → Pages → Source must be set
-to **GitHub Actions**.
+Deploy is automatic: push to `master` (the repo's default branch),
+`.github/workflows/mdbook.yml` builds and publishes to GitHub Pages.
+Repo Settings → Pages → Source must be set to **GitHub Actions**. The
+workflow's `branches:` list has to match the branch name, or nothing
+runs and nothing says why.
+
+Live at https://Venugopalan2610.github.io/perfbook/
 
 ## Status
 
@@ -78,9 +82,17 @@ before writing if the voice has drifted — it drifts easily toward
 watch for.
 
 - **"We," not "you," for the journey.** We're building this
-  understanding together; the reader isn't a suspect being tested. "You"
-  is fine for direct address ("if you've ever debugged this...") but the
-  default pronoun for figuring things out is "we."
+  understanding together; the reader isn't a suspect being tested. The
+  operational split, which every chapter follows:
+  - narrative and derivation: **we** ("let's line them up", "our
+    workload", "we haven't, not really")
+  - rule boxes, challenges, and direct advice: **you** ("sort your next
+    questions", "you measure a 4 KB write at 900 ns")
+
+  Chapter 1 drifted into second person once and had to be rewritten to
+  match the other seven. Sanity check with a we:you ratio over the
+  chapter body, excluding challenges: every chapter sits between about
+  1.5 and 7. An outlier means the person slipped.
 - **Curiosity, not combat.** A wrong candidate is set aside because the
   arithmetic doesn't support it, not "killed," "dead on arrival," or
   "retired." No section is named after a fight. Rule out, narrow down,
