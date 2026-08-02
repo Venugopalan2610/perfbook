@@ -108,7 +108,7 @@ ruler(
         (6.7e-3, "6.7 ms", "disk", False),
     ],
     xlim=(2e-6, 2e-2),
-    caption="Log scale. The measurement doesn't land between the candidates — it lands to the left of all of them.",
+    caption="Log scale. The measurement doesn't land between the candidates. It lands to the left of all of them.",
 )
 
 ruler(
@@ -130,7 +130,7 @@ ruler(
         (156, "~156 FLOP/B", "ridge", False),
     ],
     xlim=(0.3, 500),
-    caption="Log scale. The workload sits two orders of magnitude left of the ridge — deep in memory-bound territory.",
+    caption="Log scale. The workload sits two orders of magnitude left of the ridge, deep in memory-bound territory.",
     figheight=1.6,
 )
 
@@ -201,7 +201,7 @@ def kv_budget_bar():
     ax.barh(1, weights_gb, color=MUTED, edgecolor=PAPER, height=0.5, label="weights (14 GB)")
     ax.barh(1, kv_gb, left=weights_gb, color=SIGNAL, edgecolor=PAPER, height=0.5,
             label="KV cache")
-    ax.annotate("64 GB — 64 sequences", (weights_gb + kv_gb, 1), xytext=(10, 0),
+    ax.annotate("64 GB, 64 sequences", (weights_gb + kv_gb, 1), xytext=(10, 0),
                 textcoords="offset points", fontsize=10, color=SIGNAL, ha="left", va="center",
                 fontweight="bold")
 
@@ -209,7 +209,7 @@ def kv_budget_bar():
     ax.barh(0, weights_gb, color=MUTED, edgecolor=PAPER, height=0.5, alpha=0.55)
     ax.barh(0, ridge_kv_gb, left=weights_gb, color=FLAG, edgecolor=PAPER, height=0.5, alpha=0.9,
             label="KV cache the ridge wants")
-    ax.annotate(f"~{ridge_kv_gb:.0f} GB — {ridge_sequences} sequences\n(~{weights_gb + ridge_kv_gb:.0f} GB total, doesn't fit)",
+    ax.annotate(f"~{ridge_kv_gb:.0f} GB, {ridge_sequences} sequences\n(~{weights_gb + ridge_kv_gb:.0f} GB total, doesn't fit)",
                 (weights_gb + ridge_kv_gb, 0), xytext=(10, 0),
                 textcoords="offset points", fontsize=10, color=FLAG, ha="left", va="center",
                 fontweight="bold")
@@ -289,7 +289,7 @@ survival_grid()
 # --- Fixed vs. adaptive batching latency: chapter 5 ---------------------
 def group_commit_bars():
     scenarios = ["low load\n(10 events/sec)", "high load\n(100,000 events/sec)"]
-    fixed_ms = [100_000, 10]       # 100 s, 10 ms — in milliseconds
+    fixed_ms = [100_000, 10]       # 100 s, 10 ms, in milliseconds
     adaptive_ms = [0.1, 0.1]       # ~100 µs either way
 
     x = [0, 1.4]

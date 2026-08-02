@@ -4,7 +4,7 @@
 
 Let's run a small loop: an 8-byte counter, appended to a file, once per
 iteration. In memory, that loop does fifty million iterations a second.
-Add one call — `fsync()` after every append — and it does two thousand.
+Add one call, `fsync()` after every append, and it does two thousand.
 
 Twenty-five thousand times slower, just to persist eight bytes. Not
 eight megabytes. Eight bytes. Whatever `fsync` is charging us for, it
@@ -25,7 +25,7 @@ bandwidth, 8 bytes should cost:
 ```
 
 We measured roughly 100 microseconds for that same call. Not a close
-call — that's **25,000×** over the bandwidth floor. Candidate one isn't
+call. That's **25,000×** over the bandwidth floor. Candidate one isn't
 slightly wrong, it's off by more than four orders of magnitude. Set it
 aside.
 
@@ -47,7 +47,7 @@ for.
 | SATA SSD | ~1–3 ms |
 | 7200 RPM spinning disk | ~5–10 ms |
 
-Roughly a 100× spread top to bottom — and every one of those numbers
+Roughly a 100× spread top to bottom, and every one of those numbers
 stays close to flat whether we're syncing 8 bytes or 8 kilobytes. That
 flatness is the tell. If cost barely moves with payload size, payload
 size was never the dominant term.
@@ -55,8 +55,8 @@ size was never the dominant term.
 ## 3.3 Doing the Division
 
 What `fsync` actually is: a **barrier**. A call that blocks until every
-write queued before it is provably on non-volatile media, and — this is
-the part the name hides — a promise about *order*, not just
+write queued before it is provably on non-volatile media, and (this is
+the part the name hides) a promise about *order*, not just
 persistence. Nothing after the barrier gets to be considered durable
 before everything ahead of it is.
 
@@ -77,7 +77,7 @@ never once per write.
 ## 3.4 What This Rules Out
 
 This rules out the intuition that durability is something we sprinkle
-in — "just fsync after every write, to be safe." Safety isn't the axis
+in: "just fsync after every write, to be safe." Safety isn't the axis
 that scales badly here; call *count* is. A service that fsyncs every
 record is choosing to pay a 100 µs–10 ms toll on every single
 operation, no matter how small, because the toll booth doesn't care
@@ -86,7 +86,7 @@ what's in the trunk.
 It also separates two things we tend to lump together: durability and
 ordering aren't the same purchase. You can imagine a system that needs
 writes applied in order but doesn't need every one of them durable the
-instant it lands — and one that needs durability but doesn't care about
+instant it lands, and one that needs durability but doesn't care about
 relative order. `fsync` sells us both together, bundled, whether we
 wanted the bundle or not. Chapter 4 is what happens once you take that
 bundling seriously: you put only the thing that *must* be
@@ -129,7 +129,7 @@ let the queue fill before drawing the line.
 
 3. Two threads each call `fsync` on the same file at nearly the same
    time. Does the second call's cost look like a second full barrier,
-   or something cheaper — and what would you measure to find out, per
+   or something cheaper, and what would you measure to find out, per
    Rule 3?
 
 4. `O_DIRECT` writes bypass the page cache entirely. Does that make
@@ -147,14 +147,14 @@ Every `fsync` call sells two things at once: *this data is durable* and
 it because we want the first one, and end up paying for the second
 without noticing.
 
-That would be fine if the second one were free. It isn't — ordering
+That would be fine if the second one were free. It isn't. Ordering
 guarantees are exactly what turns a bandwidth-bound operation into a
 latency-bound one, because proving order means waiting for
 confirmation, and waiting is the opposite of throughput.
 
 The systems that get this right unbundle it on purpose. They find the
-one thing that truly needs the full barrier — usually a small,
-append-only log — and let everything downstream inherit durability
+one thing that truly needs the full barrier (usually a small,
+append-only log) and let everything downstream inherit durability
 without ever calling `fsync` itself. Not a trick. Just declining to buy
 the bundle twice.
 

@@ -31,7 +31,7 @@ at      10 events/sec:  1000 ÷      10  = 100  s  to fill    (not fine)
 
 **Ten million times worse**, same constant, just a quieter night.
 There's no single value of N that's safe across a load range that
-wide — whatever we pick is only correct at the traffic level we tuned
+wide. Whatever we pick is only correct at the traffic level we tuned
 it for, and wrong by orders of magnitude everywhere else.
 
 <div class="aside">
@@ -55,7 +55,7 @@ or a thousand.
 
 That equality is the whole opportunity. If a barrier crossing is nearly
 free per additional record, the only thing worth optimizing is *how
-many records arrive during the crossing we're already paying for* —
+many records arrive during the crossing we're already paying for*,
 not how many we force ourselves to wait for.
 
 ## 5.3 Doing the Division
@@ -74,9 +74,9 @@ t=200µs     fsync #2 returns → ack 2,3,4; fsync #3 issued, covers {...}
 
 The batch size falls out of the arrival rate automatically. At high
 load, dozens of requests pile up during one 100 µs window and ride out
-together — we get the throughput win without ever naming a number. At
+together, and we get the throughput win without ever naming a number. At
 low load, a single request often finds nobody else queued, its "batch"
-is size one, and it still only waits one fsync round trip — not the
+is size one, and it still only waits one fsync round trip, not the
 100 seconds a fixed count of 1000 would have imposed.
 
 <div class="rule" id="adaptive-batching">
@@ -89,19 +89,19 @@ guess about it.
 ## 5.4 What This Rules Out
 
 This rules out both fixed-count and fixed-time-window batching as
-general solutions — not because they're wrong exactly, but because each
+general solutions, not because they're wrong exactly, but because each
 one encodes an assumption about load that the adaptive version doesn't
 need to make. Fixed-count breaks low; fixed-window taxes everyone,
 always, even when nobody's waiting behind you.
 
-One wrinkle the naive adaptive version misses: at *moderate* load —
-just under one arrival per fsync-latency window — batches regress
+One wrinkle the naive adaptive version misses: at *moderate* load,
+just under one arrival per fsync-latency window, batches regress
 toward size one anyway, and we're back to firing an `fsync` for nearly
 every record. That's not a correctness problem, but it does mean
 maximum call rate, and on flash media, call rate correlates with write
-amplification and wear. A small floor — hold the batch open for a
+amplification and wear. A small floor (hold the batch open for a
 minimum of roughly 200 µs even if the in-flight fsync would've returned
-sooner — caps how often the device gets hit, at the cost of a bounded,
+sooner) caps how often the device gets hit, at the cost of a bounded,
 small, constant latency add. Same trade as the fixed window, just sized
 to be negligible instead of dominant.
 
@@ -112,7 +112,7 @@ to be negligible instead of dominant.
 
 <div class="aside">
 This is the same amortization trick as batching writes before `fsync`
-in the first place — and, spoiler for chapter 7, the same trick that
+in the first place, and (spoiler for chapter 7) the same trick that
 makes GPU batching worthwhile too. Pay a fixed round-trip cost once,
 spread it over whoever showed up while you were paying it.
 </div>
@@ -134,7 +134,7 @@ spread it over whoever showed up while you were paying it.
    for the scheme in 5.3 to still be correct?
 
 4. Redraw the 5.1 arithmetic for a system with two tiers of durability
-   need — some callers require the fsync ack, others are fine acking
+   need: some callers require the fsync ack, others are fine acking
    off the page cache. Does one adaptive batch still serve both, or do
    you need two?
 
@@ -145,15 +145,15 @@ spread it over whoever showed up while you were paying it.
 ## Design Note: Tuning a Constant Is Postponing a Bug
 
 Every hardcoded batch size, timeout, or thread-pool count is a bet that
-tomorrow's load looks like today's. The bet is usually fine — until
+tomorrow's load looks like today's. The bet is usually fine, until
 traffic has a bad night, a good launch, or a regional failover doubles
 one region's share. The constant doesn't fail loudly when the bet goes
 bad. It just quietly stops being the right answer, and the system keeps
 running, worse, until someone notices the 100-second tail.
 
 The fix isn't a better constant. It's noticing which inputs to the
-formula are actually *observable at runtime* — here, "is the fsync
-still in flight" — and driving the decision off those instead of a
+formula are actually *observable at runtime* (here, "is the fsync
+still in flight") and driving the decision off those instead of a
 number picked once, in a meeting, based on last week's dashboard.
 
 If we can replace a constant with a measurement the system already has

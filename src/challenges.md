@@ -22,15 +22,15 @@ retrieval, not rereading.
 3. An NVMe spec sheet doesn't mention power-loss protection. What
    experiment tells you whether it has it, without opening the case?
 4. Redraw the power-loss column as a function of shared-UPS failure
-   rate — at what point does "no PLP on the drive" stop being a real risk?
+   rate. At what point does "no PLP on the drive" stop being a real risk?
 
 ## 3 · The Barrier
 
-1. Batching 100 records behind one `fsync` — best-case throughput gain,
+1. Batching 100 records behind one `fsync`: best-case throughput gain,
    and what makes the real gain fall short of it?
 2. When does `fdatasync` not actually save you a barrier crossing?
 3. Two threads `fsync` the same file near-simultaneously. Does the
-   second call cost a full barrier or something cheaper — how would you
+   second call cost a full barrier or something cheaper, and how would you
    find out?
 4. Does `O_DIRECT` make `fsync` unnecessary? Name the specific claim
    `fsync` makes that a direct write alone doesn't.
@@ -54,14 +54,14 @@ retrieval, not rereading.
    help, or start hurting?
 3. Two writers share one log file. What has to be true about their
    fsync coordination for adaptive batching to stay correct?
-4. Redo the arithmetic for two durability tiers — some callers need the
+4. Redo the arithmetic for two durability tiers: some callers need the
    fsync ack, some are fine off the page cache. One batch, or two?
 
 ## 6 · Where the Truth Stops
 
 1. Record 3's CRC matches, but record 2 before it was torn and
    truncated the file mid-record. Does record 3's match mean anything?
-2. Upgrading 16-bit → 32-bit checksum — new odds of undetected
+2. Upgrading 16-bit → 32-bit checksum: new odds of undetected
    corruption, and at what write rate would you expect one over a year?
 3. CRC isn't cryptographically secure. Under what threat model does
    that matter for crash recovery, and under what model doesn't it?
@@ -75,7 +75,7 @@ retrieval, not rereading.
 2. A 13B model roughly doubles both weight bytes and FLOPs per token.
    Does its ridge-crossing batch size move, and which way?
 3. fp16 → int8 halves bytes without changing FLOPs much. Recompute
-   arithmetic intensity at batch 1 — closer to the ridge or not?
+   arithmetic intensity at batch 1. Closer to the ridge or not?
 4. Redo the FLOP/byte arithmetic for a 2048-token prefill pass
    (matrix-matrix, not matrix-vector). Compute-bound or memory-bound?
 
@@ -85,7 +85,7 @@ retrieval, not rereading.
    the batch ceiling and check it against the ridge's target of ~156.
 2. Design a memory-accounting scheme for mixed-length sequences that
    doesn't pad everyone to the max length.
-3. int8 KV quantization halves bytes/token — does it move the ridge
+3. int8 KV quantization halves bytes/token. Does it move the ridge
    point, the batch ceiling, or both?
 4. Estimate whether a 70B model's KV-cache-per-token is closer to 5× or
    10× the 7B figure, and redo the 80 GB budget.

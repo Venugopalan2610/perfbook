@@ -4,12 +4,12 @@
 
 Say we build a crash-test harness for a write path we care about.
 `kill -9` the process mid-write, ten thousand times, at a random byte
-offset each time. Zero bytes lost, every single run. Feels great — we
+offset each time. Zero bytes lost, every single run. Feels great, so we
 ship it.
 
 Six weeks later, someone runs the same workload through a power-fault
-rig instead — a switch that cuts the wall socket rather than the
-process — and it loses data on the very first try.
+rig instead (a switch that cuts the wall socket rather than the
+process), and it loses data on the very first try.
 
 Ten thousand for ten thousand on one test. Zero for one on the other.
 That's not a flaky test. It's two different questions wearing the same
@@ -21,8 +21,8 @@ The natural reflex is to treat this as a probability problem: kill -9
 failure is rare, power-loss failure is common, go collect more samples
 and find the true rate.
 
-Worth resisting. Let's ask Rule 1's question first — how much do the
-candidate answers actually differ? — and here the honest answer is that
+Worth resisting. Let's ask Rule 1's question first: how much do the
+candidate answers actually differ? Here the honest answer is that
 this isn't a spread at all, it's a category error. `kill -9` removes a
 *process*. A power cut removes *power to the machine*. Those aren't two
 points on the same axis; they're different axes entirely. No amount of
@@ -57,7 +57,7 @@ layer: does it *survive* this failure?
 That third row is the one nobody's intuition gets for free: consumer
 SSDs and spinning disks both carry a small volatile write cache *on the
 device itself*, after the data has already left the kernel. Enterprise
-drives often ship power-loss protection — a capacitor sized to finish
+drives often ship power-loss protection, a capacitor sized to finish
 the flush during the few milliseconds after the plug is pulled.
 Consumer drives usually don't. Two drives can both report "write
 complete" and quietly disagree about whether that claim survives a
@@ -65,14 +65,14 @@ power cut.
 
 ## 2.3 Doing the Division
 
-There's no arithmetic to do here — the table above *is* the division.
+There's no arithmetic to do here. The table above *is* the division.
 What kills a byte is entirely determined by which row it's sitting in,
 not by how long it's been sitting there.
 
 Which is what makes that ten-thousand-run test misleading, in
 hindsight. `kill -9` only ever reaches row one. It could run forever
 and never once touch rows two through four, because the thing it
-deletes — the process — never owned anything past the userspace buffer
+deletes (the process) never owned anything past the userspace buffer
 to begin with. The test wasn't flaky and it wasn't lucky. It measured a
 claim one row deep while the data lived three rows deeper.
 
@@ -86,12 +86,12 @@ nothing about that layer. Count rows before you count nines.
 
 This retires a comfortable piece of folk wisdom: "we crash-test in CI,
 we're covered." Covered against what, exactly? If the harness only ever
-sends `SIGKILL`, it has validated exactly one row of the ladder — the
+sends `SIGKILL`, it has validated exactly one row of the ladder: the
 row that was never actually in danger, since page cache doesn't care
 whether our process is still alive.
 
-The claim that needed testing — *does an acknowledged write survive
-losing the wall socket* — requires reaching row three or four. That
+The claim that needed testing (*does an acknowledged write survive
+losing the wall socket*) requires reaching row three or four. That
 needs `fsync()` (next chapter) and a fault injector that removes power,
 not signals: IPMI power-cycle, a managed PDU, a physical switch.
 Nothing short of that reaches the rows where the real risk actually
@@ -99,7 +99,7 @@ lives.
 
 ## 2.5 The Pictorial
 
-<img class="chart" src="img/survival-grid-02-the-ladder.svg" alt="Grid of four storage layers (userspace buffer, page cache, drive write cache, flash/platter) against four failure modes (kill -9, kernel panic, power loss, power loss with PLP). Checkmarks and crosses show which layers survive which failures — the same data as the 2.2 table, arranged so the failure boundary for each column is visible at a glance.">
+<img class="chart" src="img/survival-grid-02-the-ladder.svg" alt="Grid of four storage layers (userspace buffer, page cache, drive write cache, flash/platter) against four failure modes (kill -9, kernel panic, power loss, power loss with PLP). Checkmarks and crosses show which layers survive which failures: the same data as the 2.2 table, arranged so the failure boundary for each column is visible at a glance.">
 
 <div class="aside">
 Read each column top to bottom: the first ✗ you hit is where that
@@ -110,7 +110,7 @@ test suites ever bother to look.
 
 Five microseconds put us on row one, back in chapter 1. The rest of
 this book is about what it costs, in time and in engineering, to walk
-down to row four on purpose — and about not fooling ourselves into
+down to row four on purpose, and about not fooling ourselves into
 thinking we're already there.
 
 <div class="challenges">
@@ -123,7 +123,7 @@ thinking we're already there.
 
 2. A colleague proposes testing power loss by calling `echo b >
    /proc/sysrq-trigger` (immediate reboot, no shutdown sequence) instead
-   of physically cutting power. Where does that sit on the ladder —
+   of physically cutting power. Where does that sit on the ladder:
    closer to `kill -9` or closer to a real power cut? Justify it from
    what each one actually destroys.
 
@@ -133,7 +133,7 @@ thinking we're already there.
 
 4. You have a fleet of machines behind a shared UPS. The UPS itself has
    a failure rate. Redraw the ladder's power-loss column as a function
-   of UPS reliability — at what UPS failure rate does "no PLP on the
+   of UPS reliability. At what UPS failure rate does "no PLP on the
    drive" stop being a real risk in practice?
 
 </div>

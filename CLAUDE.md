@@ -98,9 +98,14 @@ watch for.
 - **Prose over bullets** in the chapters themselves, still true. Bullets
   are for reference material (axiom tables, the Rules Index), not for
   the argument itself.
-- Numbers still matter and still show up early — but "early" means
+- Numbers still matter and still show up early, but "early" means
   "once the reader knows why this number is the one worth caring about,"
   not mechanically in the first three sentences.
+- **No em-dashes (—) anywhere in `src/` or in chart captions.** Use a
+  colon when the clause explains, a period when it's a new thought,
+  parentheses for a true aside, a comma otherwise. En-dashes in numeric
+  ranges (`1–5 ns`, `5–10 ms`) are fine and should stay. Check with
+  `grep -c '—' src/*.md pipeline/make_charts.py` before committing.
 
 ## Remaining raw material
 

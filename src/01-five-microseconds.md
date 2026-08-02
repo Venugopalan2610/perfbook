@@ -15,7 +15,7 @@ about learning to actually hear it.
 
 We're not going to look anything up. By the end we'll know exactly
 where that megabyte is sitting, and we'll have gotten there with four
-numbers and some long division — the same tools you have at your desk
+numbers and some long division, the same tools you have at your desk
 right now.
 
 ## 1.1 Two Candidates and a Missing Number
@@ -46,7 +46,7 @@ ratio is what tells us whether the question was worth asking at all.
 <div class="rule" id="ratio-triage">
 <span class="rule-id">Rule 1 · Ratio triage</span>
 Sort your next questions by the spread between their possible answers.
-A question whose answers differ by 10× splits the world — ask it now.
+A question whose answers differ by 10× splits the world. Ask it now.
 A question whose answers differ by less than 2× is a detail, and
 asking it early is procrastination wearing a lab coat.
 </div>
@@ -57,7 +57,7 @@ Here's the part nobody quite says out loud: some of this you cannot
 derive, no matter how cleverly you reason. A cache line is 64 bytes
 because someone, once, chose 64. DRAM latency is whatever physics and
 market economics happened to settle on. There's no first-principles
-path to either number — you just have to know it, the way you have to
+path to either number. You just have to know it, the way you have to
 know a stop sign is red.
 
 So let's take them as given. There's no shame in being handed a
@@ -76,7 +76,7 @@ do with them is the actual skill.
 ## 1.3 Doing the Division
 
 One megabyte, three plausible paths home. Before reading on, it's worth
-committing to a number of your own — not because the arithmetic is
+committing to a number of your own, not because the arithmetic is
 hard, but because writing down a value you might be *wrong* about is
 the entire point of the exercise.
 
@@ -93,7 +93,7 @@ Now let's line these up against the thing we actually measured.
 Sit with that for a second, because it isn't the outcome we were set up
 to expect.
 
-Five microseconds beats every option on the list — including the one
+Five microseconds beats every option on the list, including the one
 that never touches storage at all. So the conclusion isn't "it must be
 in memory." The conclusion is that **our list of candidates was
 wrong**.
@@ -109,30 +109,30 @@ fast. The work did not happen.
 </div>
 
 Nobody moved a megabyte anywhere in five microseconds. Something got
-skipped — and now we get to go find out what.
+skipped, and now we get to go find out what.
 
 ## 1.4 Turning It On Our Own Answer
 
 The textbook reflex here is *page cache*. The kernel took the bytes,
 parked them in its own memory, and returned without ever touching the
-device. Deferred write-back — clever, well documented, and it feels
+device. Deferred write-back: clever, well documented, and it feels
 like an answer the moment you say it out loud.
 
 So let's turn the floor test on it, the same way we'd turn it on anyone
 else's claim.
 
 Copying into page cache is still a memory copy. It's still a megabyte
-moving through a single core at ten gigabytes a second — which is
+moving through a single core at ten gigabytes a second, which is
 100 µs, a number we derived a few paragraphs ago and now get to reuse.
 
 <div class="aside">
 This is the move that separates knowing the vocabulary from being able
 to use it. The floor test doesn't get to sit on the shelf for other
-people's claims — it applies to our own favorite answer too.
+people's claims. It applies to our own favorite answer too.
 </div>
 
 Page cache is **twenty times too slow** to explain what we saw. It
-doesn't survive contact with our own arithmetic — not because we read
+doesn't survive contact with our own arithmetic, not because we read
 something that contradicted it, but because the numbers we already had
 wouldn't let it stand.
 
@@ -157,7 +157,7 @@ two floors, and that particular gap has a name.
 **One to ten microseconds is the signature of a syscall that did some
 bookkeeping and handed the real work off.** It crossed into the kernel,
 wrote something into a queue, and came straight back without moving our
-bytes anywhere. That's an asynchronous submission — `io_uring`, or
+bytes anywhere. That's an asynchronous submission: `io_uring`, or
 something in that family.
 
 The other live explanation is that no syscall happened at all.
@@ -176,7 +176,7 @@ Here's where most of us reach for a tool. It's worth resisting for one
 more second and asking what the tool would actually buy.
 
 We're separating "no syscall" (nanoseconds) from "syscall that
-enqueued" (microseconds) — three orders of magnitude apart. No amount
+enqueued" (microseconds), three orders of magnitude apart. No amount
 of measurement noise, scheduler jitter, or thermal drift closes a
 1000× gap. **The stopwatch already answered it.**
 
@@ -184,7 +184,7 @@ of measurement noise, scheduler jitter, or thermal drift closes a
 <span class="rule-id">Rule 3 · Match the instrument to the ratio</span>
 1000× apart, use a wall clock. 20× apart, use a wall clock carefully.
 1.5× apart, now you need counters and statistics. Reaching for a
-profiler on a 1000× gap isn't rigor — it's procrastination that
+profiler on a 1000× gap isn't rigor. It's procrastination that
 produces artifacts.
 </div>
 
@@ -223,7 +223,7 @@ Four layers, in the order they'd survive:
 At five microseconds, we're at level one. Not two, not four.
 
 Worth noting: `write()` actually is the syscall that *leaves*
-userspace — the name is a little misleading. Data lands in page cache.
+userspace. The name is a little misleading. Data lands in page cache.
 And `fsync()` isn't "send it to the kernel"; it's already there.
 `fsync` is what pushes it *out* of the kernel toward the media.
 
@@ -240,7 +240,7 @@ taking it more than they have to.
 
 ## Challenges
 
-No answers here on purpose — re-deriving is the point. If you wanted to
+No answers here on purpose: re-deriving is the point. If you wanted to
 re-read, you'd have the chat log.
 
 1. You measure a 4 KB write at 900 ns. Which layer is it at, and what
@@ -272,7 +272,7 @@ statistical significance. Three days later you have beautiful data
 about something a single division would have settled in ten seconds.
 
 The tell is that you never wrote down what you *expected*.
-Instrumentation without a prediction has no failure condition — every
+Instrumentation without a prediction has no failure condition: every
 result looks interesting, nothing is surprising, and you learn
 surprisingly little, because nothing you believed was ever actually put
 at risk.
