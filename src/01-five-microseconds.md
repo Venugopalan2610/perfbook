@@ -160,15 +160,37 @@ wrote something into a queue, and came straight back without moving our
 bytes anywhere. That's an asynchronous submission: `io_uring`, or
 something in that family.
 
-The other live explanation is that no syscall happened at all.
-`fwrite`, `BufWriter`, and the default file API in nearly every
+There is a second candidate that feels just as good, and it is worth
+naming precisely so we can watch it fail. Maybe no syscall happened at
+all. `fwrite`, `BufWriter`, and the default file API in nearly every
 language keep your bytes in your own process's memory and defer the
-syscall until there's enough to make the trip worthwhile. That isn't a
-bug. It's the documented default, and it's the reason your data can be
-nowhere durable while nothing at all is broken.
+syscall until there's enough to make the trip worthwhile.
 
-Two mechanisms, both consistent with 5 µs, separated by a
-thousand-fold difference in what they actually cost.
+That is all true, and it is still not an explanation for this
+measurement. Buffering does not make the megabyte disappear; it just
+copies it somewhere closer. A copy into a userspace buffer is a copy,
+and we already know what a megabyte of copying costs, because we
+derived it two sections ago: 100 µs. To return in five, that copy
+would have to run at roughly 200 GB/s through a single core, which is
+an order of magnitude past what any core can do.
+
+So the floor test takes this one too. Not because buffering isn't
+real, but because it cannot move this much data this fast.
+
+<div class="aside">
+This is the third time in one chapter that the same 100 µs number has
+been used to set something aside, and the second time it has taken an
+answer we liked. Reusing one derived floor against every new candidate,
+including our own, is most of the method.
+</div>
+
+What survives is the asynchronous submission: the syscall that queued
+a pointer and returned without touching the bytes. Buffering explains
+plenty of fast returns, just smaller ones. Ask for four kilobytes
+instead of a megabyte and the copy costs well under a microsecond, and
+buffering becomes the likeliest answer in the room. The mechanism you
+land on depends on the size you asked about, which is why the megabyte
+was in the question at all.
 
 ## 1.6 Resisting `strace`
 

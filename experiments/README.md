@@ -5,7 +5,8 @@ the programs that check them, on your hardware, and tell you plainly
 whether the book's claims held.
 
 ```
-./run-labs.sh
+./run-labs.sh          # check every claim
+./predict.sh           # commit to a number first, then check
 ```
 
 Exit code 0 means every claim held. Nonzero means one did not, and the
@@ -62,6 +63,7 @@ measuring itself. Survival is cruder and correct.
 | `02_ladder_survival` | The Ladder | 3, all exact byte counts |
 | `03_fsync_cost` | The Barrier | 3, all ratios |
 | `06_crc_zero_seed` | Where the Truth Stops | 6, all exact, including a CRC-32 known-answer test |
+| `05_group_commit` | Group Commit | 4, ratios, at two arrival rates |
 | `01_write_latency` | Five Microseconds | timing survey, no pass/fail yet |
 
 `06` proves its own CRC against the IEEE 802.3 vector for `123456789`
@@ -109,8 +111,10 @@ fast on my laptop" and a result someone else can argue with.
 
 ## Reproducibility, stated honestly
 
-`Dockerfile` pins the base image by digest and the compiler by
-version, which makes the **build** reproducible.
+`Dockerfile` gives you a consistent toolchain, and carries
+instructions for pinning the base image by digest. It ships unpinned
+on purpose: a digest that was never verified fails to pull in a way
+that looks like your mistake rather than mine.
 
 It does not make the **measurement** reproducible. The storage stack
 under a container is still your machine's, plus an overlayfs layer
@@ -120,11 +124,22 @@ a Linux VM whose virtual disk is what you would actually be timing.
 Use it for a consistent toolchain. Bind-mount a real directory. Then
 compare ratios and claim outcomes, not microseconds.
 
+## predict.sh
+
+Chapter 1's design note argues that instrumentation without a
+prediction has no failure condition: every result looks interesting,
+nothing is surprising, and nothing you believed was ever at risk.
+
+So `predict.sh` asks four questions before anything runs, then prints
+your guesses beside what actually happened. Being wrong by 10x is the
+normal outcome and the reason to do it.
+
 ## Not here yet
 
 - **Rungs 3 and 4** need a real power cut: a managed PDU or an IPMI
   power cycle, and a second machine to verify from. It cannot be done
   honestly from inside the machine losing power, which is the whole
   argument of chapter 2.
-- **Chapter 5** wants concurrent writers.
-- **Chapters 7 and 8** want a GPU.
+- **Chapters 7 and 8** need a GPU, and now have labs for it in
+  [`../experiments-gpu`](../experiments-gpu), runnable on a free
+  Colab T4.

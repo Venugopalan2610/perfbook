@@ -12,7 +12,7 @@ set -uo pipefail
 
 DIR="${PERFBOOK_DIR:-$(pwd)}"
 OUT="${PERFBOOK_RESULTS:-results.json}"
-LABS=(02_ladder_survival 03_fsync_cost 06_crc_zero_seed 01_write_latency)
+LABS=(02_ladder_survival 03_fsync_cost 05_group_commit 06_crc_zero_seed 01_write_latency)
 
 command -v cc >/dev/null || { echo "no C compiler on PATH"; exit 127; }
 make all >/dev/null || { echo "build failed"; exit 1; }

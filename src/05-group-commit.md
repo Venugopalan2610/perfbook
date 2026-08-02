@@ -117,6 +117,13 @@ makes GPU batching worthwhile too. Pay a fixed round-trip cost once,
 spread it over whoever showed up while you were paying it.
 </div>
 
+<div class="aside">
+<strong>Run it.</strong> <code>experiments/05_group_commit.c</code> runs both
+policies against real fsyncs at two arrival rates. Watch the adaptive batch
+size change between them without anyone setting a number. See
+<a href="./experiments.md">Experiments</a>.
+</div>
+
 <div class="challenges">
 
 ## Challenges

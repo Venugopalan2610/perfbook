@@ -8,7 +8,8 @@ They live in [`experiments/`](https://github.com/Venugopalan2610/perfbook/tree/m
 in the repository.
 
 ```bash
-cd experiments && ./run-labs.sh
+cd experiments && ./run-labs.sh    # check every claim
+cd experiments && ./predict.sh     # commit to a number first
 ```
 
 Exit code 0 means every claim in the book that this can reach held on
@@ -50,6 +51,7 @@ the result; the latency is just a number attached to it.
 |---|---|---|
 | `02_ladder_survival` | [The Ladder](./02-the-ladder.md) | 3, exact byte counts |
 | `03_fsync_cost` | [The Barrier](./03-the-barrier.md) | 3, all ratios |
+| `05_group_commit` | [Group Commit](./05-group-commit.md) | 4, ratios, at two arrival rates |
 | `06_crc_zero_seed` | [Where the Truth Stops](./06-where-the-truth-stops.md) | 6, exact, including a CRC-32 known-answer test |
 | `01_write_latency` | [Five Microseconds](./01-five-microseconds.md) | timing survey |
 
@@ -171,5 +173,6 @@ argument, so faking it in software would be worse than leaving it out.
 It needs a managed PDU or an IPMI power cycle and a second machine to
 verify from.
 
-Chapter 5 wants a load generator with real concurrent writers, and
-that one is simply not written yet.
+Nothing else, for now. Chapter 4's write-ahead argument is checked
+indirectly by chapters 2 and 3's labs, since it is built on their two
+results rather than on a measurement of its own.
