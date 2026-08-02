@@ -36,7 +36,7 @@ on a `tmpfs` and you are measuring RAM, and every number that comes out
 is fiction.
 
 ```bash
-PERFBOOK_DIR=/mnt/nvme make run
+PERFBOOK_DIR=/mnt/nvme ./run-labs.sh
 ```
 
 Every experiment prints its kernel, filesystem, device, and whether it
@@ -125,6 +125,44 @@ faults and cold caches that steady state does not.
 `clock_gettime` overhead. If a result is within an order of magnitude
 of that figure, the result is the instrument.
 
+## The GPU labs, on a free Colab T4
+
+Chapters 7 and 8 turn on a ratio between a GPU's compute throughput and
+its memory bandwidth, so checking them needs a GPU. Colab's free tier
+has one, which puts these within reach of anyone.
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Venugopalan2610/perfbook/blob/master/experiments-gpu/colab.ipynb)
+
+They do not trust the datasheet. Vendor peak figures are marketing, and
+the ridge point is a division of two of them, so the labs measure your
+card's bandwidth with a large copy, measure its matmul throughput with a
+large matmul, and divide. The ridge you get is yours.
+
+| Lab | Chapter | Claims |
+|---|---|---|
+| `07_roofline` | [The Ridge](./07-the-ridge.md) | 5, ratios and shapes |
+| `08_kv_cache` | [The Cache That Ate the Batch](./08-kv-cache.md) | 5, mostly exact |
+
+`07` sweeps a batch size from 1 to 256 across a 4096 by 4096 weight
+matrix and reports both arithmetic intensity and the fraction of the
+card's own peak it reaches. On the laptop card these were built
+against, the measured ridge was 183 FLOP/byte, batch 1 landed at
+1.0 FLOP/byte and 1.3% of peak, and batch 256 effectively saturated it.
+A T4's numbers will be much smaller and every claim will still hold,
+because the claims are ratios.
+
+`08` checks the 512 KB per token by allocating a real KV cache and
+asking CUDA what it cost, rather than trusting the multiplication. It
+also measures that Grouped-Query Attention with 8 query heads per KV
+head divides that figure by exactly 8.
+
+<div class="aside">
+You do not need a card big enough to hold a 7B model. Bytes per token
+is measurable on any GPU, and the ceiling for larger cards follows by
+division. The lab prints the ceiling for whatever card you are on,
+which on a 12 GB laptop is a blunt lesson.
+</div>
+
 ## What is deliberately missing
 
 Chapter 2 wants a power-loss test, and you cannot honestly run one from
@@ -133,6 +171,5 @@ argument, so faking it in software would be worse than leaving it out.
 It needs a managed PDU or an IPMI power cycle and a second machine to
 verify from.
 
-Chapter 5 wants concurrent writers. Chapters 7 and 8 want a GPU, and
-until then the arithmetic is checkable with a calculator, which is most
-of what those chapters are asking you to do anyway.
+Chapter 5 wants a load generator with real concurrent writers, and
+that one is simply not written yet.

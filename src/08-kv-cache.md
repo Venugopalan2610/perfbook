@@ -111,6 +111,13 @@ FLOP of compute. They're not making the GPU faster. They're moving the
 wall in this diagram to the right.
 </div>
 
+<div class="aside">
+<strong>Run it.</strong> <code>experiments-gpu/08_kv_cache.py</code> allocates a
+real KV cache and asks CUDA what it cost, instead of trusting the 512 KB
+multiplication, and measures the exact factor GQA saves. A free Colab T4 is
+enough. See <a href="./experiments.md">Experiments</a>.
+</div>
+
 <div class="challenges">
 
 ## Challenges

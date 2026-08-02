@@ -111,6 +111,14 @@ plateau: still memory-bound, just less wastefully so, until we're
 batched heavily enough to reach the ridge itself.
 </div>
 
+<div class="aside">
+<strong>Run it.</strong> <code>experiments-gpu/07_roofline.py</code> measures
+your own card's ridge point rather than quoting the A100's, then walks a batch
+size toward it. A free Colab T4 is enough. Predict your ridge, and the percent
+of peak you will get at batch 1, before you look. See
+<a href="./experiments.md">Experiments</a>.
+</div>
+
 <div class="challenges">
 
 ## Challenges
