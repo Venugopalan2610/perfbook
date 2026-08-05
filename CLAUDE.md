@@ -80,7 +80,7 @@ adding a new one.
 
 ### ⚠ `theme/index.hbs` is a fork
 
-The site-wide footer ("Written by Venugopalan Iyengar · © 2026")
+The site-wide footer ("Venugopalan Iyengar · © 2026")
 needs a template override, because mdBook has no footer config. So
 `theme/index.hbs` is a **verbatim copy of mdBook 0.4.52's default
 template** with one `<footer class="book-footer">` block added just
