@@ -56,10 +56,10 @@ When the in-flight fsync returns, immediately start the next one, and sweep in e
 
 [ARITHMETIC. Read it as sentences, at half speed.]
   t is 0 fsync #1 issued (covers whatever's queued right now)
-  t is 0..100µs requests 2, 3, 4 arrive; they queue behind fsync #1
-  t is 100µs fsync #1 returns gives ack 1; fsync #2 issued, covers {2,3,4}
+  t is 0..100 microseconds requests 2, 3, 4 arrive; they queue behind fsync #1
+  t is 100 microseconds fsync #1 returns gives ack 1; fsync #2 issued, covers {2,3,4}
   t is 100..?? whatever arrives now queues behind fsync #2
-  t is 200µs fsync #2 returns gives ack 2,3,4; fsync #3 issued, covers {...}
+  t is 200 microseconds fsync #2 returns gives ack 2,3,4; fsync #3 issued, covers {...}
 
 Now watch what the batch size does. Nobody set it. It falls out of the arrival rate on its own.
 
