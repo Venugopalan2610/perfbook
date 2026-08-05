@@ -12,16 +12,31 @@ second.
 Twenty-five thousand times slower. To persist eight bytes.
 
 Not eight megabytes. Eight bytes. Hold that number next to the size for
-a moment, because whatever `fsync` is charging us for, it plainly is
-not the data.
+a moment, because something has gone badly wrong with our intuition
+about what we just bought.
+
+If `fsync` were charging us for the data, eight bytes would be the
+cheapest thing we could possibly ask it to do. So either the data is
+enormously more expensive to move than we think, or we are paying for
+something else entirely and the data is beside the point.
+
+Those two possibilities are the whole chapter, so let's take them
+seriously one at a time.
 
 ## 3.1 Two Candidates and a Missing Number
 
-Candidate one: `fsync` is slow because it moves our bytes to the
-device, and moving bytes takes time proportional to how many there are.
+The first candidate is the intuitive one. `fsync` is slow because it
+moves our bytes to the device, and moving bytes takes time proportional
+to how many bytes there are. Eight bytes is a small trip, but a trip to
+a disk is a long way, and that is what we are paying for.
 
-Candidate two: `fsync` is slow for some reason that has nothing
-whatsoever to do with how many bytes we handed it.
+The second candidate says the byte count has nothing to do with it. We
+are being charged for something that would cost the same if we had
+handed over nothing at all.
+
+Those two lead to opposite fixes, so it is worth an hour to tell them
+apart. And we can do better than an hour, because there is a division
+here that settles it in about ten seconds.
 
 Name the ratio before you pick. At even a modest 2 GB/s of device
 bandwidth, eight bytes should cost:
@@ -37,6 +52,10 @@ Candidate one is not slightly wrong, or wrong in the details. It is
 wrong by more than four orders of magnitude, which is the kind of wrong
 you can see from orbit. Set it aside.
 
+Which leaves candidate two, and a question we cannot answer by staring
+at it any harder: if we are not paying for bytes, what exactly are we
+paying for? For that we need some numbers.
+
 <div class="aside">
 This is chapter 1's floor test run in the opposite direction. There, a
 measurement came in <em>under</em> every floor and proved work had been
@@ -47,40 +66,55 @@ instrument. You are just reading it from the other end.
 
 ## 3.2 The Axioms
 
+We cannot derive what an `fsync` costs. It depends on a device, and a
+device is a fact about the world rather than a consequence of anything.
+So here are the three numbers, handed over, for the three kinds of
+storage you are likely to be sitting on:
+
 | Device | Typical `fsync` latency |
 |---|---|
 | NVMe SSD | ~100 µs |
 | SATA SSD | ~1–3 ms |
 | 7200 RPM spinning disk | ~5–10 ms |
 
-Roughly a hundredfold spread top to bottom. But that is not the
-interesting part of the table, and if you take only one thing from it,
-take this instead: every one of those numbers stays nearly flat whether
-you sync 8 bytes or 8 kilobytes.
+Roughly a hundredfold spread top to bottom, which is worth knowing. But
+the spread is not the interesting part of that table, and if you take
+only one thing from it, take this instead.
 
-That flatness is the whole tell.
+Every one of those numbers stays nearly flat whether you sync 8 bytes
+or 8 kilobytes.
 
-If a cost barely moves when you change the payload by a factor of a
-thousand, then the payload was never the dominant term. It was not even
-close to being the dominant term. You are paying for something else
-entirely, and the size of your data is a rounding error on the bill.
+That flatness is the whole tell. If a cost barely moves when you change
+the payload by a factor of a thousand, then the payload was never the
+dominant term. It was not even close to being the dominant term. You are
+paying for something else, and the size of your data is a rounding error
+on the bill.
+
+So we are paying for an event rather than a quantity. The next question
+writes itself: what event?
 
 ## 3.3 Doing the Division
 
-So what is `fsync` actually? It is a **barrier**.
+The answer is that `fsync` is not really a write at all. It is a
+**barrier**.
 
 It blocks until every write queued before it is provably sitting on
-non-volatile media. And it makes a second promise, one the name hides
+non-volatile media. And it makes a second promise the name hides
 completely: a promise about *order*. Nothing after the barrier gets to
 be considered durable before everything ahead of it is.
 
+Once you see it as a barrier rather than a save button, the flat cost
+stops being mysterious. You are not paying to move bytes. You are paying
+for a round trip: a request out to the device, a confirmation back, and
+a wait in between that no amount of shrinking your payload will shorten.
+
 <img class="ruler-chart" src="img/ruler-03-the-barrier.svg" alt="Log-scale ruler: 4 nanosecond bandwidth floor versus 100 microsecond measured fsync, 1-3 millisecond SATA, and 5-10 millisecond spinning disk. The floor sits six orders of magnitude to the left.">
 
-Once you see it as a barrier rather than a save button, the cost stops
-being mysterious. Paying it once for a batch of a thousand records, and
-paying it a thousand times for those same thousand records one at a
-time, are not remotely the same purchase. The first is one round trip.
-The second is a thousand of them, each one carrying almost nothing.
+And that reframing immediately changes what we should do about it.
+Paying the barrier once for a batch of a thousand records, and paying it
+a thousand times for those same thousand records one at a time, are not
+remotely the same purchase. The first is one round trip. The second is a
+thousand of them, each one carrying almost nothing.
 
 <div class="rule" id="boundary-not-spray">
 <span class="rule-id">Rule 5 · Buy durability at boundaries, not by the record</span>
@@ -91,24 +125,26 @@ never once per write.
 
 ## 3.4 What This Rules Out
 
-This rules out the intuition that durability is something you sprinkle
-on. "Just fsync after every write, to be safe."
+Take that rule seriously for a moment and notice what it costs us,
+because it is more than a tuning suggestion.
 
-Safety is not the axis that scales badly here. Call *count* is. A
-service that fsyncs every record has chosen to pay a toll of 100 µs to
-10 ms on every operation, however small, because the toll booth does
-not care what is in the trunk. It charges for the stop.
+It rules out the intuition that durability is something you sprinkle on.
+"Just fsync after every write, to be safe." Safety is not the axis that
+scales badly here. Call *count* is. A service that fsyncs every record
+has chosen to pay a toll of 100 µs to 10 ms on every operation, however
+small, because the toll booth does not care what is in the trunk. It
+charges for the stop.
 
-Now let me push on something we have been treating as one thing, because
-I think it is really two, and separating them is what the next chapter
-is built on.
+Now let me push on something we have been quietly treating as one thing,
+because I think it is really two, and separating them is what the next
+chapter is built on.
 
 Durability and ordering are different purchases. You can imagine a
-system that needs its writes applied in order but does not need each
-one durable the instant it lands. You can imagine the reverse too:
+system that needs its writes applied in order but does not need each one
+durable the instant it lands. You can imagine the reverse too:
 durability, with no opinion at all about relative order. Those are
-genuinely different requirements, and a careful engineer might want to
-buy them separately.
+genuinely different requirements, and a careful engineer might well want
+to buy them separately.
 
 `fsync` will not let you. It sells both, bundled, whether or not you
 wanted the bundle.
@@ -116,7 +152,9 @@ wanted the bundle.
 And once you notice that, the design that follows is almost forced. Put
 only the thing that must be *ordered and durable* behind the barrier,
 and let everything else move lazily along behind it. That is chapter 4,
-and that is the entire idea.
+and that is the entire idea. Before we get there, it is worth seeing the
+barrier drawn out, because the picture makes the waste obvious in a way
+the arithmetic does not.
 
 ## 3.5 The Pictorial
 
@@ -131,6 +169,9 @@ and that is the entire idea.
  [ record 1 | record 2 | record 3 ]  ← provably durable, in this order,
                                         only past this line
 ```
+
+Three records, one crossing. That is the shape you want, and it costs
+one round trip no matter how many records are stacked above the line.
 
 <div class="aside">
 Fsync-per-record redraws that picture a thousand times for a thousand
@@ -173,24 +214,24 @@ the size moved. Predict that ratio first. See <a href="./experiments.md">Experim
 
 ## Design Note: The Bundle You Didn't Ask For
 
-Every `fsync` call sells two things at once. *This data is durable*,
-and *everything before it happened first*. Most of us only ever reach
-for it because we want the first one, and we pay for the second without
-ever noticing there was a second.
+Every `fsync` call sells two things at once. *This data is durable*, and
+*everything before it happened first*. Most of us only ever reach for it
+because we want the first one, and we pay for the second without ever
+noticing there was a second.
 
 That would be fine if the second one were free. It is not. Ordering
 guarantees are precisely what turn a bandwidth-bound operation into a
-latency-bound one, because proving order means waiting for
-confirmation, and waiting is the exact opposite of throughput. You
-cannot pipeline a promise.
+latency-bound one, because proving order means waiting for confirmation,
+and waiting is the exact opposite of throughput. You cannot pipeline a
+promise.
 
 The systems that get this right unbundle it deliberately. They find the
-one thing that genuinely needs the full barrier, and it is almost
-always a small append-only log, and then they let everything downstream
-inherit durability without ever calling `fsync` on its own behalf.
+one thing that genuinely needs the full barrier, and it is almost always
+a small append-only log, and then they let everything downstream inherit
+durability without ever calling `fsync` on its own behalf.
 
-There is no trick in that. Nothing clever. They just declined to buy
-the bundle twice, which turns out to be a good deal of what separates a
+There is no trick in that. Nothing clever. They just declined to buy the
+bundle twice, which turns out to be a good deal of what separates a
 database from a program that writes files.
 
 </div>
