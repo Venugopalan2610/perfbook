@@ -1,0 +1,126 @@
+==================================================================
+  THE RIDGE
+  roughly 11 minutes at a comfortable pace
+==================================================================
+
+[Anything in brackets is a stage direction. Do not read it.]
+[Pause where you see a blank line. Longer at a section break.]
+
+[EPIGRAPH. Slowly, then a real pause.]
+  Arithmetic intensity, and the 99% idle GPU.
+
+I want to show you a machine that costs thirty thousand dollars and spends nearly all of its life doing nothing at all.
+
+It is an A100, and it can perform three hundred and twelve trillion arithmetic operations every second. We hand it a 7-billion-parameter model and ask for a single word. It computes for forty-five microseconds. Then it waits for seven milliseconds.
+
+Do the fraction. The thing is busy six-tenths of one percent of the time.
+
+Now, when you first see a number like that, the natural thing to think is that somebody made a mistake. Sloppy code, a bad driver, an engineer who did not know what they were doing. I thought exactly that, the first time I saw it. It is the comfortable explanation, because it means somebody can go and fix it.
+
+It is not a mistake. And what I want to show you is how you can prove that with arithmetic you can do on a napkin, and how, once you see why the machine is idle, you also see precisely what to do about it.
+
+[SECTION BREAK. Take a breath.]  7.1 Two Candidates and a Missing Number
+
+There are only two possibilities worth taking seriously here.
+
+Either producing a word takes an enormous amount of arithmetic and the chip is straining to keep up. Or it takes hardly any arithmetic at all, and the chip is sitting there waiting on something that has nothing to do with arithmetic.
+
+Those call for opposite remedies, so before anybody argues about which it is, let's just count. Generating one token from a 7B model, batch size one, costs roughly:
+
+[ARITHMETIC. Read it as sentences, at half speed.]
+  compute: 2 times 7 times 10⁹ params approximately 14 gigaflop
+  memory: 7 times 10⁹ params times 2 bytes (fp16) is 14 gigabytes read
+
+Fourteen billion operations. Fourteen billion bytes.
+
+One operation per byte moved.
+
+That ratio has a name, arithmetic intensity, and it is the only number this chapter needs in order to compute everything else.
+
+[SECTION BREAK. Take a breath.]  7.2 The Axioms
+
+[TABLE. Read the rows that carry the argument; skip the rest.]
+  Quantity: Peak compute, A100 (SXM, fp16): ~312 teraflops per second
+  Quantity: Peak memory bandwidth, A100 (SXM, fp16): ~2 terabytes per second
+  Quantity: **Ridge point** (compute divided by bandwidth), A100 (SXM, fp16): **~156 flop per byte**
+
+The ridge point is where a workload stops being memory-bound and starts being compute-bound, on this specific piece of silicon.
+
+Below it, the chip finishes its math faster than it can be fed, and sits idle waiting on the memory bus. Above it, the bus delivers data faster than the chip can chew through it, and the arithmetic units become the limit. It is a property of the hardware and nothing else. It does not know what you are running.
+
+[SECTION BREAK. Take a breath.]  7.3 Doing the Division
+
+Our workload sits at 1 flop per byte. The hardware's ridge is around 156. Let's line them up.
+
+[CHART on the page. Say a one-line version, then move on.
+  It shows: Log-scale ruler: 1 FLOP per byte measured versus a ridge point around 156 FLOP per byte.]
+
+Now convert both halves into time, using the axioms:
+
+[ARITHMETIC. Read it as sentences, at half speed.]
+  compute time: 14 gigaflop divided by 312 teraflops per second approximately 45 microseconds
+  memory time: 14 gigabytes divided by 2 terabytes per second approximately 7 milliseconds
+
+Memory time is about 156 times longer than compute time.
+
+That is not a coincidence, and it is worth pausing on. That ratio is the ridge point, restated in seconds instead of FLOP per byte. The same number, wearing different units, arrived at from a completely different direction. When that happens you are usually onto something real.
+
+The chip finishes its 14 gigaflop in 45 microseconds and then waits 6.95 milliseconds for the next byte of weight to show up.
+
+[RULE BOX. This is the takeaway. Slow down and land it.]
+  Rule 9, Check arithmetic intensity before adding FLOPs
+  Below the ridge point, more compute buys nothing. The wait is on bytes, not operations. A faster chip with the same memory bandwidth generates the same token in the same amount of time.
+
+[SECTION BREAK. Take a breath.]  7.4 What This Rules Out
+
+This rules out the instinct to fix slow generation by buying a higher-TFLOPS card.
+
+If your bottleneck sits 156 times to the left of the ridge, tripling peak compute moves the ridge point further right and helps you not at all. You were never anywhere near the compute wall. You would be buying more of the thing you already have too much of, which is a wonderfully expensive way to change nothing.
+
+What would move the needle is more memory bandwidth. Or, and this is cheaper and much more interesting, changing the workload's arithmetic intensity itself.
+
+Which is what this chapter has been building toward. At batch size one, we read the entire 14 gigabytes of weights to compute one token's worth of math. At batch size 32, we read the same 14 gigabytes once and compute thirty-two tokens' worth of math against it before the next byte has to arrive. The memory cost did not grow with batch size. The compute did.
+
+It is worth doing that division in symbols, because the answer comes out cleaner than it has any right to. Call the parameter count N. Each weight is two bytes in fp16, and each weight takes part in exactly one multiply-and-add, which is two operations. At batch size B:
+
+[ARITHMETIC. Read it as sentences, at half speed.]
+  bytes moved is 2 bytes/weight times N is 2N
+  operations is 2 ops/weight times N times B sequences is 2NB
+  2NB
+  intensity is -------- is B flop per byte
+  2N
+
+The twos cancel. The parameter count cancels. What is left is the batch size itself.
+
+Arithmetic intensity, for this workload, is B. Not approximately. Not in the limit. At batch 32 we sit at exactly 32 flop per byte, still under the ridge but far closer to it, and throughput scales almost for free on the way there.
+
+That identity is the thing to carry out of this chapter. It turns the ridge point from a property of the silicon into a number you can type into a config file. A ridge of 156 flop per byte says, in plain language, run about 156 sequences at once. Every serving system in the world exposes that number as a tunable, and now you know what it is tuning against.
+
+[ASIDE. Lighter, quicker, like a footnote said out loud.]
+  The clean cancellation is an accident of fp16, where two bytes per weight happens to match two operations per weight. Store the weights in fp8 and the bytes halve while the operations do not, so intensity becomes 2B. Quantization buys arithmetic intensity and a shorter read, which is two independent wins from one change. Challenge 3 is worth redoing with that in mind.
+
+[ASIDE. Lighter, quicker, like a footnote said out loud.]
+  This is group commit , again, and I hope by now it looks familiar. There, a fixed fsync round trip got amortized across however many writers had queued up behind it. Here, a fixed weight-read gets amortized across however many tokens' worth of compute we can pile up before the next byte has to move. Same trick. Different barrier. It will happen twice more.
+
+[SECTION BREAK. Take a breath.]  7.5 The Pictorial
+
+[CHART on the page. Say a one-line version, then move on.
+  It shows: Roofline chart: achieved TFLOP/s versus arithmetic intensity in FLOP/byte, log-log scale.]
+
+[ASIDE. Lighter, quicker, like a footnote said out loud.]
+  Batching walks us rightward along the rising slope, not up onto the plateau. Still memory-bound, just less wastefully so, until we are batched heavily enough to reach the ridge itself.
+
+[ASIDE about running the code. Optional: skip it if
+ the audio should stand alone.]
+  Run it. experiments-gpu/07_roofline.py measures your own card's ridge point rather than quoting the A100's, then walks a batch size toward it. A free Colab T4 is enough. Predict your ridge, and the percent of peak you will get at batch 1, before you look. See Experiments .
+
+[CHALLENGES. Read them if you like, or say:
+  "There are four challenges on the page. No answers,
+   on purpose." Then stop.]
+
+[DESIGN NOTE. This is the closing argument. Unhurried.]
+  "99.4% idle" reads like a scandal the first time you compute it, and the natural response is to go looking for somebody to blame. Bad kernels. An unoptimized runtime. A driver issue. Somebody upstream who did not care enough.
+
+  Usually none of that is true. The chip is idle because the arithmetic says it should be idle, and no amount of engineering effort inside a single forward pass, at batch size one, changes which side of the ridge you are standing on. You can rewrite that kernel with enormous skill and win nothing, and the failure will feel like your fault, and it will not be.
+
+  The lesson generalizes past GPUs. Any time you are tempted to profile harder to explain a bottleneck, check arithmetic intensity against the hardware's ridge point first. If you are two orders of magnitude to the left of it, the profiler is going to show you a chip waiting on memory no matter how you slice the flame graph, and the fix was never going to live inside the kernel you were about to spend a week on.

@@ -1,0 +1,132 @@
+==================================================================
+  SPENDING THE IDLE
+  roughly 12 minutes at a comfortable pace
+==================================================================
+
+[Anything in brackets is a stage direction. Do not read it.]
+[Pause where you see a blank line. Longer at a section break.]
+
+[EPIGRAPH. Slowly, then a real pause.]
+  Five tokens for the price of one, and no asterisk.
+
+Chapter 7 opened with a complaint. Generating one token from a 7B model on an A100 spends 45 microseconds computing and 7 milliseconds waiting, and the most expensive processor in the building sits 99.4% idle. Five chapters later we have moved an enormous amount of memory around and never once gone back for it.
+
+So here is a measurement that ought to be impossible.
+
+Take five candidate tokens, produced by something cheap. Hand all five to the 7B model and ask it to check them in a single forward pass. Five times the arithmetic of an ordinary decode step.
+
+It takes the same 7 milliseconds.
+
+[SECTION BREAK. Take a breath.]  12.1 Candidates and the Ratio
+
+Candidate one: the check is not a real check. We are approximating, sampling from something that is not quite the model's true distribution, and the five tokens we get are not the five the model would have produced. Faster and slightly wrong is an old trade, and usually a bad one.
+
+Candidate two: the arithmetic was free, because we had already paid for it and were not using it.
+
+The ratio worth naming is 156 to 1, and we computed it back in chapter 7. If candidate two is right, then this is not a clever trick at all. It is the natural consequence of standing two orders of magnitude to the left of the ridge, and the only surprising thing is that it took the field until 2023 to go and spend the change.
+
+[SECTION BREAK. Take a breath.]  12.2 The Axioms
+
+Everything we need is already on the table from chapter 7, which is a good sign for a final chapter.
+
+[TABLE. Read the rows that carry the argument; skip the rest.]
+  Quantity: Weight bytes read per forward pass, Value: 14 gigabytes, **independent of token count**
+  Quantity: FLOPs per token of work, Value: ~14 gigaflop
+  Quantity: A100 ridge point, Value: ~156 flop per byte
+  Quantity: Memory time for one pass, Value: ~7 milliseconds
+  Quantity: Compute time per token of work, Value: ~45 microseconds
+
+That first row carries the chapter, so let me say it in words too. A forward pass over K tokens reads the weights exactly once, in precisely the way a forward pass over one token does, because the weights have no idea how many tokens are passing through them.
+
+Which is the same fact chapter 7 used to justify batching, applied along a different axis. Batching puts K different sequences through one weight read. This puts K consecutive tokens of one sequence through it.
+
+[SECTION BREAK. Take a breath.]  12.3 Doing the Division
+
+[ARITHMETIC. Read it as sentences, at half speed.]
+  generate 1 token : 14 gigabytes read, 14 gigaflop gives 1 flop per byte
+  verify 5 tokens : 14 gigabytes read, 70 gigaflop gives 5 flop per byte
+  ridge point : 156 flop per byte
+
+Both sit far to the left of the ridge. So both are memory-bound. So both cost exactly what the memory costs:
+
+[ARITHMETIC. Read it as sentences, at half speed.]
+  memory time, either case : 14 gigabytes divided by 2 terabytes per second is 7.0 milliseconds
+  compute time, generate 1 : 14 gigaflop divided by 312 teraflops per second is 45 microseconds
+  compute time, verify 5 : 70 gigaflop divided by 312 teraflops per second is 225 microseconds
+
+The compute grew by a hundred and eighty microseconds, against a seven millisecond wait. We went from 99.4% idle to 96.8% idle and the wall clock did not move, because at 5 flop per byte we are still thirty-one times short of the ridge.
+
+Chapter 7 told us extra compute below the ridge buys nothing. Read that sentence the other way round and it says extra compute below the ridge costs nothing, and that is the whole chapter.
+
+[CHART on the page. Say a one-line version, then move on.
+  It shows: Roofline chart, log-log.]
+
+[RULE BOX. This is the takeaway. Slow down and land it.]
+  Rule 14, Below the ridge, spend compute on work that might be wasted
+  Idle compute does not accrue. If arithmetic intensity is far under the ridge point, speculative work is free even when most of it is thrown away.
+
+[SECTION BREAK. Take a breath.]  12.4 What This Rules Out
+
+That leaves candidate one, and it is the interesting one to set aside, because the mechanism that does it is genuinely surprising.
+
+The naive way to use five proposed tokens is to accept the ones that match what the model would have picked and stop at the first that does not. Under greedy decoding that is already exactly right. Under sampling it is subtly wrong, because "matches the most likely token" is not the same thing as "drawn from the model's distribution," and a system that quietly sharpens its own sampling is precisely the quality-for-speed trade we were trying to avoid.
+
+Modified rejection sampling repairs it, and here is the whole of it.
+
+Let q be the cheap proposer's distribution and p the real model's. For each proposed token t, accept it with probability min(1, p(t) divided by q(t)). On rejection, draw the replacement not from p, but from the normalized residual max(0, p − q), and stop there.
+
+That residual is the part that makes it exact, and it is worth understanding rather than memorizing. Accepting at min(1, p/q) alone under-samples the tokens the proposer thought unlikely. Sampling rejections from p − q puts back exactly the mass that step removed. Not approximately. Exactly.
+
+The tokens that come out are distributed according to p. Not close to p. Not p within a tolerance. p.
+
+If you only remember one line of algebra from this chapter, make it that subtraction. It is the difference between a technique that is lossless and one that is merely fast, and you cannot tell them apart by reading the output.
+
+[ASIDE. Lighter, quicker, like a footnote said out loud.]
+  This is the single cheapest thing in the technique to get subtly wrong, because every unit test still passes. Renormalize p instead of subtracting q and you get fluent, plausible, slightly-off text, and the only instrument that detects it is a statistical test over tens of thousands of samples. The course makes you build that test rather than describing it, which is the only way I know to actually be sure.
+
+So a bad proposer costs speed and never quality. That is a rare shape for a trade-off and worth stating plainly: the failure mode of speculative decoding is that it stops helping.
+
+It also rules out reaching for a large K. If each token is accepted with probability a, then the expected yield of one target pass is one guaranteed token plus the accepted run:
+
+[ARITHMETIC. Read it as sentences, at half speed.]
+  expected tokens per pass is 1 + a + a² + ... + a^K
+  at a is 0.7: K is 4 gives 2.77 K is 8 gives 3.19 K is 16 gives 3.32
+
+Doubling K from 4 to 8 buys 0.42 tokens, because reaching the eighth proposal requires eight consecutive acceptances, and 0.7 to the eighth is a small number. Past K of about four to eight you are paying draft cost for tokens you will throw away, and eventually paying enough of it to matter even down here below the ridge.
+
+[SECTION BREAK. Take a breath.]  12.5 The Pictorial
+
+Where the proposals come from is almost an afterthought, which I take as the best evidence that this idea is really about the ridge and not about owning a second model.
+
+[ARITHMETIC. Read it as sentences, at half speed.]
+  n-gram proposer, no model at all:
+  context: ... def fibonacci(n): if n < 2: return n def fib
+  search backwards for "def fib" ---^ ^-- match
+  propose what followed last time: onacci(n): if n < 2:
+  target model verifies all five in one 7 milliseconds pass
+  accepts the longest correct prefix, corrects the first miss
+
+For code, for structured output, for anything that quotes its own prompt back, that costs nothing and hits often. A small draft model does better on prose and costs a fraction of a pass. Either way the expensive model runs once and returns several tokens, and the idle compute from chapter 7 is what pays for all of it.
+
+[ASIDE about running the code. Optional: skip it if
+ the audio should stand alone.]
+  Build it. Stage 17 of vllm-from-scratch builds the n-gram proposer and the rejection sampler, and gates on the statistical test: 120,000 draws with a deliberately terrible proposer, and the emitted distribution has to match the target's to within 0.006. It is the only stage in the course whose check is a hypothesis test, and it is the one that convinced me the losslessness is real rather than approximately real.
+
+[CHALLENGES. Read them if you like, or say:
+  "There are four challenges on the page. No answers,
+   on purpose." Then stop.]
+
+[DESIGN NOTE. This is the closing argument. Unhurried.]
+  Chapter 7 computed 99.4% idle and treated it as an indictment. It read like waste. Like something a better engineer would have prevented. The natural response was to go looking for the mistake that caused it, and I sent you looking, and there was no mistake.
+
+  Six chapters later the same number is a budget.
+
+  The GPU is idle because arithmetic intensity is far below the ridge, and that is not a defect waiting to be repaired. It is a resource sitting unspent. Speculative decoding is the first technique in this book that treats it that way. It does five tokens' worth of arithmetic to produce, on average, fewer than three useful tokens. It throws the rest away. And it comes out ahead, because the arithmetic was never the scarce thing.
+
+  Which is the argument the whole book has been making, arriving at last in a form specific enough to be uncomfortable. Every chapter here has been about finding the one quantity that is genuinely scarce and declining to optimize the others. In chapter 3 it was the fsync round trip and not the bytes. In chapter 8 it was memory capacity and not compute. Here it is bandwidth, and the correct response to a scarce resource is to spend the abundant ones freely, including on work you fully expect to discard.
+
+  The uncomfortable part is that this reverses what good engineering feels like. Doing arithmetic you know will be thrown away, deliberately, at a ratio of five to three, offends an instinct most of us have been rewarded for having our entire careers. And that instinct is correct, whenever compute is scarce. It is precisely wrong here. Telling those two situations apart is what the ratio in chapter 7 was always for.
+
+  That is where this book stops deriving and [vllm-from-scratch](https://github.com/Venugopalan2610/vllm-from-scratch) starts building. Twenty stages, each gated on a measurement rather than on your code merely running: the naive loop, the KV cache, the roofline you just read about, static and then continuous batching, the block allocator, paged attention in PyTorch and then in Triton, prefix caching, the scheduler, chunked prefill, CUDA graphs, the sampler, the detokenizer, the server, and the rejection sampler from this chapter.
+
+  The chapters tell you which number matters and why. The stages will not let you past until your version of it moves.

@@ -1,0 +1,123 @@
+==================================================================
+  WHERE THE TRUTH STOPS
+  roughly 11 minutes at a comfortable pace
+==================================================================
+
+[Anything in brackets is a stage direction. Do not read it.]
+[Pause where you see a blank line. Longer at a section break.]
+
+[EPIGRAPH. Slowly, then a real pause.]
+  Torn writes, CRC, and finding the edge of what survived.
+
+Picture recovery scanning a log forward from the last checkpoint. It reaches the final record. There is a valid magic byte. There is a length field reading 200. And there are 200 bytes following it that parse cleanly into a well-formed record.
+
+Every check passes. The record is fiction.
+
+The first 71 bytes are real: they made it to disk before the crash. The remaining 129 are whatever happened to be occupying that block before this write ever started. And nothing about the record's structure tells us where the truth stops and the leftovers begin.
+
+That is the thing I want you to sit with. Torn writes do not announce themselves. They do not arrive corrupted-looking. They look like data, because they are data. They are just somebody else's.
+
+[SECTION BREAK. Take a breath.]  6.1 Two Candidates and a Missing Number
+
+Candidate one: trust the framing. If the magic bytes check out and the length field points at something parseable, the record is real.
+
+Candidate two: do not trust framing at all. Verify the content.
+
+The ratio that separates them is a coincidence rate, and it is a lopsided one. Structural framing has no floor on how often it accidentally looks right. A length field is two to four bytes. When a device has whole sectors of stale data sitting immediately behind your last good write, the odds of some short field reading as a plausible small number are not remotely negligible. They are not even small.
+
+A 32-bit checksum has a known, tiny coincidence rate: roughly 1 in 4,294,967,296 that an altered message hashes to the same value by chance.
+
+Four billion to one against, versus whatever the stale bytes happen to look like today. That is not a close call, and it is not a judgement call either.
+
+[SECTION BREAK. Take a breath.]  6.2 The Axioms
+
+[TABLE. Read the rows that carry the argument; skip the rest.]
+  Property: CRC-32 catches, Value: all 1-bit and 2-bit errors, all odd-count bit errors, all burst errors at most 32 bits
+  Property: CRC-32 misses (random corruption, non-adversarial), Value: ~1 in 2³² approximately 4.3 billion
+  Property: Computation, Value: remainder of polynomial long division, in GF(2): XOR instead of subtract, no carries
+
+The mechanism here is arithmetic, not heuristic, and that distinction is the reason it does not share framing's blind spot. A CRC does not care whether the bytes look like a record. It has no opinion about what a record looks like. It only cares whether they divide down to the value the writer committed to before the crash.
+
+[SECTION BREAK. Take a breath.]  6.3 Doing the Division
+
+I want to do this by hand. Not because you will ever need to, but because "it's just arithmetic" is the sort of phrase that stays abstract forever unless somebody makes you watch it happen once.
+
+Take the message 1101011011 and the generator polynomial x⁴+x+1, which is 10011, degree 4, so a 4-bit CRC. Append four zero bits and divide, XOR-ing the generator in wherever the leading bit is 1:
+
+[DIAGRAM. Cannot be read aloud. Describe it in one or two
+  sentences of your own, then carry on. It looks like this:]
+  |   11010110110000    ← message with 4 zero bits appended
+  |   10011              XOR (leading bit at pos 0 is 1)
+  |   ───────────
+  |   01001110110000
+  |    10011             XOR (leading bit at pos 1 is 1)
+  |    ───────────
+  |   00000010110000                     (pos 2–5: leading bit 0, skip)
+  |         10011        XOR (leading bit at pos 6 is 1)
+  |         ───────────
+  |   00000000101000
+  |           10011       XOR (leading bit at pos 8 is 1)
+  |           ───────────
+  |   00000000001110
+  | 
+
+That is long division. The kind you learned at nine years old. The only difference is that subtraction has been replaced by XOR, so there are no carries and no borrowing, which if anything makes it easier than the version they taught you.
+
+That 4-bit remainder ships alongside the message. On read-back we run the same division over the record including its stored remainder, and a clean write divides evenly and lands on zero.
+
+A torn write, real bytes followed by stale ones, essentially never does. And the reason is worth stating plainly: the stale tail was not chosen to satisfy this particular division. It was chosen by whatever used to live on that block, months ago, by a process that had never heard of us.
+
+[RULE BOX. This is the takeaway. Slow down and land it.]
+  Rule 8, Checksum every record; seed the register nonzero
+  Torn writes don't fail structural checks; they pass them by accident. Only an arithmetic check, computed over the content, reliably finds where the truth stops.
+
+[SECTION BREAK. Take a breath.]  6.4 What This Rules Out
+
+This rules out "trust the length field" as a recovery strategy. Good.
+
+But it also sets a trap for the checksum itself, and I want to walk into it deliberately, because it is the most satisfying mistake in this book.
+
+Start the division register at zero, and an all-zero payload always produces an all-zero remainder.
+
+Work it through with the long division above. If every bit of the message is zero, the leading bit is never 1, so the divisor never gets XORed in, not once. Zero goes in. Zero comes out. Every time.
+
+Now, you might reasonably file that as a corner case not worth worrying about. I would like to talk you out of that, because zeroed blocks are one of the most common shapes a torn write takes. Plenty of filesystems and devices hand back zero-filled bytes for storage that was allocated but never written. This is not exotic. This is Tuesday.
+
+So picture the crash that leaves us a real header, followed by all zeros where the payload and the checksum should be. The zero-seeded CRC computes 0. It reads the stored trailer, which is also 0. It declares a match.
+
+And there it is: corruption that looks valid, which is the exact failure this chapter opened with, sneaking back in through the one mechanism we built specifically to catch it. We did not fail to check. We checked, carefully, with real arithmetic, and the arithmetic said yes.
+
+The fix is one line. Seed the register with a nonzero value before you start. CRC-32's standard does exactly this, with 0xFFFFFFFF. An all-zero message no longer produces an all-zero result, the degenerate case that used to sail through now perturbs the register, and it gets caught like anything else.
+
+One line. And you only ever find it by asking what your own check does on its worst input, rather than on a typical one.
+
+[SECTION BREAK. Take a breath.]  6.5 The Pictorial
+
+[ARITHMETIC. Read it as sentences, at half speed.]
+  record 1 [ok, CRC matches]
+  record 2 [ok, CRC matches]
+  record 3 [header parses ✓] [71 real bytes][129 stale bytes] [CRC: NO MATCH]
+  ▲
+  the edge of truth
+  recovery stops replaying
+  right here
+
+[ASIDE. Lighter, quicker, like a footnote said out loud.]
+  Torn writes are not really the exception we defend against. They are the default ending of a crash. Anything in flight at the moment of failure lands somewhere between fully written and not written at all, and recovery code has to assume the last record is exactly that, every single time, because most of the time it will be.
+
+[ASIDE about running the code. Optional: skip it if
+ the audio should stand alone.]
+  Run it. experiments/06_crc_zero_seed.c shows the all-zero record passing a zero-seeded check and failing a properly seeded one. It is deterministic, so it prints the same thing on your machine as on mine. See Experiments .
+
+[CHALLENGES. Read them if you like, or say:
+  "There are four challenges on the page. No answers,
+   on purpose." Then stop.]
+
+[DESIGN NOTE. This is the closing argument. Unhurried.]
+  Length fields, magic bytes, and sentinel values all share a property that is easy to forget: they were written by the same process, at the same moment, as the data they are supposed to validate.
+
+  So if that write was torn, the framing can be torn right along with it. And a torn framing field does not reliably fail. Sometimes it just reads as a small, plausible, wrong number, and the parser has no way to know from the inside. The check and the thing being checked went down together, holding hands.
+
+  A checksum breaks that circularity because it is redundant *on purpose*. It encodes information that could only be true if the rest of the record is also intact. That redundancy is the entire value proposition, and it is the same argument that made PostgreSQL take its torn-page reference from the buffer pool rather than from the file it was protecting, back in chapter 4. Your verifier cannot come from inside the thing you are verifying.
+
+  It is worth noticing how rarely we apply this outside of storage. Any boundary where a producer and a much-later consumer have to agree about what actually happened in between has the same shape, and most of them are guarded by something that would fail exactly when it matters.
