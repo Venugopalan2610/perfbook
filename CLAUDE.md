@@ -17,7 +17,17 @@ Repo Settings → Pages → Source must be set to **GitHub Actions**. The
 workflow's `branches:` list has to match the branch name, or nothing
 runs and nothing says why.
 
-Live at https://Venugopalan2610.github.io/perfbook/
+Live at **https://derivingsystems.com** (the github.io URL 301-redirects
+there).
+
+`src/CNAME` is what keeps that custom domain attached. The Pages config
+also records it, but this deploy replaces the whole published site on
+every run, so the file in `src/` is the durable half. Do not delete it.
+
+`src/robots.txt` and `src/sitemap.xml` exist because a new domain with
+no inbound links has no other way to be discovered. The sitemap is
+generated from `SUMMARY.md` by `pipeline/make_sitemap.py`, which CI runs
+before every build, so adding a chapter updates it automatically.
 
 ## Status
 
