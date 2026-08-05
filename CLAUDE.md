@@ -24,11 +24,9 @@ Live at https://Venugopalan2610.github.io/perfbook/
 - `src/01-five-microseconds.md` through `src/12-spending-the-idle.md` —
   all **written**. Chapter 1 is the reference implementation of both
   format and voice; match it.
-- **Voice conversion is in progress.** Chapters 01 and 02 are in the
-  Feynman voice described below. Chapters 03 through 12 are still in
-  the older third-person-plural voice and read differently. Converting
-  them is the next job. `pipeline/voicecheck.py` lists exactly which
-  ones still need it, and currently exits nonzero because ten do.
+- **Voice conversion is complete.** All twelve chapters are in the
+  Feynman voice described below. `pipeline/voicecheck.py` exits zero;
+  run it before committing prose.
 - `src/rules.md` — the Rules Index. The most important page in the book.
 - `src/challenges.md` — every question, no answers.
 
