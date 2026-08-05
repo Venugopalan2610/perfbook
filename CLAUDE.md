@@ -21,9 +21,14 @@ Live at https://Venugopalan2610.github.io/perfbook/
 
 ## Status
 
-- `src/01-five-microseconds.md` through `src/08-kv-cache.md` — all
-  **written.** Chapter 1 is the reference implementation of the format.
-  Match its structure and voice.
+- `src/01-five-microseconds.md` through `src/12-spending-the-idle.md` —
+  all **written**. Chapter 1 is the reference implementation of both
+  format and voice; match it.
+- **Voice conversion is in progress.** Chapters 01 and 02 are in the
+  Feynman voice described below. Chapters 03 through 12 are still in
+  the older third-person-plural voice and read differently. Converting
+  them is the next job. `pipeline/voicecheck.py` lists exactly which
+  ones still need it, and currently exits nonzero because ten do.
 - `src/rules.md` — the Rules Index. The most important page in the book.
 - `src/challenges.md` — every question, no answers.
 
@@ -92,53 +97,72 @@ so a local upgrade that skips this step will diverge from the deploy.
 4. **No sub-item anchors in `SUMMARY.md`.** mdBook treats
    `file.md#anchor` as a separate chapter and will clobber the real
    output file. Learned the hard way.
-5. Chapters are arguments, not transcripts. Cut false starts and
-   corrections.
+5. Chapters are arguments delivered as talks. Digression is a
+   teaching device and stays. Cut genuine false starts and corrections,
+   keep the detours that illuminate.
 
 ## Voice
 
-Modeled directly on craftinginterpreters.com. Read a chapter or two there
-before writing if the voice has drifted — it drifts easily toward
-"prosecutor cross-examining the reader," which is the failure mode to
-watch for.
+Feynman, giving a lecture. Not Feynman-flavoured folksiness: the actual
+rhetorical machinery he used, which is a specific and learnable thing.
 
-- **"We," not "you," for the journey.** We're building this
-  understanding together; the reader isn't a suspect being tested. The
-  operational split, which every chapter follows:
-  - narrative and derivation: **we** ("let's line them up", "our
-    workload", "we haven't, not really")
-  - rule boxes, challenges, and direct advice: **you** ("sort your next
-    questions", "you measure a 4 KB write at 900 ns")
+Read a few pages of *The Character of Physical Law* or the red
+Lectures if the voice has drifted. The failure mode to watch for is
+**folksy without rigour**: the warmth is only earned if the arithmetic
+underneath it is exact.
 
-  Chapter 1 drifted into second person once and had to be rewritten to
-  match the other seven. Sanity check with a we:you ratio over the
-  chapter body, excluding challenges: every chapter sits between about
-  1.5 and 7. An outlier means the person slipped.
-- **Curiosity, not combat.** A wrong candidate is set aside because the
-  arithmetic doesn't support it, not "killed," "dead on arrival," or
-  "retired." No section is named after a fight. Rule out, narrow down,
-  set aside — not slay.
-- **Motivate before measuring.** Give the reader a reason to care about
-  the question before handing them the number that answers it. It's fine
-  to take a paragraph or two of scene-setting before the first hard
-  number — that's patience, not stalling.
-- **Humor via analogy and self-deprecation, not sarcasm at the reader's
-  expense.** ("Polishing a Gremlin into a Blackbird," not "your intuition
-  was wrong, again.")
-- **Digress on purpose.** A short tangent, a footnote-flavored aside, a
-  personal-sounding "I've shipped this bug myself" moment — these make a
-  technical book feel inhabited. Use `.aside` for this, generously.
-- **Prose over bullets** in the chapters themselves, still true. Bullets
-  are for reference material (axiom tables, the Rules Index), not for
-  the argument itself.
-- Numbers still matter and still show up early, but "early" means
-  "once the reader knows why this number is the one worth caring about,"
-  not mechanically in the first three sentences.
+- **First person, freely.** "I want to show you." "I thought exactly
+  that, the first time." The confession is load-bearing: admitting you
+  found something confusing is how you earn the right to walk someone
+  through it. The book used to prohibit "I" entirely. That was wrong.
+- **Second person, constantly.** "You see," "work it out," "if you
+  measure this yourself." The reader is in the room. "We" is still fine
+  for genuinely shared reasoning ("let's count", "we have two
+  possibilities"), so all three persons are in play and no ratio is
+  policed. Use whichever one is true in the sentence.
+- **Digression is a teaching mechanism, not a failure.** This is the
+  point of the whole style. A tangent that appears to wander off and
+  then turns out to *be* the argument teaches better than a straight
+  line, because the reader arrives at the idea instead of being handed
+  it. Digress in the main text, not only in asides. Cut genuine dead
+  ends; keep the detours that illuminate.
+- **Concrete before abstract, always.** A physical picture, a number
+  you can hold, a thing on a desk. The formalism comes after, and only
+  if it earns its place.
+- **Refuse jargon until it is earned.** When a term finally arrives,
+  name it plainly and say why it is called that. "That ratio has a
+  name, arithmetic intensity, and it is the only number this chapter
+  needs."
+- **Short sentences after a long build.** Let the punchline be four
+  words. "It is not a mistake."
+- **Rhetorical question, then answer it.** Do not leave questions
+  hanging for effect.
+- **Delight.** It is allowed to find this stuff wonderful, and saying
+  so is not unserious.
+- **The arithmetic decides, not the authority.** Nobody is right
+  because they are senior. If it disagrees with the measurement, it is
+  wrong.
+- **Repetition for emphasis is fine.** Spoken rhythm. Say the important
+  thing twice if twice is what it takes.
+- **Humour via analogy and self-deprecation**, never at the reader's
+  expense. Still true, still the rule.
+- **Prose over bullets** in the chapter body. Bullets are for reference
+  material (axiom tables, the Rules Index), not for the argument.
 - **No em-dashes (—) anywhere in `src/` or in chart captions.** Use a
-  colon when the clause explains, a period when it's a new thought,
+  colon when the clause explains, a period when it is a new thought,
   parentheses for a true aside, a comma otherwise. En-dashes in numeric
-  ranges (`1–5 ns`, `5–10 ms`) are fine and should stay. Check with
+  ranges (`1–5 ns`, `5–10 ms`) are fine. Check with
   `grep -c '—' src/*.md pipeline/make_charts.py` before committing.
+
+### The voice check
+
+The old we:you ratio band (1.5 to 7) is **retired**. It enforced a
+third-person-plural voice that this book no longer wants, and Feynman
+inverts it by construction. Replaced with:
+
+```
+pipeline/voicecheck.py        # first person present, jargon not front-loaded
+```
 
 ## Remaining raw material
 

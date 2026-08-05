@@ -2,48 +2,57 @@
 
 > Your test suite has never once lost power.
 
-Say we build a crash-test harness for a write path we care about.
-`kill -9` the process mid-write, ten thousand times, at a random byte
-offset each time. Zero bytes lost, every single run. Feels great, so we
-ship it.
+Let me tell you about a test that passed ten thousand times and proved
+nothing at all.
 
-Six weeks later, someone runs the same workload through a power-fault
-rig instead (a switch that cuts the wall socket rather than the
-process), and it loses data on the very first try.
+We build a crash-test harness for a write path we care about. It sends
+`kill -9` to the process mid-write, at a random byte offset, ten
+thousand times. Zero bytes lost. Every single run. That feels
+wonderful, so we ship it.
+
+Six weeks later somebody runs the same workload through a power-fault
+rig instead. Not a signal: an actual switch that cuts the wall socket.
+It loses data on the very first try.
 
 Ten thousand for ten thousand on one test. Zero for one on the other.
-That's not a flaky test. It's two different questions wearing the same
-word, "crash," and this chapter is about learning to tell them apart.
+
+Now, that is not a flaky test. I want to be firm about this, because
+"flaky" is the word everyone reaches for and it is the wrong word, and
+reaching for it is how the afternoon gets wasted. Those are two
+different questions wearing the same costume, and the costume is the
+word "crash."
 
 ## 2.1 Two Candidates and a Missing Number
 
-The natural reflex is to treat this as a probability problem: kill -9
+The natural reflex is to treat this as a probability problem. `kill -9`
 failure is rare, power-loss failure is common, go collect more samples
 and find the true rate.
 
-Worth resisting. Let's ask Rule 1's question first: how much do the
-candidate answers actually differ? Here the honest answer is that
-this isn't a spread at all, it's a category error. `kill -9` removes a
-*process*. A power cut removes *power to the machine*. Those aren't two
-points on the same axis; they're different axes entirely. No amount of
-extra sampling turns one into evidence about the other.
+Resist that. Ask Rule 1's question first: how much do the candidate
+answers actually differ?
+
+And here the honest answer is that this is not a spread at all. It is a
+category error. `kill -9` removes a *process*. A power cut removes
+*power to the machine*. Those are not two points on one axis. They are
+different axes, and no quantity of extra sampling on one turns into
+evidence about the other.
 
 <div class="aside">
 A sharper version of ratio triage: sometimes the "spread" between two
-candidates isn't a number at all, and computing one anyway is how we
-talk ourselves into a false sense of coverage.
+candidates is not a number, and computing one anyway is exactly how we
+talk ourselves into a false sense of coverage. The arithmetic was
+available. It was just arithmetic about the wrong thing.
 </div>
 
-So the real question underneath "why did these two tests disagree" is:
-**what does each failure actually destroy?** Answer that, and both
-results stop being surprising.
+So the real question underneath "why did these two tests disagree" is a
+different one entirely: **what does each failure actually destroy?**
+Answer that, and both results stop being surprising at all.
 
 ## 2.2 The Axioms
 
-Four places a byte can live between `write()` and "safe forever." Each
-one is owned by something different, and ownership is what determines
-what kills it. The last three columns ask the same question of each
-layer: does it *survive* this failure?
+There are four places a byte can live between `write()` and safe
+forever. Each one is owned by something different, and ownership is the
+thing that determines what can kill it.
 
 | Layer | Owned by | Process death | Kernel panic | Power loss |
 |---|---|---|---|---|
@@ -54,37 +63,51 @@ layer: does it *survive* this failure?
 
 *PLP = power-loss protection, explained below.
 
-That third row is the one nobody's intuition gets for free: consumer
-SSDs and spinning disks both carry a small volatile write cache *on the
-device itself*, after the data has already left the kernel. Enterprise
-drives often ship power-loss protection, a capacitor sized to finish
-the flush during the few milliseconds after the plug is pulled.
-Consumer drives usually don't. Two drives can both report "write
-complete" and quietly disagree about whether that claim survives a
-power cut.
+That third row is the one nobody's intuition gets for free, and it is
+worth a digression, because it is where the money is.
+
+Consumer SSDs and spinning disks both carry a small volatile write
+cache *on the device itself*. Not in your process. Not in the kernel.
+Physically on the drive, after the data has already left the operating
+system entirely. The drive accepts your bytes into that cache and tells
+the kernel it is done, because from the drive's point of view it is
+done, and the drive has no opinion about your durability requirements.
+
+Enterprise drives often ship power-loss protection: a capacitor, sized
+to hold enough charge to finish flushing that cache during the few
+milliseconds after somebody pulls the plug. Consumer drives usually do
+not. Same interface, same "write complete," same everything you can see
+from software.
+
+So two drives can both report success and quietly disagree about
+whether that success survives a power cut, and the only difference
+between them is a component you cannot query, on a part of the machine
+your code never touches. I find that a little frightening, and I think
+you should too.
 
 ## 2.3 Doing the Division
 
-There is arithmetic here, and it isn't the arithmetic the harness
+There is arithmetic here, and it is not the arithmetic the harness
 looked like it was doing.
 
-Ten thousand clean runs is a real statistical result. When we see zero
+Ten thousand clean runs is a real statistical result. When you see zero
 failures in n trials, the ninety-five percent upper bound on the true
-failure rate is about 3/n, so the harness bought us a genuinely
-precise number:
+failure rate is about 3/n. So the harness bought us a genuinely precise
+number:
 
 ```
      10,000 runs, 0 failures  ->  failure rate below 1 in 3,339
   1,000,000 runs, 0 failures  ->  failure rate below 1 in 333,809
 ```
 
-That is defensible, and it wasn't free. Which makes it worth being
-exact about what it is a number *about*.
+That is defensible and it was not free. Somebody's machine ran for
+hours. Which makes it worth being exact about what it is a number
+*about*.
 
-`kill -9` deletes a process, and a process owns row one. So every one
-of those ten thousand trials was a trial of row one, and not one of
-them was a trial of anything else. Run the division again with that
-column added:
+`kill -9` deletes a process. A process owns row one. So every one of
+those ten thousand trials was a trial of row one, and not one of them
+was a trial of anything else. Run the division again with that column
+added:
 
 ```
   trials that reached row 1        10,000
@@ -94,14 +117,18 @@ column added:
   95% bound, row 3 data loss          100%
 ```
 
-Zero trials support no bound at all. After ten thousand runs, our
-honest upper bound on losing acknowledged data to a power cut is one
-hundred percent, exactly where it stood before the harness was
-written. Ten million runs would leave it at one hundred percent too.
+Zero trials support no bound at all.
 
-The test wasn't flaky and it wasn't lucky. It was accurate to three
-significant figures, about row one, while the data we were worried
-about lived three rows further down.
+After ten thousand runs, our honest upper bound on losing acknowledged
+data to a power cut is one hundred percent. Exactly where it stood
+before anybody wrote the harness. Ten million runs would leave it at
+one hundred percent too, and so would ten billion, and this is the part
+I want you to feel: the number does not improve, ever, no matter how
+long you run it, because the experiment cannot reach the thing.
+
+The test was not flaky and it was not lucky. It was accurate to three
+significant figures about row one, while the data we were worried about
+lived three rows further down.
 
 <div class="rule" id="failure-fidelity">
 <span class="rule-id">Rule 4 · Test the failure you claim to survive</span>
@@ -112,33 +139,37 @@ nothing about that layer. Count rows before you count nines.
 ## 2.4 What This Rules Out
 
 This retires a comfortable piece of folk wisdom: "we crash-test in CI,
-we're covered." Covered against what, exactly? If the harness only ever
-sends `SIGKILL`, it has validated exactly one row of the ladder: the
-row that was never actually in danger, since page cache doesn't care
-whether our process is still alive.
+we're covered."
 
-The claim that needed testing (*does an acknowledged write survive
-losing the wall socket*) requires reaching row three or four. That
-needs `fsync()` (next chapter) and a fault injector that removes power,
-not signals: IPMI power-cycle, a managed PDU, a physical switch.
-Nothing short of that reaches the rows where the real risk actually
-lives.
+Covered against what, though? If the harness only ever sends `SIGKILL`,
+it has validated exactly one row of the ladder, and it is the row that
+was never in danger, because page cache does not care in the slightest
+whether your process is still alive. The kernel is holding your bytes.
+The kernel is fine. It watched your process die with total equanimity.
+
+The claim that needed testing was different: *does an acknowledged
+write survive losing the wall socket?* Answering that requires reaching
+row three or four. Which needs `fsync()`, which is the next chapter,
+and a fault injector that removes power rather than signals: an IPMI
+power-cycle, a managed PDU, a physical switch, somebody's foot.
+
+Nothing short of that reaches the rows where the real risk lives.
 
 ## 2.5 The Pictorial
 
 <img class="chart" src="img/survival-grid-02-the-ladder.svg" alt="Grid of four storage layers (userspace buffer, page cache, drive write cache, flash/platter) against four failure modes (kill -9, kernel panic, power loss, power loss with PLP). Checkmarks and crosses show which layers survive which failures: the same data as the 2.2 table, arranged so the failure boundary for each column is visible at a glance.">
 
 <div class="aside">
-Read each column top to bottom: the first ✗ you hit is where that
-failure mode stops your data. `kill -9`'s ✗ sits at the very top.
-Power loss without a capacitor puts its ✗ two rows deeper than most
-test suites ever bother to look.
+Read each column top to bottom. The first ✗ you hit is where that
+failure mode stops your data. `kill -9`'s ✗ sits at the very top. Power
+loss without a capacitor puts its ✗ two rows deeper than most test
+suites ever bother to look.
 </div>
 
-Five microseconds put us on row one, back in chapter 1. The rest of
+Five microseconds put you on row one, back in chapter 1. The rest of
 this book is about what it costs, in time and in engineering, to walk
-down to row four on purpose, and about not fooling ourselves into
-thinking we're already there.
+down to row four on purpose. And about not fooling yourself into
+thinking you are already standing there.
 
 <div class="challenges">
 
@@ -169,20 +200,26 @@ thinking we're already there.
 
 ## Design Note: Coverage Is a Claim About a Layer, Not a Count
 
-"We have a crash test" and "we have crash *coverage*" aren't the same
+"We have a crash test" and "we have crash *coverage*" are not the same
 sentence, and the gap between them is exactly the ladder.
 
-A test count is seductive because it's a single number that goes up.
-Ten thousand runs feels like more assurance than one hundred. But the
-count only matters *after* we've established the test can reach the
-failure we're actually worried about. A million `kill -9` runs against
-a page-cache-only claim is a million data points about a question
-nobody asked.
+A test count is seductive because it is a single number and it goes up.
+Ten thousand runs feels like more assurance than one hundred, and in a
+status meeting it reads like more assurance too. But the count only
+starts to matter *after* you have established that the test can reach
+the failure you are worried about. A million `kill -9` runs against a
+page-cache claim is a million data points about a question nobody
+asked.
 
-Before adding a zero to your run count, it's worth asking which row the
-test can possibly fail at. If the honest answer is "row one," more runs
-buy a tighter confidence interval on a claim you weren't worried about
-in the first place. Better to redirect that effort at reaching row
-three, even if the run count goes down as a result.
+So before adding a zero to your run count, ask which row the test can
+possibly fail at. If the honest answer is row one, then more runs buy
+you a tighter confidence interval on a claim that was never keeping you
+up at night.
+
+Better to redirect that effort at reaching row three, even if the run
+count goes down by three orders of magnitude as a result. Ten power
+cuts that reach the drive cache tell you something. Ten million signals
+that cannot reach it tell you the same thing they told you at run one,
+which is nothing.
 
 </div>
