@@ -39,6 +39,8 @@ That ratio has a name, arithmetic intensity, and it is the only number this chap
 
 [SECTION BREAK. Take a breath.]  7.2 The Axioms
 
+One FLOP per byte is a fact about our workload. To know whether that is a lot or a little, we need the matching fact about the hardware, and that one we have to be handed. Two numbers off a spec sheet, and one ratio between them:
+
 [TABLE. Read the rows that carry the argument; skip the rest.]
   Quantity: Peak compute, A100 (SXM, fp16): ~312 teraflops per second
   Quantity: Peak memory bandwidth, A100 (SXM, fp16): ~2 terabytes per second
@@ -103,6 +105,8 @@ That identity is the thing to carry out of this chapter. It turns the ridge poin
   This is group commit , again, and I hope by now it looks familiar. There, a fixed fsync round trip got amortized across however many writers had queued up behind it. Here, a fixed weight-read gets amortized across however many tokens' worth of compute we can pile up before the next byte has to move. Same trick. Different barrier. It will happen twice more.
 
 [SECTION BREAK. Take a breath.]  7.5 The Pictorial
+
+All of this fits on one chart, and it is worth learning to read because you will meet it again for the rest of your career. Arithmetic intensity runs along the bottom. The diagonal is what memory can feed you; the flat top is what the chip can compute. Where they meet is the ridge, and everything to the left of it is waiting:
 
 [CHART on the page. Say a one-line version, then move on.
   It shows: Roofline chart: achieved TFLOP/s versus arithmetic intensity in FLOP/byte, log-log scale.]

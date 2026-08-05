@@ -19,9 +19,11 @@ Now, nothing broke. I want to be careful about that, because the instinct is to 
 
 [SECTION BREAK. Take a breath.]  5.1 Two Candidates and a Missing Number
 
-Candidate one: pick a bigger fixed batch for throughput, a smaller one for latency, and tune the constant to match our traffic.
+So the constant was wrong. The interesting question is whether we should pick a better one or stop picking one, and those are genuinely different positions rather than degrees of the same one.
 
-Candidate two: stop picking a constant at all.
+The first: pick a bigger fixed batch for throughput, a smaller one for latency, and tune the constant to match our traffic.
+
+The second: stop picking a constant at all.
 
 Name the ratio, because the ratio is the whole argument. A fixed batch of 1000 costs us:
 
@@ -31,7 +33,7 @@ Name the ratio, because the ratio is the whole argument. A fixed batch of 1000 c
 
 Ten million times worse. Same constant. Just a quieter night.
 
-And that number is the argument against candidate one all by itself. There is no single value of N that is safe across a range that wide. Whatever you pick is correct at the traffic level you tuned it for and wrong by orders of magnitude everywhere else, and the place it is most wrong is the place nobody is watching, which is three in the morning.
+And that number is the argument against the first all by itself. There is no single value of N that is safe across a range that wide. Whatever you pick is correct at the traffic level you tuned it for and wrong by orders of magnitude everywhere else, and the place it is most wrong is the place nobody is watching, which is three in the morning.
 
 [ASIDE. Lighter, quicker, like a footnote said out loud.]
   A fixed time window ("always wait 10 milliseconds") looks like the fix, and it does bound the worst case. But it also forces every request to pay that 10 milliseconds even at 3 a.m. when nobody is behind you and the fsync could have gone out immediately. That trades a variable disaster for a constant tax, which is an improvement, but a disappointing one.
@@ -84,6 +86,8 @@ The fix is a small floor: hold the batch open for a minimum of roughly 200 micro
 Which is the same trade as the fixed window we rejected two sections ago. Exactly the same trade. The difference is that here it is sized to be negligible instead of dominant, and I think that is worth saying out loud: the idea was never bad, it was just badly sized.
 
 [SECTION BREAK. Take a breath.]  5.5 The Pictorial
+
+The clearest way to see the difference is to put both policies on the same axis at two very different loads, and notice which one changes shape when the traffic does:
 
 [CHART on the page. Say a one-line version, then move on.
   It shows: Log-scale bar chart comparing wait time to fill a batch under fixed-count versus adaptive batching, at low load (10 events/sec) and high load (100,000 events/sec).]

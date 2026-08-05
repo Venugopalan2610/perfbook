@@ -1,6 +1,6 @@
 ==================================================================
   BELOW THE FLOOR
-  roughly 11 minutes at a comfortable pace
+  roughly 12 minutes at a comfortable pace
 ==================================================================
 
 [Anything in brackets is a stage direction. Do not read it.]
@@ -23,15 +23,19 @@ The card is achieving 153 gigabytes per second out of the 380 it demonstrably ha
 
 [SECTION BREAK. Take a breath.]  11.1 Candidates and the Ratio
 
-Candidate one: the 380 gigabytes per second figure is a streaming-copy number, and the weight reads in a real forward pass have an access pattern that cannot reach it. Real achievable bandwidth here is nearer 153 gigabytes per second, and the floor was wrong from the start.
+There are two ways to explain a measurement that misses its floor, and they point in opposite directions: either the floor is wrong, or our account of where the time goes is incomplete.
 
-Candidate two: the bus really does deliver 380 gigabytes per second, and the extra 4.67 milliseconds is time when nothing is being read at all.
+The first: the 380 gigabytes per second figure is a streaming-copy number, and the weight reads in a real forward pass have an access pattern that cannot reach it. Real achievable bandwidth here is nearer 153 gigabytes per second, and the floor was wrong from the start.
+
+The second: the bus really does deliver 380 gigabytes per second, and the extra 4.67 milliseconds is time when nothing is being read at all.
 
 Chapter 1 handed us the tool for exactly this shape of question, and it is worth going back for it. The floor test says a measurement that beats a theoretical floor means the work did not happen.
 
 This is that same rule, looked at from the other end. A measurement that misses a floor by 2.5 times means work happened that we were not counting. Either the floor is wrong, or our picture of what the machine is doing has somebody missing from it. Those are our two candidates, and the arithmetic can tell them apart without us guessing.
 
 [SECTION BREAK. Take a breath.]  11.2 The Axioms
+
+To tell those apart we need to know what the machine is made of, and in particular we need one number that neither of the previous two chapters ever asked for. The first four rows below are about the model and the card. The fifth is about something else entirely:
 
 [TABLE. Read the rows that carry the argument; skip the rest.]
   Quantity: Model weights, 0.6B bf16, Value: 1.19 gigabytes
@@ -60,7 +64,7 @@ The gap is not some mystery quantity we have to attribute on faith. It is 280 in
 [CHART on the page. Say a one-line version, then move on.
   It shows: Two stacked horizontal bars of time per decode token.]
 
-So candidate one goes. The bus is not slow. The bus is idle, waiting for a CPU that is 280 function calls behind. Each kernel, once launched, runs at full bandwidth. The problem was never inside any of them. The problem is the gaps between them.
+So the first candidate goes. The bus is not slow. The bus is idle, waiting for a CPU that is 280 function calls behind. Each kernel, once launched, runs at full bandwidth. The problem was never inside any of them. The problem is the gaps between them.
 
 [RULE BOX. This is the takeaway. Slow down and land it.]
   Rule 13, A workload that misses its own roofline floor is not yet bound by what you think

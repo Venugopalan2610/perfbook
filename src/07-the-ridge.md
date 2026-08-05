@@ -50,6 +50,11 @@ this chapter needs in order to compute everything else.
 
 ## 7.2 The Axioms
 
+One FLOP per byte is a fact about our workload. To know whether that is
+a lot or a little, we need the matching fact about the hardware, and
+that one we have to be handed. Two numbers off a spec sheet, and one
+ratio between them:
+
 | Quantity | A100 (SXM, fp16) |
 |---|---|
 | Peak compute | ~312 TFLOP/s |
@@ -165,6 +170,12 @@ move. Same trick. Different barrier. It will happen twice more.
 </div>
 
 ## 7.5 The Pictorial
+
+All of this fits on one chart, and it is worth learning to read because
+you will meet it again for the rest of your career. Arithmetic intensity
+runs along the bottom. The diagonal is what memory can feed you; the
+flat top is what the chip can compute. Where they meet is the ridge, and
+everything to the left of it is waiting:
 
 <img class="chart" src="img/roofline-07-the-ridge.svg" alt="Roofline chart: achieved TFLOP/s versus arithmetic intensity in FLOP/byte, log-log scale. A diagonal memory-bound line rises to a flat compute-bound plateau at the ridge point around 156 FLOP/byte and 312 TFLOP/s. This chapter's workload sits far down the diagonal at 1 FLOP/byte, achieving about 2 TFLOP/s.">
 

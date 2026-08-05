@@ -19,9 +19,11 @@ Nothing in the last two chapters explains a factor of four. So let's go find it.
 
 [SECTION BREAK. Take a breath.]  9.1 Candidates and the Ratio
 
-Candidate one: chapter 8's budget was optimistic. Activations, workspace and fragmentation ate more than the couple of gigabytes we waved at, so we are not really running 64 sequences. We are running sixteen and misreporting it.
+Two explanations fit what we are seeing, and it is worth separating them carefully, because one of them is a bug and the other is a decision we made on purpose without noticing.
 
-Candidate two: all 64 slots really are occupied, and most of them are occupied by sequences that finished a while ago.
+The first: chapter 8's budget was optimistic. Activations, workspace and fragmentation ate more than the couple of gigabytes we waved at, so we are not really running 64 sequences. We are running sixteen and misreporting it.
+
+The second: all 64 slots really are occupied, and most of them are occupied by sequences that finished a while ago.
 
 It is worth separating those carefully, because they have opposite fixes. The first is a memory-accounting bug, and you solve it by measuring more carefully. The second is not a bug at all. It is a consequence of how we decided to schedule, and no amount of careful measurement will shift it by a single token.
 
@@ -79,7 +81,7 @@ It also rules out the reflex to blame padding, which is where most people go fir
 
 Padding is real. Shorter prompts get padded up to the longest one in the batch, and those padded positions cost attention work. But padding is bounded by the spread in prompt lengths within a single step, which is a small constant. What we just measured is bounded by the spread in output lengths across the batch's whole lifetime, which is 80 times . Those are not the same problem and they are nowhere near the same size, and if you spend a week on the first one you will move the second one by nothing.
 
-What survives is candidate two, and the fix falls straight out of it. If the loss comes from a finished sequence holding a slot, then let it go. After every forward pass, ask which sequences emitted an end-of-sequence token, evict them, and admit whatever is queued into the space they left behind.
+What survives is the second, and the fix falls straight out of it. If the loss comes from a finished sequence holding a slot, then let it go. After every forward pass, ask which sequences emitted an end-of-sequence token, evict them, and admit whatever is queued into the space they left behind.
 
 The batch stops being a fixed group of requests that start and end together, and becomes a running set that sequences join and leave continuously.
 

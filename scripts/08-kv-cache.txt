@@ -1,6 +1,6 @@
 ==================================================================
   THE CACHE THAT ATE THE BATCH
-  roughly 10 minutes at a comfortable pace
+  roughly 11 minutes at a comfortable pace
 ==================================================================
 
 [Anything in brackets is a stage direction. Do not read it.]
@@ -21,9 +21,11 @@ Something is spending memory that chapter 7 assumed was free.
 
 [SECTION BREAK. Take a breath.]  8.1 Two Candidates and a Missing Number
 
-Candidate one: this is a scheduling problem. We are padding variable-length sequences to a common size, and the padding is eating the capacity.
+Something is eating the difference, and there are two obvious suspects. One of them is a scheduling problem we could fix by being cleverer. The other is a cost we simply never counted.
 
-Candidate two: it is not padding at all. There is a second, growing memory cost that chapter 7 never priced.
+The first: this is a scheduling problem. We are padding variable-length sequences to a common size, and the padding is eating the capacity.
+
+The second: it is not padding at all. There is a second, growing memory cost that chapter 7 never priced.
 
 Before we go hunting for padding bugs, it is worth checking the ratio. And the fastest way in is to ask what chapter 7 actually accounted for.
 
@@ -50,6 +52,8 @@ Half a megabyte. Per word. Per conversation.
 If you are used to thinking of a model as its weights, that is the number that will catch you out, and it caught me out too. The weights are the part that has a name and a download size. The cache is the part that decides how many people you can serve.
 
 [SECTION BREAK. Take a breath.]  8.3 Doing the Division
+
+With a number for what a token costs, the batch ceiling is one subtraction and one division. Take the card, remove the weights, and see how many one-gigabyte sequences fit in what is left:
 
 [ARITHMETIC. Read it as sentences, at half speed.]
   memory budget for KV cache is 80 gigabytes − 14 gigabytes (weights) is 66 gigabytes
@@ -78,6 +82,8 @@ So the field's answer was not bigger GPUs. It was making the 512 kilobytes numbe
 Every one of those attacks the 512 kilobytes constant, or the waste around it. None of them touch the ridge point from chapter 7. Different wall, different tool, and that distinction is the whole reason these are two chapters instead of one.
 
 [SECTION BREAK. Take a breath.]  8.5 The Pictorial
+
+Two bars, one card. The top one is what we can actually run. The bottom one is what chapter 7 told us to run, drawn to the same scale so you can see exactly how far past the edge of the card it goes:
 
 [CHART on the page. Say a one-line version, then move on.
   It shows: Bar chart comparing an 80 GB A100's memory budget.]

@@ -18,12 +18,16 @@ find it.
 
 ## 9.1 Candidates and the Ratio
 
-Candidate one: chapter 8's budget was optimistic. Activations,
+Two explanations fit what we are seeing, and it is worth separating them
+carefully, because one of them is a bug and the other is a decision we
+made on purpose without noticing.
+
+The first: chapter 8's budget was optimistic. Activations,
 workspace and fragmentation ate more than the couple of gigabytes we
 waved at, so we are not really running 64 sequences. We are running
 sixteen and misreporting it.
 
-Candidate two: all 64 slots really are occupied, and most of them are
+The second: all 64 slots really are occupied, and most of them are
 occupied by sequences that finished a while ago.
 
 It is worth separating those carefully, because they have opposite
@@ -121,7 +125,7 @@ spread in *output* lengths across the batch's whole lifetime, which is
 size, and if you spend a week on the first one you will move the second
 one by nothing.
 
-What survives is candidate two, and the fix falls straight out of it.
+What survives is the second, and the fix falls straight out of it.
 If the loss comes from a finished sequence holding a slot, then let it
 go. After every forward pass, ask which sequences emitted an
 end-of-sequence token, evict them, and admit whatever is queued into

@@ -1,6 +1,6 @@
 ==================================================================
   A PAGE TABLE FOR TOKENS
-  roughly 12 minutes at a comfortable pace
+  roughly 13 minutes at a comfortable pace
 ==================================================================
 
 [Anything in brackets is a stage direction. Do not read it.]
@@ -21,9 +21,11 @@ It held 66 back when requests averaged 2048 tokens, and it holds 66 now that the
 
 [SECTION BREAK. Take a breath.]  10.1 Candidates and the Ratio
 
-Candidate one: 512 kilobytes per token is simply what it costs, the requests are longer than we think, and 66 is the honest answer.
+Either the number is right and our expectation was wrong, or the number is wrong and something is being wasted. Both are respectable positions until we do the arithmetic.
 
-Candidate two: we are paying for tokens that do not exist.
+The first: 512 kilobytes per token is simply what it costs, the requests are longer than we think, and 66 is the honest answer.
+
+The second: we are paying for tokens that do not exist.
 
 The ratio between those is the ratio between 2048 and 350, which is about six. That is well past the point where it is worth an hour to find out which one is true, and the two answers point at completely different purchases. One says buy memory. The other says stop wasting the memory you already have.
 
@@ -45,6 +47,8 @@ A sequence's KV cache has to be contiguous, because attention strides through it
 Three reasonable facts. Put them together and the allocator's hand is forced: reserve the worst case, or risk running out mid-sequence with nowhere to grow.
 
 [SECTION BREAK. Take a breath.]  10.3 Doing the Division
+
+So put the reservation next to the reality. One line for what every sequence is charged at admission, one for what it turns out to need, and the gap between them is the whole problem:
 
 [ARITHMETIC. Read it as sentences, at half speed.]
   reserved per sequence is 2048 tokens times 512 kilobytes is 1024 megabytes

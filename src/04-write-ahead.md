@@ -21,10 +21,14 @@ permitted to mean.
 
 ## 4.1 Two Candidates and a Missing Number
 
-Candidate one: an `fsync` error behaves like any other I/O error. Log
+Before we decide what to do about that, we have to settle what actually
+happened, and there are two readings of it that lead somewhere very
+different.
+
+The first: an `fsync` error behaves like any other I/O error. Log
 it, back off, retry, and eventually it either succeeds or you escalate.
 
-Candidate two: retrying does nothing at all, because there is nothing
+The second: retrying does nothing at all, because there is nothing
 left to retry.
 
 This is not a ratio we can divide our way out of. It is a question
@@ -55,6 +59,11 @@ make the data come back.
 </div>
 
 ## 4.2 The Axioms
+
+There is no arithmetic to do here, which is unusual for this book. What
+we need instead are three facts about kernel behaviour, none of which
+you can reason your way to from first principles, and all three of which
+have to be true at once for the bug above to happen.
 
 | Fact | What it means for us |
 |---|---|
@@ -141,6 +150,9 @@ Same rule as before, wearing different clothes: your recovery source
 has to be independent of the thing that failed.
 
 ## 4.5 The Pictorial
+
+Four boxes and one arrow that matters. Watch where the acknowledgement
+sits, because everything in the design follows from its position:
 
 ```
  client request

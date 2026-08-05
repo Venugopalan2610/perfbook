@@ -28,12 +28,16 @@ two chapters calling memory-bound.
 
 ## 11.1 Candidates and the Ratio
 
-Candidate one: the 380 GB/s figure is a streaming-copy number, and the
+There are two ways to explain a measurement that misses its floor, and
+they point in opposite directions: either the floor is wrong, or our
+account of where the time goes is incomplete.
+
+The first: the 380 GB/s figure is a streaming-copy number, and the
 weight reads in a real forward pass have an access pattern that cannot
 reach it. Real achievable bandwidth here is nearer 153 GB/s, and the
 floor was wrong from the start.
 
-Candidate two: the bus really does deliver 380 GB/s, and the extra 4.67
+The second: the bus really does deliver 380 GB/s, and the extra 4.67
 ms is time when nothing is being read at all.
 
 Chapter 1 handed us the tool for exactly this shape of question, and it
@@ -48,6 +52,11 @@ has somebody missing from it. Those are our two candidates, and the
 arithmetic can tell them apart without us guessing.
 
 ## 11.2 The Axioms
+
+To tell those apart we need to know what the machine is made of, and in
+particular we need one number that neither of the previous two chapters
+ever asked for. The first four rows below are about the model and the
+card. The fifth is about something else entirely:
 
 | Quantity | Value |
 |---|---|
@@ -87,7 +96,7 @@ they account for the missing time almost exactly.
 
 <img class="chart" src="img/launch-overhead-11-below-the-floor.svg" alt="Two stacked horizontal bars of time per decode token. The eager bar is 7.8 milliseconds: 3.13 milliseconds of memory traffic and 4.67 milliseconds of CPU launch overhead. The CUDA graph bar is 3.4 milliseconds: the same 3.13 milliseconds of memory traffic and a thin remainder of replay overhead. A dashed line marks the 3.13 millisecond roofline floor.">
 
-So candidate one goes. The bus is not slow. The bus is *idle*, waiting
+So the first candidate goes. The bus is not slow. The bus is *idle*, waiting
 for a CPU that is 280 function calls behind. Each kernel, once launched,
 runs at full bandwidth. The problem was never inside any of them. The
 problem is the gaps between them.

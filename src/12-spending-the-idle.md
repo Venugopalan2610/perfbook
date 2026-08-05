@@ -18,17 +18,21 @@ It takes the same 7 milliseconds.
 
 ## 12.1 Candidates and the Ratio
 
-Candidate one: the check is not a real check. We are approximating,
+That should not be possible, so one of our assumptions is wrong. Either
+the work we just did was not the work we thought, or it was genuinely
+free, and only one of those is good news.
+
+The first: the check is not a real check. We are approximating,
 sampling from something that is not quite the model's true
 distribution, and the five tokens we get are not the five the model
 would have produced. Faster and slightly wrong is an old trade, and
 usually a bad one.
 
-Candidate two: the arithmetic was free, because we had already paid for
+The second: the arithmetic was free, because we had already paid for
 it and were not using it.
 
 The ratio worth naming is 156 to 1, and we computed it back in chapter
-7. If candidate two is right, then this is not a clever trick at all.
+7. If the second is right, then this is not a clever trick at all.
 It is the natural consequence of standing two orders of magnitude to
 the left of the ridge, and the only surprising thing is that it took
 the field until 2023 to go and spend the change.
@@ -57,6 +61,10 @@ one weight read. This puts K *consecutive tokens of one sequence*
 through it.
 
 ## 12.3 Doing the Division
+
+Then the comparison is two lines of arithmetic, and the second one is
+just the first with a bigger numerator. Same bytes read, five times the
+operations:
 
 ```
 generate 1 token   :  14 GB read,  14 GFLOP  →   1 FLOP/byte

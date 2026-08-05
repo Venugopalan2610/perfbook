@@ -19,11 +19,15 @@ Something is spending memory that chapter 7 assumed was free.
 
 ## 8.1 Two Candidates and a Missing Number
 
-Candidate one: this is a scheduling problem. We are padding
+Something is eating the difference, and there are two obvious suspects.
+One of them is a scheduling problem we could fix by being cleverer. The
+other is a cost we simply never counted.
+
+The first: this is a scheduling problem. We are padding
 variable-length sequences to a common size, and the padding is eating
 the capacity.
 
-Candidate two: it is not padding at all. There is a second, growing
+The second: it is not padding at all. There is a second, growing
 memory cost that chapter 7 never priced.
 
 Before we go hunting for padding bugs, it is worth checking the ratio.
@@ -69,6 +73,10 @@ are the part that has a name and a download size. The cache is the part
 that decides how many people you can serve.
 
 ## 8.3 Doing the Division
+
+With a number for what a token costs, the batch ceiling is one
+subtraction and one division. Take the card, remove the weights, and see
+how many one-gigabyte sequences fit in what is left:
 
 ```
 memory budget for KV cache = 80 GB − 14 GB (weights) = 66 GB
@@ -131,6 +139,10 @@ different tool, and that distinction is the whole reason these are two
 chapters instead of one.
 
 ## 8.5 The Pictorial
+
+Two bars, one card. The top one is what we can actually run. The bottom
+one is what chapter 7 told us to run, drawn to the same scale so you can
+see exactly how far past the edge of the card it goes:
 
 <img class="chart" src="img/kv-budget-08-kv-cache.svg" alt="Bar chart comparing an 80 GB A100's memory budget. Top bar: 14 GB weights plus 64 GB KV cache fits under the 80 GB card line. Bottom bar: what the ridge point wants, 14 GB weights plus 156 GB KV cache for 156 sequences, extends well past the 80 GB card line and doesn't fit.">
 

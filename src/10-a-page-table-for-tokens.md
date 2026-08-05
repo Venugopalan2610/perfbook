@@ -21,10 +21,14 @@ smaller, and I find that a genuinely strange thing for a budget to do.
 
 ## 10.1 Candidates and the Ratio
 
-Candidate one: 512 KB per token is simply what it costs, the requests
+Either the number is right and our expectation was wrong, or the number
+is wrong and something is being wasted. Both are respectable positions
+until we do the arithmetic.
+
+The first: 512 KB per token is simply what it costs, the requests
 are longer than we think, and 66 is the honest answer.
 
-Candidate two: we are paying for tokens that do not exist.
+The second: we are paying for tokens that do not exist.
 
 The ratio between those is the ratio between 2048 and 350, which is
 about six. That is well past the point where it is worth an hour to
@@ -61,6 +65,10 @@ forced: reserve the worst case, or risk running out mid-sequence with
 nowhere to grow.
 
 ## 10.3 Doing the Division
+
+So put the reservation next to the reality. One line for what every
+sequence is charged at admission, one for what it turns out to need, and
+the gap between them is the whole problem:
 
 ```
 reserved per sequence  =  2048 tokens × 512 KB  =  1024 MB

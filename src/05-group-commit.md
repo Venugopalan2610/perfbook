@@ -22,10 +22,14 @@ load politely changed on us.
 
 ## 5.1 Two Candidates and a Missing Number
 
-Candidate one: pick a bigger fixed batch for throughput, a smaller one
+So the constant was wrong. The interesting question is whether we should
+pick a better one or stop picking one, and those are genuinely different
+positions rather than degrees of the same one.
+
+The first: pick a bigger fixed batch for throughput, a smaller one
 for latency, and tune the constant to match our traffic.
 
-Candidate two: stop picking a constant at all.
+The second: stop picking a constant at all.
 
 Name the ratio, because the ratio is the whole argument. A fixed batch
 of 1000 costs us:
@@ -37,7 +41,7 @@ at      10 events/sec:  1000 ÷      10  = 100  s  to fill    (not fine)
 
 **Ten million times worse.** Same constant. Just a quieter night.
 
-And that number is the argument against candidate one all by itself.
+And that number is the argument against the first all by itself.
 There is no single value of N that is safe across a range that wide.
 Whatever you pick is correct at the traffic level you tuned it for and
 wrong by orders of magnitude everywhere else, and the place it is most
@@ -137,6 +141,10 @@ be negligible instead of dominant, and I think that is worth saying out
 loud: the idea was never bad, it was just badly sized.
 
 ## 5.5 The Pictorial
+
+The clearest way to see the difference is to put both policies on the
+same axis at two very different loads, and notice which one changes
+shape when the traffic does:
 
 <img class="chart" src="img/group-commit-05-group-commit.svg" alt="Log-scale bar chart comparing wait time to fill a batch under fixed-count versus adaptive batching, at low load (10 events/sec) and high load (100,000 events/sec). Fixed count swings from 100 seconds at low load to 10 milliseconds at high load. Adaptive stays flat around 100 microseconds at both.">
 

@@ -48,7 +48,7 @@ bandwidth, eight bytes should cost:
 We measured about 100 microseconds for that same call.
 
 That is not a near miss. That is **25,000×** over the bandwidth floor.
-Candidate one is not slightly wrong, or wrong in the details. It is
+The first candidate is not slightly wrong, or wrong in the details. It is
 wrong by more than four orders of magnitude, which is the kind of wrong
 you can see from orbit. Set it aside.
 
@@ -158,6 +158,9 @@ the arithmetic does not.
 
 ## 3.5 The Pictorial
 
+Here it is drawn out. Three records queued above the line, one crossing,
+and everything below it provably on the media:
+
 ```
  record 1 ─┐
  record 2 ─┤  queued, unordered w.r.t. the barrier
@@ -170,8 +173,8 @@ the arithmetic does not.
                                         only past this line
 ```
 
-Three records, one crossing. That is the shape you want, and it costs
-one round trip no matter how many records are stacked above the line.
+That is the shape you want, and it costs one round trip no matter how
+many records are stacked above the line.
 
 <div class="aside">
 Fsync-per-record redraws that picture a thousand times for a thousand

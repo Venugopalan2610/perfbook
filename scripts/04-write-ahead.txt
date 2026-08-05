@@ -1,6 +1,6 @@
 ==================================================================
   WRITE-AHEAD
-  roughly 10 minutes at a comfortable pace
+  roughly 11 minutes at a comfortable pace
 ==================================================================
 
 [Anything in brackets is a stage direction. Do not read it.]
@@ -21,9 +21,11 @@ This was a real bug, found in PostgreSQL in 2018, and once you see why it happen
 
 [SECTION BREAK. Take a breath.]  4.1 Two Candidates and a Missing Number
 
-Candidate one: an fsync error behaves like any other I/O error. Log it, back off, retry, and eventually it either succeeds or you escalate.
+Before we decide what to do about that, we have to settle what actually happened, and there are two readings of it that lead somewhere very different.
 
-Candidate two: retrying does nothing at all, because there is nothing left to retry.
+The first: an fsync error behaves like any other I/O error. Log it, back off, retry, and eventually it either succeeds or you escalate.
+
+The second: retrying does nothing at all, because there is nothing left to retry.
 
 This is not a ratio we can divide our way out of. It is a question about what the kernel does at the instant writeback fails, so let's just trace it through, slowly, because the answer is stranger than it looks.
 
@@ -37,6 +39,8 @@ So the second call returns success. Honestly. From where it is standing, there i
   The fix that shipped in Linux 4.13 ( errseq_t ) made sure every open file description sees the error at least once, instead of the first caller silently consuming it on everyone else's behalf. It did not change the deeper fact underneath: the page is still discarded after one failed writeback. Retry-until-success was broken before that fix, and it is broken after it. The fix made the error easier to see. It did not make the data come back.
 
 [SECTION BREAK. Take a breath.]  4.2 The Axioms
+
+There is no arithmetic to do here, which is unusual for this book. What we need instead are three facts about kernel behaviour, none of which you can reason your way to from first principles, and all three of which have to be true at once for the bug above to happen.
 
 [TABLE. Read the rows that carry the argument; skip the rest.]
   Fact: A writeback failure marks the page clean and evicts it, What it means for us: The failed bytes are gone from the page cache, not "still pending"
@@ -86,6 +90,8 @@ The buffer pool copy is the one version of that page our process actually valida
 Same rule as before, wearing different clothes: your recovery source has to be independent of the thing that failed.
 
 [SECTION BREAK. Take a breath.]  4.5 The Pictorial
+
+Four boxes and one arrow that matters. Watch where the acknowledgement sits, because everything in the design follows from its position:
 
 [DIAGRAM. Cannot be read aloud. Describe it in one or two
   sentences of your own, then carry on. It looks like this:]

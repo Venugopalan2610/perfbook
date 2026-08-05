@@ -1,6 +1,6 @@
 ==================================================================
   SPENDING THE IDLE
-  roughly 12 minutes at a comfortable pace
+  roughly 13 minutes at a comfortable pace
 ==================================================================
 
 [Anything in brackets is a stage direction. Do not read it.]
@@ -19,11 +19,13 @@ It takes the same 7 milliseconds.
 
 [SECTION BREAK. Take a breath.]  12.1 Candidates and the Ratio
 
-Candidate one: the check is not a real check. We are approximating, sampling from something that is not quite the model's true distribution, and the five tokens we get are not the five the model would have produced. Faster and slightly wrong is an old trade, and usually a bad one.
+That should not be possible, so one of our assumptions is wrong. Either the work we just did was not the work we thought, or it was genuinely free, and only one of those is good news.
 
-Candidate two: the arithmetic was free, because we had already paid for it and were not using it.
+The first: the check is not a real check. We are approximating, sampling from something that is not quite the model's true distribution, and the five tokens we get are not the five the model would have produced. Faster and slightly wrong is an old trade, and usually a bad one.
 
-The ratio worth naming is 156 to 1, and we computed it back in chapter 7. If candidate two is right, then this is not a clever trick at all. It is the natural consequence of standing two orders of magnitude to the left of the ridge, and the only surprising thing is that it took the field until 2023 to go and spend the change.
+The second: the arithmetic was free, because we had already paid for it and were not using it.
+
+The ratio worth naming is 156 to 1, and we computed it back in chapter 7. If the second is right, then this is not a clever trick at all. It is the natural consequence of standing two orders of magnitude to the left of the ridge, and the only surprising thing is that it took the field until 2023 to go and spend the change.
 
 [SECTION BREAK. Take a breath.]  12.2 The Axioms
 
@@ -41,6 +43,8 @@ That first row carries the chapter, so let me say it in words too. A forward pas
 Which is the same fact chapter 7 used to justify batching, applied along a different axis. Batching puts K different sequences through one weight read. This puts K consecutive tokens of one sequence through it.
 
 [SECTION BREAK. Take a breath.]  12.3 Doing the Division
+
+Then the comparison is two lines of arithmetic, and the second one is just the first with a bigger numerator. Same bytes read, five times the operations:
 
 [ARITHMETIC. Read it as sentences, at half speed.]
   generate 1 token : 14 gigabytes read, 14 gigaflop gives 1 flop per byte

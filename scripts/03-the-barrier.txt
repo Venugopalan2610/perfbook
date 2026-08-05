@@ -36,7 +36,7 @@ Name the ratio before you pick. At even a modest 2 gigabytes per second of devic
 
 We measured about 100 microseconds for that same call.
 
-That is not a near miss. That is 25,000 times  over the bandwidth floor. Candidate one is not slightly wrong, or wrong in the details. It is wrong by more than four orders of magnitude, which is the kind of wrong you can see from orbit. Set it aside.
+That is not a near miss. That is 25,000 times  over the bandwidth floor. The first candidate is not slightly wrong, or wrong in the details. It is wrong by more than four orders of magnitude, which is the kind of wrong you can see from orbit. Set it aside.
 
 Which leaves candidate two, and a question we cannot answer by staring at it any harder: if we are not paying for bytes, what exactly are we paying for? For that we need some numbers.
 
@@ -93,6 +93,8 @@ And once you notice that, the design that follows is almost forced. Put only the
 
 [SECTION BREAK. Take a breath.]  3.5 The Pictorial
 
+Here it is drawn out. Three records queued above the line, one crossing, and everything below it provably on the media:
+
 [DIAGRAM. Cannot be read aloud. Describe it in one or two
   sentences of your own, then carry on. It looks like this:]
   |  record 1 ─┐
@@ -105,7 +107,7 @@ And once you notice that, the design that follows is almost forced. Put only the
   |  [ record 1 | record 2 | record 3 ]  ← provably durable, in this order,
   |                                         only past this line
 
-Three records, one crossing. That is the shape you want, and it costs one round trip no matter how many records are stacked above the line.
+That is the shape you want, and it costs one round trip no matter how many records are stacked above the line.
 
 [ASIDE. Lighter, quicker, like a footnote said out loud.]
   Fsync-per-record redraws that picture a thousand times for a thousand records. A thousand barriers, each paying a full round trip to escort a single row across. Group commit, in chapter 5, is what happens once you let the queue fill up before you draw the line.

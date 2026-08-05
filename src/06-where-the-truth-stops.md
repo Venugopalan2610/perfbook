@@ -20,10 +20,14 @@ because they are data. They are just somebody else's.
 
 ## 6.1 Two Candidates and a Missing Number
 
-Candidate one: trust the framing. If the magic bytes check out and the
+If structure cannot tell us where the record stops, we need to ask what
+can. There are two answers, and they differ in a way we can put a number
+on, which is the whole reason to prefer one.
+
+The first: trust the framing. If the magic bytes check out and the
 length field points at something parseable, the record is real.
 
-Candidate two: do not trust framing at all. Verify the content.
+The second: do not trust framing at all. Verify the content.
 
 The ratio that separates them is a coincidence rate, and it is a
 lopsided one. Structural framing has no floor on how often it
@@ -41,6 +45,11 @@ look like today. That is not a close call, and it is not a judgement
 call either.
 
 ## 6.2 The Axioms
+
+So we want an arithmetic check rather than a structural one. Before we
+build it, here is what the standard one actually promises, because the
+guarantees are sharper than most people expect and the one gap in them
+is the whole of section 6.4.
 
 | Property | Value |
 |---|---|
@@ -146,6 +155,10 @@ One line. And you only ever find it by asking what your own check does
 on its worst input, rather than on a typical one.
 
 ## 6.5 The Pictorial
+
+Here is what recovery sees when it walks the log and hits the crash. Two
+good records, then one that passes every structural test it has and
+fails the only test that counts:
 
 ```
  record 1 [ok, CRC matches]

@@ -157,6 +157,11 @@ Nothing short of that reaches the rows where the real risk lives.
 
 ## 2.5 The Pictorial
 
+The table in 2.2 has the same information, but a table hides the thing
+that matters. Arrange it as a grid and the boundary jumps out: for each
+kind of failure there is one row where the crosses start, and that row
+is where your data stops being yours.
+
 <img class="chart" src="img/survival-grid-02-the-ladder.svg" alt="Grid of four storage layers (userspace buffer, page cache, drive write cache, flash/platter) against four failure modes (kill -9, kernel panic, power loss, power loss with PLP). Checkmarks and crosses show which layers survive which failures: the same data as the 2.2 table, arranged so the failure boundary for each column is visible at a glance.">
 
 <div class="aside">
