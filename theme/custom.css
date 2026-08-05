@@ -265,3 +265,78 @@ a:focus-visible, button:focus-visible {
   .content h2 { font-size: 2.2rem; }
   .rule { font-size: 1.8rem; padding: 1.2rem 1.3rem; }
 }
+
+/* ============================================================
+   BREATHING ROOM
+   Typographic life, not decoration. Everything below is CSS only
+   and needs no change to any chapter's markdown, so it cannot
+   drift out of sync with the prose.
+   NOTE the project-wide gotcha: 1rem = 10px here (root is 62.5%).
+   ============================================================ */
+
+/* --- Drop cap ------------------------------------------------
+   On the first paragraph of the body, after the epigraph on a
+   chapter or straight after the h1 on the front matter. Signals
+   "a book starts here" before a single word is read. --------- */
+.content blockquote + p::first-letter,
+.content h1 + p::first-letter {
+  float: left;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 6.4rem;          /* 64px, about three lines of body */
+  line-height: 0.82;
+  padding: 0.6rem 1.1rem 0 0;
+  color: var(--flag);
+}
+/* A drop cap on a one-line paragraph looks like a mistake. */
+.content blockquote + p:has(+ h2)::first-letter { float: none; font-size: inherit;
+  color: inherit; padding: 0; line-height: inherit; }
+
+/* --- Section ornament ----------------------------------------
+   A division sign above every section break, matching the
+   favicon. The book's recurring act is doing the division, so
+   the mark that separates its sections may as well say so. ---- */
+.content h2::before {
+  content: "÷";
+  display: block;
+  font-family: var(--display);
+  font-size: 2.2rem;          /* 22px */
+  font-weight: 400;
+  line-height: 1;
+  color: var(--graticule);
+  margin-bottom: 0.65em;
+  margin-top: -0.2em;
+}
+/* Challenges and the design note already carry a heavy rule. */
+.challenges h2::before { content: none; }
+
+/* --- Pull quote ----------------------------------------------
+   For the four-word landings the voice is built around: "It is
+   not a mistake." Breaks the column and gives the eye somewhere
+   to rest between two dense pages. Opt in with <p class="pull">.
+   ------------------------------------------------------------ */
+.content .pull {
+  font-family: var(--display);
+  font-size: 2.9rem;          /* 29px */
+  font-weight: 600;
+  line-height: 1.22;
+  color: var(--ink);
+  margin: 3.2rem 0;
+  padding-left: 1.8rem;
+  border-left: 4px solid var(--flag);
+  max-width: 52rem;           /* 520px, deliberately short of the column */
+}
+
+/* --- Aside marker --------------------------------------------
+   The float experiment stays retired (see the note above), but a
+   marker still reads as "this is a margin note" rather than "this
+   is more paragraph". ---------------------------------------- */
+.aside::before {
+  content: "";
+  display: block;
+  width: 2.4rem;
+  height: 2px;
+  background: var(--signal);
+  margin-bottom: 0.9rem;
+  opacity: 0.55;
+}
