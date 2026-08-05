@@ -17,6 +17,7 @@ JARGON = ["arithmetic intensity", "roofline", "ridge point", "write-ahead",
           "copy-on-write", "rejection sampling", "iteration-level"]
 
 fail = 0
+earned = set()   # jargon introduced by an earlier chapter is fair game later
 print(f"{'chapter':<34} {'I':>3} {'you':>4} {'we':>4}  {'1st ¶':>6}  jargon")
 for f in CHAPTERS:
     text = f.read_text()
@@ -29,7 +30,8 @@ for f in CHAPTERS:
     paras = [p for p in body.split("\n\n") if p.strip()
              and not p.startswith(("#", ">", "|", "<"))]
     first = paras[0] if paras else ""
-    early_jargon = [j for j in JARGON if j in first.lower()]
+    early_jargon = [j for j in JARGON
+                    if j in first.lower() and j not in earned]
 
     problems = []
     if i < 1:
@@ -41,6 +43,8 @@ for f in CHAPTERS:
     status = "ok" if not problems else "; ".join(problems)
     if problems:
         fail += 1
+    # anything this chapter used anywhere is earned for the ones after it
+    earned.update(j for j in JARGON if j in text.lower())
     print(f"{f.name:<34} {i:>3} {you:>4} {we:>4}  {len(first.split()):>6}  {status}")
 
 print()

@@ -63,6 +63,11 @@ concurrently, and no amount of scheduling makes it smaller.
 
 Half a megabyte. Per word. Per conversation.
 
+If you are used to thinking of a model as its weights, that is the
+number that will catch you out, and it caught me out too. The weights
+are the part that has a name and a download size. The cache is the part
+that decides how many people you can serve.
+
 ## 8.3 Doing the Division
 
 ```
@@ -103,8 +108,10 @@ inside. Every additional sequence costs another gigabyte *for the whole
 time it is in flight*, not once.
 
 So the field's answer was not bigger GPUs. It was making the 512 KB
-number itself smaller, and it is worth knowing the three moves because
-you will meet all of them:
+number itself smaller. And if you have ever wondered why half the
+acronyms in this corner of the field exist, this is where they come
+from: every one of them is an attack on that constant. Three moves, and
+you will meet all three.
 
 - **Multi- and Grouped-Query Attention (MQA/GQA)**: share Key and Value
   projections across several attention heads instead of computing a
