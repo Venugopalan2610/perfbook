@@ -40,3 +40,18 @@ done; if not, follow the link.
 - **[Size your batch from the KV budget, not a guess](./08-kv-cache.md#kv-budget-not-guess)**:
   before blaming scheduling for a batch ceiling, check bytes-per-token
   × context length × concurrency against free memory.
+
+## IV. Building the Answer
+
+- **[Release the slot when the sequence ends, not when the batch does](./09-the-slot-that-waited.md#iteration-scheduling)**:
+  schedule per forward pass, not per request. A finished sequence leaves
+  on the step it finishes; a waiting one takes its place.
+- **[Page the cache; reserve for the token you have](./10-a-page-table-for-tokens.md#blocks-not-reservations)**:
+  when a per-client allocation grows unpredictably toward a large
+  ceiling, allocate fixed-size blocks behind an indirection table.
+- **[A workload that misses its own roofline floor is not yet bound by what you think](./11-below-the-floor.md#floor-gap-is-cpu)**:
+  when a memory-bound workload takes longer than bytes ÷ bandwidth, the
+  extra time is on the host. Count launches before optimizing kernels.
+- **[Below the ridge, spend compute on work that might be wasted](./12-spending-the-idle.md#spend-below-ridge)**:
+  idle compute does not accrue. Far under the ridge point, speculative
+  work is free even when most of it is discarded.

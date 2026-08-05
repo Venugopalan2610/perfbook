@@ -88,9 +88,42 @@ size one, we read the entire 14 GB of weights **to compute one token's
 worth of math**. At batch size 32, we read the same 14 GB once and
 compute 32 tokens' worth of math against it before the next byte has to
 arrive. The memory cost didn't grow with batch size; the compute did.
-Arithmetic intensity at batch 32 is roughly 32 FLOP/byte, still under
-the ridge, but a lot closer to it, and throughput scales almost for
-free.
+
+It's worth doing that division in symbols, because the answer comes out
+cleaner than it has any right to. Call the parameter count N. Each
+weight is two bytes in fp16, and each weight takes part in exactly one
+multiply-and-add, which is two operations. At batch size B:
+
+```
+bytes moved  =  2 bytes/weight × N              =  2N
+operations   =  2 ops/weight × N × B sequences  =  2NB
+
+                 2NB
+intensity  =  --------  =  B FLOP/byte
+                  2N
+```
+
+The twos cancel and the parameter count cancels, and what's left is the
+batch size itself. Arithmetic intensity, for this workload, *is* B. Not
+approximately, not in the limit. At batch 32 we sit at exactly 32
+FLOP/byte, still under the ridge but a lot closer to it, and throughput
+scales almost for free on the way there.
+
+That identity is the one to carry out of this chapter. It turns the
+ridge point from a property of the silicon into a number we can type
+into a config file: a ridge of ~156 FLOP/byte says, in plain language,
+"run about 156 sequences at once." Every serving system in the world
+exposes that number as a tunable, and now we know what it's tuning
+against.
+
+<div class="aside">
+The clean cancellation is an accident of fp16, where two bytes per
+weight happens to match two operations per weight. Store the weights in
+fp8 and the bytes halve while the operations don't, so intensity becomes
+2B. Quantization buys arithmetic intensity <em>and</em> a shorter read,
+which is two independent wins from one change. Challenge 3 is worth
+redoing with that in mind.
+</div>
 
 <div class="aside">
 This is <a href="./05-group-commit.md#adaptive-batching">group

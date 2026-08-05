@@ -21,6 +21,13 @@
 - [The Ridge](./07-the-ridge.md)
 - [The Cache That Ate the Batch](./08-kv-cache.md)
 
+# IV. Building the Answer
+
+- [The Slot That Waited](./09-the-slot-that-waited.md)
+- [A Page Table for Tokens](./10-a-page-table-for-tokens.md)
+- [Below the Floor](./11-below-the-floor.md)
+- [Spending the Idle](./12-spending-the-idle.md)
+
 ---
 
 - [Rules Index](./rules.md)

@@ -8,6 +8,7 @@ the regenerated SVGs automatically (they're static files under src/img/).
     pipeline/.venv/bin/python pipeline/make_charts.py
 """
 
+import numpy as np
 import math
 import os
 
@@ -324,3 +325,138 @@ def group_commit_bars():
 
 
 group_commit_bars()
+
+
+# --- Slot occupancy, static vs continuous: chapter 9 -------------------
+def occupancy_timelines():
+    lengths = [5, 8, 6, 120, 7, 9, 6, 11]
+    total = max(lengths)
+    fig, (top, bot) = plt.subplots(2, 1, figsize=(7.4, 3.6), sharex=True)
+
+    for i, L in enumerate(lengths):
+        top.barh(i, L, color=SIGNAL, edgecolor=PAPER, height=0.72)
+        top.barh(i, total - L, left=L, color=GRATICULE, edgecolor=PAPER, height=0.72)
+    used = sum(lengths)
+    top.set_title(f"static: one batch, runs to its slowest member "
+                  f"({used}/{len(lengths) * total} slot-steps used, 18%)",
+                  fontsize=10.5, color=INK, loc="left", pad=8)
+
+    # Continuous: each slot refills from a queue of short requests.
+    queue = [7, 9, 6, 11, 5, 8, 6, 7, 9, 6, 11, 5, 8, 6, 7, 9, 6, 11, 5, 8]
+    qi = 0
+    for i, L in enumerate(lengths):
+        t = 0
+        run = L
+        while t < total:
+            bit = min(run, total - t)
+            bot.barh(i, bit, left=t, color=SIGNAL, edgecolor=PAPER, height=0.72)
+            t += bit
+            if t >= total:
+                break
+            run = queue[qi % len(queue)]
+            qi += 1
+    bot.set_title("continuous: a finished slot is refilled on the next step",
+                  fontsize=10.5, color=INK, loc="left", pad=8)
+
+    for ax in (top, bot):
+        ax.set_yticks([])
+        ax.set_ylim(-0.7, len(lengths) - 0.3)
+        ax.set_facecolor(PAPER)
+        for side in ("top", "right", "left"):
+            ax.spines[side].set_visible(False)
+    bot.set_xlabel("decode steps", fontsize=10)
+    fig.patch.set_facecolor(PAPER)
+    save(fig, "occupancy-09-the-slot-that-waited.svg")
+
+
+# --- KV waste under three allocators: chapter 10 -----------------------
+def kv_waste_bars():
+    budget_mb = 66 * 1024
+    schemes = [
+        ("contiguous\n(reserve 2048)", 2048 * 0.5, 350 * 0.5),
+        ("ideal\n(pay per token)", 350 * 0.5, 350 * 0.5),
+        ("paged\n(16-token blocks)", 352 * 0.5, 350 * 0.5),
+    ]
+    fig, ax = plt.subplots(figsize=(7.4, 3.0))
+    for i, (label, held_mb, used_mb) in enumerate(schemes):
+        fits = int(budget_mb / held_mb)
+        ax.barh(i, held_mb, color=GRATICULE, edgecolor=PAPER, height=0.6)
+        ax.barh(i, used_mb, color=SIGNAL, edgecolor=PAPER, height=0.6)
+        ax.annotate(f"{fits} sequences fit", (held_mb, i), xytext=(10, 0),
+                    textcoords="offset points", fontsize=10.5,
+                    color=SIGNAL if i else FLAG, va="center", ha="left",
+                    fontweight="bold")
+    ax.set_yticks(range(len(schemes)))
+    ax.set_yticklabels([s[0] for s in schemes], fontsize=10)
+    ax.set_xlabel("MB held per sequence (shaded: reserved but never used)", fontsize=10)
+    ax.set_xlim(0, 1250)
+    ax.set_facecolor(PAPER)
+    for side in ("top", "right", "left"):
+        ax.spines[side].set_visible(False)
+    fig.patch.set_facecolor(PAPER)
+    save(fig, "kv-waste-10-page-table.svg")
+
+
+# --- Launch overhead against the floor: chapter 11 ---------------------
+def launch_overhead_bars():
+    floor = 3.13
+    rows = [("eager", floor, 4.67), ("CUDA graph", floor, 0.26)]
+    fig, ax = plt.subplots(figsize=(7.4, 2.4))
+    for i, (label, mem, cpu) in enumerate(rows):
+        ax.barh(i, mem, color=SIGNAL, edgecolor=PAPER, height=0.5)
+        ax.barh(i, cpu, left=mem, color=FLAG, edgecolor=PAPER, height=0.5)
+        ax.annotate(f"{mem + cpu:.2f} ms", (mem + cpu, i), xytext=(10, 0),
+                    textcoords="offset points", fontsize=10.5, color=INK,
+                    va="center", ha="left", fontweight="bold")
+    ax.axvline(floor, color=MUTED, linestyle="--", linewidth=1.1)
+    ax.annotate("roofline floor, 3.13 ms", (floor, 1.55), xytext=(4, 0),
+                textcoords="offset points", fontsize=9.5, color=MUTED, ha="left")
+    ax.barh(-1, 0, color=SIGNAL, label="memory traffic")
+    ax.barh(-1, 0, color=FLAG, label="CPU launch overhead")
+    ax.legend(loc="lower right", frameon=False, fontsize=9.5)
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels([r[0] for r in rows], fontsize=10.5)
+    ax.set_ylim(-0.6, 1.9)
+    ax.set_xlabel("milliseconds per decode token", fontsize=10)
+    ax.set_facecolor(PAPER)
+    for side in ("top", "right", "left"):
+        ax.spines[side].set_visible(False)
+    fig.patch.set_facecolor(PAPER)
+    save(fig, "launch-overhead-11-below-the-floor.svg")
+
+
+# --- Speculation on the roofline: chapter 12 ---------------------------
+def speculative_roofline():
+    peak, bw, ridge = 312.0, 2.0, 156.0
+    x = np.logspace(-1, 3.2, 400)
+    y = np.minimum(x * bw, peak)
+
+    fig, ax = plt.subplots(figsize=(7.4, 3.6))
+    ax.loglog(x, y, color=MUTED, linewidth=1.8)
+    ax.axvline(ridge, color=GRATICULE, linewidth=1.2, zorder=0)
+    ax.annotate(f"ridge, ~{ridge:.0f} FLOP/byte", (ridge, 3.5), xytext=(8, 0),
+                textcoords="offset points", fontsize=9.5, color=MUTED, ha="left")
+
+    for xi, label, colour in ((1, "decode 1 token", SIGNAL),
+                              (5, "verify 5 tokens", FLAG)):
+        ax.plot([xi], [xi * bw], "o", color=colour, markersize=8, zorder=5)
+        ax.annotate(label, (xi, xi * bw), xytext=(0, -20),
+                    textcoords="offset points", fontsize=10, color=colour,
+                    ha="center", fontweight="bold")
+
+    ax.annotate("both read 14 GB: both cost 7 ms", (2.3, 22),
+                fontsize=10, color=INK, ha="center")
+    ax.set_xlabel("arithmetic intensity (FLOP/byte)", fontsize=10)
+    ax.set_ylabel("achieved TFLOP/s", fontsize=10)
+    ax.set_facecolor(PAPER)
+    ax.grid(True, which="major", color=GRATICULE, linewidth=0.7)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    fig.patch.set_facecolor(PAPER)
+    save(fig, "speculative-12-spending-the-idle.svg")
+
+
+occupancy_timelines()
+kv_waste_bars()
+launch_overhead_bars()
+speculative_roofline()
