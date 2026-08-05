@@ -2,30 +2,44 @@
 
 > 512 KB per token, and why the field went where it went.
 
-Chapter 7 said batch 156 sequences together and we'd reach the A100's
-ridge point: the GPU stops idling, compute finally becomes the limit.
-Let's try it. On an 80 GB card, running the same 7B model, we run out
-of memory at roughly **64**.
+Chapter 7 ended with an instruction that felt like a victory. Batch 156
+sequences together and we reach the A100's ridge point: the GPU stops
+idling, compute finally becomes the limit, everybody goes home happy.
 
-Not 156. Sixty-four. Less than half. And it's not close. We didn't
-tune a knob and miss by 10%, the process died with an out-of-memory
-error two and a half times short of the target chapter 7 set. Something
-else is spending the memory chapter 7 assumed was free.
+So let's try it. Same 7B model, 80 GB card.
+
+We run out of memory at roughly **64**.
+
+Not 156. Sixty-four. Less than half, and it is not close. We did not
+tune a knob and miss by ten percent. The process died with an
+out-of-memory error, two and a half times short of the target the
+previous chapter set for us.
+
+Something is spending memory that chapter 7 assumed was free.
 
 ## 8.1 Two Candidates and a Missing Number
 
-Candidate one: this is a scheduling problem. We're padding
-variable-length sequences to a common size, and the padding is wasting
-capacity. Candidate two: it's not padding at all. It's a second,
-growing memory cost that chapter 7 never priced in.
+Candidate one: this is a scheduling problem. We are padding
+variable-length sequences to a common size, and the padding is eating
+the capacity.
 
-Worth checking the ratio before hunting for padding bugs. Chapter 7
-accounted for one thing living on the GPU: 14 GB of weights. It said
-nothing about what accumulates *during* generation. Every token
-already produced leaves behind a cached Key and Value tensor, kept
-around so the next token doesn't have to recompute attention over the
-whole prefix from scratch. That cache has a size, and it was completely
-absent from last chapter's arithmetic.
+Candidate two: it is not padding at all. There is a second, growing
+memory cost that chapter 7 never priced.
+
+Before we go hunting for padding bugs, it is worth checking the ratio.
+And the fastest way in is to ask what chapter 7 actually accounted for.
+
+It accounted for exactly one thing living on that GPU: 14 GB of
+weights. It said nothing whatsoever about what accumulates *during*
+generation.
+
+Now think about what has to accumulate. Every token already produced
+leaves behind a cached Key and Value tensor, kept around so the next
+token does not have to recompute attention over the entire prefix from
+scratch. That cache has a size. And it was completely absent from last
+chapter's arithmetic, not because anybody was careless, but because at
+batch size one, generating one token, there was nothing yet to
+accumulate.
 
 ## 8.2 The Axioms
 
@@ -38,11 +52,21 @@ For a 7B-class model (32 layers, 4096-dim hidden state, fp16):
 | A100 total memory | 80 GB |
 | Model weights (fp16, 7B) | 14 GB |
 
-The factor of 2 is Key *and* Value, one tensor each, per layer, per
-token. It's not an implementation detail you can shrink by being clever
-with your batching loop; it's a per-token cost that accrues for as
-long as that token stays in context, for every sequence running
-concurrently.
+The factor of 2 is Key *and* Value: one tensor each, per layer, per
+token.
+
+That is not an implementation detail you can shrink by being clever
+with your batching loop. I want to be firm about it, because it is the
+first thing people reach for. It is a per-token cost that accrues for
+as long as that token stays in context, for every sequence running
+concurrently, and no amount of scheduling makes it smaller.
+
+Half a megabyte. Per word. Per conversation.
+
+If you are used to thinking of a model as its weights, that is the
+number that will catch you out, and it caught me out too. The weights
+are the part that has a name and a download size. The cache is the part
+that decides how many people you can serve.
 
 ## 8.3 Doing the Division
 
@@ -51,11 +75,14 @@ memory budget for KV cache = 80 GB − 14 GB (weights) = 66 GB
 sequences that fit          = 66 GB ÷ 1 GB/sequence  ≈ 66
 ```
 
-Sixty-six, before accounting for activation memory, the CUDA context,
-and other fixed overhead that eats a couple more gigabytes off the
-top, which is exactly how we land at the observed ~64. **The KV cache
-arithmetic alone explains the shortfall.** Padding waste, if it exists
-at all, is a rounding error next to it.
+Sixty-six. Before we account for activation memory, the CUDA context,
+and the other fixed overhead that eats a couple more gigabytes off the
+top, which is exactly how we land at the observed 64.
+
+**The KV cache arithmetic alone explains the shortfall.** All of it.
+There is nothing left over for padding to be responsible for, and if we
+had gone hunting for padding bugs we would have found some, fixed them
+carefully, and moved the number by almost nothing.
 
 <div class="rule" id="kv-budget-not-guess">
 <span class="rule-id">Rule 10 · Size your batch from the KV budget, not a guess</span>
@@ -66,49 +93,56 @@ against free memory. The wall is usually arithmetic, not a bug.
 
 ## 8.4 What This Rules Out
 
-This rules out the idea that chapter 7's ridge point is reachable just
-by "batching harder." The ridge told us the compute-optimal batch size;
-this chapter shows the memory-optimal batch size is a *harder* ceiling
-that sits below it. We hit the KV-cache wall at 64 before ever getting
-near the 156 the ridge wanted, and no amount of scheduling cleverness
-moves that number; it's set by architecture and context length, full
-stop.
+This rules out the idea that chapter 7's ridge is reachable just by
+batching harder.
 
-It also reframes what "add more GPU memory" buys us: linear headroom,
-at GPU prices, for a quadratic-feeling problem. Every additional
-sequence costs another 1 GB *for the whole time it's in flight*, not
-once. The field's actual answer wasn't bigger GPUs. It was making the
-512 KB/token number itself smaller:
+The ridge told us the compute-optimal batch size. This chapter shows
+the memory-optimal batch size is a *harder* ceiling sitting underneath
+it. We hit the KV wall at 64 before we got anywhere near the 156 the
+ridge wanted, and no amount of scheduling cleverness moves that. It is
+set by architecture and context length, and that is the end of it.
 
-- **Multi-/Grouped-Query Attention (MQA/GQA)**: share Key/Value
-  projections across multiple attention heads instead of computing a
-  distinct KV pair per head. Directly divides the 512 KB/token figure
-  by the sharing factor.
-- **KV cache quantization**: store K/V in int8 or lower instead of
-  fp16. Same lever as quantizing weights (chapter 7's challenge 3),
-  aimed at the cache instead.
-- **PagedAttention**: stop pre-allocating each sequence's KV cache for
-  its worst-case length. Allocate in fixed-size pages on demand, like
-  virtual memory, so unused headroom in a short sequence isn't locked
-  away from a longer one running next to it.
+It also reframes what "add more GPU memory" actually buys. Linear
+headroom, at GPU prices, for a problem that feels quadratic from the
+inside. Every additional sequence costs another gigabyte *for the whole
+time it is in flight*, not once.
 
-Every one of these attacks the 512 KB constant or the waste around it.
-None of them touch the ridge point from chapter 7; they're a different
-wall, and they need a different tool.
+So the field's answer was not bigger GPUs. It was making the 512 KB
+number itself smaller. And if you have ever wondered why half the
+acronyms in this corner of the field exist, this is where they come
+from: every one of them is an attack on that constant. Three moves, and
+you will meet all three.
+
+- **Multi- and Grouped-Query Attention (MQA/GQA)**: share Key and Value
+  projections across several attention heads instead of computing a
+  distinct KV pair for each. Divides the 512 KB directly by the sharing
+  factor.
+- **KV cache quantization**: store K and V in int8 or lower instead of
+  fp16. The same lever as quantizing weights in chapter 7's challenge
+  3, pointed at the cache instead.
+- **PagedAttention**: stop pre-allocating each sequence's cache for its
+  worst-case length. Hand out fixed-size pages on demand, like virtual
+  memory, so unused headroom in a short sequence is not locked away
+  from a longer one running beside it.
+
+Every one of those attacks the 512 KB constant, or the waste around it.
+None of them touch the ridge point from chapter 7. Different wall,
+different tool, and that distinction is the whole reason these are two
+chapters instead of one.
 
 ## 8.5 The Pictorial
 
 <img class="chart" src="img/kv-budget-08-kv-cache.svg" alt="Bar chart comparing an 80 GB A100's memory budget. Top bar: 14 GB weights plus 64 GB KV cache fits under the 80 GB card line. Bottom bar: what the ridge point wants, 14 GB weights plus 156 GB KV cache for 156 sequences, extends well past the 80 GB card line and doesn't fit.">
 
 (Activation memory and other fixed overhead, a couple more gigabytes,
-aren't shown; they're what pushes the real ceiling from 66 down to the
-observed ~64.)
+are not shown. They are what pushes the real ceiling from 66 down to
+the observed 64.)
 
 <div class="aside">
-This is why GQA/MQA and KV quantization get discussed in the same
-breath as "faster inference," even though neither one adds a single
-FLOP of compute. They're not making the GPU faster. They're moving the
-wall in this diagram to the right.
+This is why GQA and KV quantization get discussed in the same breath as
+"faster inference," even though neither one adds a single FLOP of
+compute. They are not making the GPU faster. They are moving the wall
+in that diagram to the right, which from the outside looks identical.
 </div>
 
 <div class="aside">
@@ -151,21 +185,24 @@ enough. See <a href="./experiments.md">Experiments</a>.
 
 ## Design Note: Two Walls Look Identical From the Outside
 
-"Generation is slow" and "batch size is capped" both show up as the
-same complaint (throughput isn't what it should be), and chapters 7
-and 8 are proof that they can have completely unrelated causes. One is
-a compute-vs-bandwidth ratio on the chip. The other is a
-bytes-vs-capacity ratio in memory. Neither diagnosis transfers to the
-other's fix.
+"Generation is slow" and "batch size is capped" arrive as the same
+complaint. Throughput is not what it should be. Somebody is unhappy.
 
-Buying a GPU with more TFLOPS solves the wrong wall if you're capped by
-KV memory. Buying a GPU with more memory solves the wrong wall if
-you're capped by the ridge. The only way to know which one you're
-actually up against is to do both pieces of arithmetic (FLOP/byte
-against the ridge, bytes/token against the budget) before spending
-money on either.
+Chapters 7 and 8 are proof that the identical complaint can have
+completely unrelated causes. One is a compute-versus-bandwidth ratio on
+the chip. The other is a bytes-versus-capacity ratio in memory. Neither
+diagnosis transfers to the other's fix, and neither one is visible from
+the complaint.
 
-That's more or less the whole book in one sentence: two numbers that
-don't fit are two different chapters, and they very rarely share a fix.
+Buy a GPU with more TFLOPS and you have solved the wrong wall if you
+are capped by KV memory. Buy one with more memory and you have solved
+the wrong wall if you are capped by the ridge. Both purchases feel
+responsible. Both come with a graph. The only way to know which one you
+are actually against is to do both pieces of arithmetic, FLOP per byte
+against the ridge and bytes per token against the budget, before
+anybody spends money on either.
+
+That is more or less the whole book in a sentence: two numbers that do
+not fit are two different chapters, and they very rarely share a fix.
 
 </div>

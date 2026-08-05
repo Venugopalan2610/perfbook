@@ -2,67 +2,80 @@
 
 > A constant that works at one load level is a bug waiting for load to change.
 
-Say we've read chapter 3, and taken it seriously. Fsync-per-record was
-costing us 25,000× what the bytes warranted, so we batch: collect 1000
-records, fsync once, ack all of them together. Under load, throughput
-jumps fifty-fold. We ship it, pleased with ourselves.
+Say we have read chapter 3 and taken it seriously. Fsync-per-record was
+costing 25,000× what the bytes warranted, so we batch. Collect a
+thousand records, fsync once, acknowledge all of them together.
 
-Overnight, traffic drops to ten events a second. The same code now
-takes **one hundred seconds** to acknowledge a single write.
+Under load, throughput jumps fifty-fold. We ship it. We are pleased
+with ourselves, and I think reasonably so.
 
-Nothing actually broke. The arithmetic is exactly the arithmetic we'd
-expect: 1000 records at 10/sec takes 1000 ÷ 10 = 100 seconds to fill the
-batch. We didn't introduce a bug. We hard-coded a load level, and then
-the load changed on us.
+Then overnight, traffic drops to ten events a second. And the same
+code, unchanged, takes **one hundred seconds** to acknowledge a single
+write.
+
+Now, nothing broke. I want to be careful about that, because the
+instinct is to go hunting for the bug. There is no bug. The arithmetic
+is exactly the arithmetic we should have expected: a thousand records
+arriving at ten per second takes a hundred seconds to fill the batch.
+We did not introduce a defect. We hard-coded a load level, and then the
+load politely changed on us.
 
 ## 5.1 Two Candidates and a Missing Number
 
-Candidate one: pick a bigger fixed batch size for throughput, a smaller
-one for latency, and tune the constant to match our traffic. Candidate
-two: stop picking a constant at all.
+Candidate one: pick a bigger fixed batch for throughput, a smaller one
+for latency, and tune the constant to match our traffic.
 
-Let's name the ratio, because it's the whole argument. A fixed batch of
-1000 costs us:
+Candidate two: stop picking a constant at all.
+
+Name the ratio, because the ratio is the whole argument. A fixed batch
+of 1000 costs us:
 
 ```
 at 100,000 events/sec:  1000 ÷ 100,000  =  10 ms  to fill    (fine)
 at      10 events/sec:  1000 ÷      10  = 100  s  to fill    (not fine)
 ```
 
-**Ten million times worse**, same constant, just a quieter night.
-There's no single value of N that's safe across a load range that
-wide. Whatever we pick is only correct at the traffic level we tuned
-it for, and wrong by orders of magnitude everywhere else.
+**Ten million times worse.** Same constant. Just a quieter night.
+
+And that number is the argument against candidate one all by itself.
+There is no single value of N that is safe across a range that wide.
+Whatever you pick is correct at the traffic level you tuned it for and
+wrong by orders of magnitude everywhere else, and the place it is most
+wrong is the place nobody is watching, which is three in the morning.
 
 <div class="aside">
-A fixed time window ("always wait 10 ms") looks like a fix, and it does
-bound the worst case. But it also *forces* every request to pay that
-10 ms even at 3 a.m. when nobody's behind you and the fsync could have
-gone out immediately. We'd just be trading a variable disaster for a
-constant tax.
+A fixed time window ("always wait 10 ms") looks like the fix, and it
+does bound the worst case. But it also <em>forces</em> every request to
+pay that 10 ms even at 3 a.m. when nobody is behind you and the fsync
+could have gone out immediately. That trades a variable disaster for a
+constant tax, which is an improvement, but a disappointing one.
 </div>
 
 ## 5.2 The Axioms
 
-The one fact this chapter needs, and chapter 3 already handed us: an
-`fsync` round trip costs roughly the same whether it carries one record
-or a thousand.
+One fact, and chapter 3 already handed it to us: an `fsync` round trip
+costs about the same whether it carries one record or a thousand.
 
 | Path | Cost per fsync |
 |---|---|
 | NVMe, one record | ~100 µs |
 | NVMe, a thousand records | ~100 µs |
 
-That equality is the whole opportunity. If a barrier crossing is nearly
-free per additional record, the only thing worth optimizing is *how
-many records arrive during the crossing we're already paying for*,
-not how many we force ourselves to wait for.
+Look at that table for a second longer than it seems to deserve,
+because that equality is the entire opportunity.
+
+If a barrier crossing is nearly free per additional record, then the
+thing worth optimizing is not how many records we force ourselves to
+wait for. It is how many records happen to arrive during a crossing we
+are *already paying for*. Those are completely different questions, and
+only one of them requires us to guess about the future.
 
 ## 5.3 Doing the Division
 
-So let's not set N. Set the rule instead: **when the in-flight `fsync`
-returns, immediately start the next one, and sweep in everyone who
-arrived while the first was in flight.**
+So let's not set N at all. Let's set a rule instead.
+
+**When the in-flight `fsync` returns, immediately start the next one,
+and sweep in everybody who arrived while the first was in flight.**
 
 ```
 t=0         fsync #1 issued (covers whatever's queued right now)
@@ -72,12 +85,19 @@ t=100..??   whatever arrives now queues behind fsync #2
 t=200µs     fsync #2 returns → ack 2,3,4; fsync #3 issued, covers {...}
 ```
 
-The batch size falls out of the arrival rate automatically. At high
-load, dozens of requests pile up during one 100 µs window and ride out
-together, and we get the throughput win without ever naming a number. At
-low load, a single request often finds nobody else queued, its "batch"
-is size one, and it still only waits one fsync round trip, not the
-100 seconds a fixed count of 1000 would have imposed.
+Now watch what the batch size does. Nobody set it. It falls out of the
+arrival rate on its own.
+
+At high load, dozens of requests pile up during one 100 µs window and
+ride across together, so we get the throughput win without ever naming
+a number. At low load, a request often finds nobody else queued at all,
+its "batch" is size one, and it waits exactly one fsync round trip.
+Not a hundred seconds. One round trip, which is the least it could
+possibly have waited.
+
+That is the pleasing part. The scheme is not a compromise between the
+two cases. It is optimal at both ends, and it got there by refusing to
+answer a question it did not have to answer.
 
 <div class="rule" id="adaptive-batching">
 <span class="rule-id">Rule 7 · Let the barrier set its own batch size</span>
@@ -88,33 +108,44 @@ guess about it.
 
 ## 5.4 What This Rules Out
 
-This rules out both fixed-count and fixed-time-window batching as
-general solutions, not because they're wrong exactly, but because each
-one encodes an assumption about load that the adaptive version doesn't
-need to make. Fixed-count breaks low; fixed-window taxes everyone,
-always, even when nobody's waiting behind you.
+This rules out fixed-count and fixed-window batching as general
+answers. Not because either is wrong exactly, but because each one
+encodes an assumption about load that the adaptive version simply does
+not need to make. Fixed-count breaks at the low end. Fixed-window taxes
+everyone, always, including when nobody is waiting.
 
-One wrinkle the naive adaptive version misses: at *moderate* load,
-just under one arrival per fsync-latency window, batches regress
-toward size one anyway, and we're back to firing an `fsync` for nearly
-every record. That's not a correctness problem, but it does mean
-maximum call rate, and on flash media, call rate correlates with write
-amplification and wear. A small floor (hold the batch open for a
-minimum of roughly 200 µs even if the in-flight fsync would've returned
-sooner) caps how often the device gets hit, at the cost of a bounded,
-small, constant latency add. Same trade as the fixed window, just sized
-to be negligible instead of dominant.
+There is one wrinkle the naive adaptive version misses, and it is worth
+chasing down because it is the sort of thing that only shows up in
+production.
+
+At *moderate* load, just under one arrival per fsync-latency window,
+batches regress toward size one anyway, and we find ourselves firing an
+`fsync` for very nearly every record. That is not a correctness
+problem. Latency is fine. Throughput is fine. But it is the maximum
+possible call rate, and on flash media, call rate correlates with write
+amplification, and write amplification is measured in years off the
+drive's life.
+
+The fix is a small floor: hold the batch open for a minimum of roughly
+200 µs, even if the in-flight fsync would have returned sooner. That
+caps how often the device gets hit, at the cost of a bounded, small,
+constant addition to latency.
+
+Which is the same trade as the fixed window we rejected two sections
+ago. Exactly the same trade. The difference is that here it is sized to
+be negligible instead of dominant, and I think that is worth saying out
+loud: the idea was never bad, it was just badly sized.
 
 ## 5.5 The Pictorial
 
 <img class="chart" src="img/group-commit-05-group-commit.svg" alt="Log-scale bar chart comparing wait time to fill a batch under fixed-count versus adaptive batching, at low load (10 events/sec) and high load (100,000 events/sec). Fixed count swings from 100 seconds at low load to 10 milliseconds at high load. Adaptive stays flat around 100 microseconds at both.">
 
-
 <div class="aside">
 This is the same amortization trick as batching writes before `fsync`
-in the first place, and (spoiler for chapter 7) the same trick that
-makes GPU batching worthwhile too. Pay a fixed round-trip cost once,
-spread it over whoever showed up while you were paying it.
+in the first place, and (a small spoiler for chapter 7) the same trick
+that makes GPU batching worthwhile. Pay a fixed round-trip cost once,
+then spread it across whoever showed up while you were paying it. You
+will see this shape three more times before the book is done.
 </div>
 
 <div class="aside">
@@ -151,20 +182,28 @@ size change between them without anyone setting a number. See
 
 ## Design Note: Tuning a Constant Is Postponing a Bug
 
-Every hardcoded batch size, timeout, or thread-pool count is a bet that
-tomorrow's load looks like today's. The bet is usually fine, until
-traffic has a bad night, a good launch, or a regional failover doubles
-one region's share. The constant doesn't fail loudly when the bet goes
-bad. It just quietly stops being the right answer, and the system keeps
-running, worse, until someone notices the 100-second tail.
+Every hardcoded batch size, timeout, and thread-pool count is a bet
+that tomorrow's load looks like today's.
 
-The fix isn't a better constant. It's noticing which inputs to the
-formula are actually *observable at runtime* (here, "is the fsync
-still in flight") and driving the decision off those instead of a
-number picked once, in a meeting, based on last week's dashboard.
+The bet is usually fine. That is what makes it dangerous. It holds
+through the tuning, through the load test, through the first six months
+in production, and then traffic has a bad night or a good launch or a
+regional failover doubles one region's share, and the constant does not
+fail loudly. That is the part I want to underline. It does not page
+anybody. It just quietly stops being the right answer, and the system
+keeps running, worse, until somebody eventually notices a hundred-second
+tail on a dashboard nobody was looking at.
 
-If we can replace a constant with a measurement the system already has
-for free, that's not a nice-to-have. That's removing a bug that hasn't
-happened yet.
+The fix is not a better constant. It never is.
+
+The fix is noticing which inputs to your formula are actually
+*observable at runtime*. Here it was one bit of information: is the
+fsync still in flight? That bit was sitting there the whole time, free,
+and it is strictly better than any number a human could have picked,
+because it is measured rather than assumed.
+
+If you can replace a constant with a measurement the system already has
+in hand, that is not a nice-to-have. That is removing a bug before it
+happens, and those are the cheapest bugs you will ever fix.
 
 </div>

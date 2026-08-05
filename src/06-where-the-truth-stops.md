@@ -2,32 +2,43 @@
 
 > Torn writes, CRC, and finding the edge of what survived.
 
-Picture recovery scanning a log forward from the last checkpoint. The
-final record has a valid magic byte, a length field that reads 200, and
-200 bytes follow it that parse cleanly into a well-formed record.
+Picture recovery scanning a log forward from the last checkpoint. It
+reaches the final record. There is a valid magic byte. There is a
+length field reading 200. And there are 200 bytes following it that
+parse cleanly into a well-formed record.
 
-It's fiction. The first 71 bytes are real: they made it to disk before
-the crash. The remaining 129 are whatever used to occupy that block
-before this write ever started. Nothing about the record's *structure*
-tells us where the truth stops and the leftovers begin, because torn
-writes don't announce themselves. They just look like data.
+Every check passes. The record is fiction.
+
+The first 71 bytes are real: they made it to disk before the crash. The
+remaining 129 are whatever happened to be occupying that block before
+this write ever started. And nothing about the record's *structure*
+tells us where the truth stops and the leftovers begin.
+
+That is the thing I want you to sit with. Torn writes do not announce
+themselves. They do not arrive corrupted-looking. They look like data,
+because they are data. They are just somebody else's.
 
 ## 6.1 Two Candidates and a Missing Number
 
 Candidate one: trust the framing. If the magic bytes check out and the
 length field points at something parseable, the record is real.
-Candidate two: don't trust framing at all; verify the content.
 
-The ratio that separates them is a coincidence rate. Structural framing
-has no floor on how often it accidentally looks right. A length field
-is 2–4 bytes; when a device has whole sectors of stale data sitting
-right behind our last good write, the odds of *some* short field
-reading as a plausible small number aren't remotely negligible. A
-32-bit checksum, on the other hand, has a known, tiny coincidence
-rate: roughly **1 in 4,294,967,296** for a message that's been altered
-but happens to hash to the same value by chance. Four billion to one
-against, versus "whatever the stale bytes happen to look like." Not a
-close call.
+Candidate two: do not trust framing at all. Verify the content.
+
+The ratio that separates them is a coincidence rate, and it is a
+lopsided one. Structural framing has no floor on how often it
+accidentally looks right. A length field is two to four bytes. When a
+device has whole sectors of stale data sitting immediately behind your
+last good write, the odds of *some* short field reading as a plausible
+small number are not remotely negligible. They are not even small.
+
+A 32-bit checksum has a known, tiny coincidence rate: roughly **1 in
+4,294,967,296** that an altered message hashes to the same value by
+chance.
+
+Four billion to one against, versus whatever the stale bytes happen to
+look like today. That is not a close call, and it is not a judgement
+call either.
 
 ## 6.2 The Axioms
 
@@ -37,16 +48,20 @@ close call.
 | CRC-32 misses (random corruption, non-adversarial) | ~1 in 2³² ≈ 4.3 billion |
 | Computation | remainder of polynomial long division, in GF(2): XOR instead of subtract, no carries |
 
-The mechanism is arithmetic, not heuristic, which is exactly why it
-doesn't share framing's blind spot: it doesn't care whether the bytes
-*look* like a record. It cares whether they hash to the value the
-writer committed to before the crash.
+The mechanism here is arithmetic, not heuristic, and that distinction
+is the reason it does not share framing's blind spot. A CRC does not
+care whether the bytes *look* like a record. It has no opinion about
+what a record looks like. It only cares whether they divide down to the
+value the writer committed to before the crash.
 
 ## 6.3 Doing the Division
 
-Let's do the GF(2) division by hand once, so "it's just arithmetic"
-stops being an abstraction. Message `1101011011`, generator polynomial
-`x⁴+x+1` (`10011`, degree 4 → a 4-bit CRC). Append four zero bits and
+I want to do this by hand. Not because you will ever need to, but
+because "it's just arithmetic" is the sort of phrase that stays
+abstract forever unless somebody makes you watch it happen once.
+
+Take the message `1101011011` and the generator polynomial `x⁴+x+1`,
+which is `10011`, degree 4, so a 4-bit CRC. Append four zero bits and
 divide, XOR-ing the generator in wherever the leading bit is 1:
 
 ```
@@ -67,12 +82,20 @@ divide, XOR-ing the generator in wherever the leading bit is 1:
   remainder: 1110   ← the CRC
 ```
 
-That 4-bit remainder ships alongside the message. On read-back, we run
-the same division on the record *including* its stored remainder; a
-clean write divides evenly and lands on zero. A torn write (real bytes
-followed by stale ones) essentially never does, because the stale
-tail wasn't chosen to satisfy this particular division. It was chosen
-by whatever used to be on that block.
+That is long division. The kind you learned at nine years old. The only
+difference is that subtraction has been replaced by XOR, so there are
+no carries and no borrowing, which if anything makes it easier than the
+version they taught you.
+
+That 4-bit remainder ships alongside the message. On read-back we run
+the same division over the record *including* its stored remainder, and
+a clean write divides evenly and lands on zero.
+
+A torn write, real bytes followed by stale ones, essentially never
+does. And the reason is worth stating plainly: the stale tail was not
+chosen to satisfy this particular division. It was chosen by whatever
+used to live on that block, months ago, by a process that had never
+heard of us.
 
 <div class="rule" id="checksum-the-edge">
 <span class="rule-id">Rule 8 · Checksum every record; seed the register nonzero</span>
@@ -83,27 +106,44 @@ where the truth stops.
 
 ## 6.4 What This Rules Out
 
-This rules out "trust the length field" as a recovery strategy. But it
-also sets a trap for the checksum itself if we're not careful: **start
-the division register at zero, and an all-zero payload always produces
-an all-zero remainder.** Zero in, zero out, every time: the leading
-bit is never 1, so the divisor never gets XORed in at all.
+This rules out "trust the length field" as a recovery strategy. Good.
 
-That's not a corner case worth waving off. Zeroed blocks are one of the
-*most common* shapes a torn write takes: plenty of filesystems and
-devices return zero-filled bytes for storage that was allocated but
-never written. If a crash lands us a record that's a real header,
-then all zeros where the payload and checksum should be, a
-zero-seeded CRC computes 0, finds the stored trailer also reading 0,
-and calls it a match. The exact failure this chapter opened with,
-corruption that *looks* valid, sneaks back in through the one place we
-built to catch it.
+But it also sets a trap for the checksum itself, and I want to walk
+into it deliberately, because it is the most satisfying mistake in this
+book.
 
-The fix is one line: seed the register with a nonzero value before
-starting (CRC-32's standard does this, with `0xFFFFFFFF`). An all-zero
-message no longer produces an all-zero result, so the degenerate case
-that used to sail through now perturbs the register and gets caught
-like anything else.
+**Start the division register at zero, and an all-zero payload always
+produces an all-zero remainder.**
+
+Work it through with the long division above. If every bit of the
+message is zero, the leading bit is never 1, so the divisor never gets
+XORed in, not once. Zero goes in. Zero comes out. Every time.
+
+Now, you might reasonably file that as a corner case not worth worrying
+about. I would like to talk you out of that, because zeroed blocks are
+one of the *most common* shapes a torn write takes. Plenty of
+filesystems and devices hand back zero-filled bytes for storage that
+was allocated but never written. This is not exotic. This is Tuesday.
+
+So picture the crash that leaves us a real header, followed by all
+zeros where the payload and the checksum should be. The zero-seeded CRC
+computes 0. It reads the stored trailer, which is also 0. It declares a
+match.
+
+And there it is: corruption that *looks* valid, which is the exact
+failure this chapter opened with, sneaking back in through the one
+mechanism we built specifically to catch it. We did not fail to check.
+We checked, carefully, with real arithmetic, and the arithmetic said
+yes.
+
+The fix is one line. Seed the register with a nonzero value before you
+start. CRC-32's standard does exactly this, with `0xFFFFFFFF`. An
+all-zero message no longer produces an all-zero result, the degenerate
+case that used to sail through now perturbs the register, and it gets
+caught like anything else.
+
+One line. And you only ever find it by asking what your own check does
+on its worst input, rather than on a typical one.
 
 ## 6.5 The Pictorial
 
@@ -118,10 +158,11 @@ like anything else.
 ```
 
 <div class="aside">
-Torn writes aren't really the exception we defend against. They're the
-default ending of a crash: anything in flight at the moment of failure
-lands somewhere between "fully written" and "not written at all," and
-recovery code has to assume every last record might be exactly that.
+Torn writes are not really the exception we defend against. They are
+the default ending of a crash. Anything in flight at the moment of
+failure lands somewhere between fully written and not written at all,
+and recovery code has to assume the last record is exactly that, every
+single time, because most of the time it will be.
 </div>
 
 <div class="aside">
@@ -163,19 +204,26 @@ machine as on mine. See <a href="./experiments.md">Experiments</a>.
 ## Design Note: A Passing Structural Check Is a Claim, Not Evidence
 
 Length fields, magic bytes, and sentinel values all share a property
-that's easy to forget: they were written by the same process, at the
-same time, as the data they're supposed to validate. If that write was
-torn, the framing can be torn right along with it, and a torn framing
-field doesn't reliably fail. Sometimes it just reads as a small,
-plausible, wrong number, and the parser has no way to tell from the
-inside.
+that is easy to forget: they were written by the same process, at the
+same moment, as the data they are supposed to validate.
 
-A checksum breaks that circularity because it's redundant *on
-purpose*: it encodes information that was only true if the rest of the
-record is also intact. That redundancy is the entire value
-proposition, and it's worth noticing how rarely we reach for it outside
-of storage. The same argument applies to any boundary where a producer
-and a much-later consumer need to agree on what actually happened in
-between.
+So if that write was torn, the framing can be torn right along with it.
+And a torn framing field does not reliably fail. Sometimes it just
+reads as a small, plausible, wrong number, and the parser has no way to
+know from the inside. The check and the thing being checked went down
+together, holding hands.
+
+A checksum breaks that circularity because it is redundant *on
+purpose*. It encodes information that could only be true if the rest of
+the record is also intact. That redundancy is the entire value
+proposition, and it is the same argument that made PostgreSQL take its
+torn-page reference from the buffer pool rather than from the file it
+was protecting, back in chapter 4. Your verifier cannot come from
+inside the thing you are verifying.
+
+It is worth noticing how rarely we apply this outside of storage. Any
+boundary where a producer and a much-later consumer have to agree about
+what actually happened in between has the same shape, and most of them
+are guarded by something that would fail exactly when it matters.
 
 </div>

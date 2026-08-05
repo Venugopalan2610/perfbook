@@ -2,40 +2,56 @@
 
 > Never make a promise you cannot reconstruct.
 
-Suppose `fsync()` returns `EIO`, a real hardware write failure,
-correctly surfaced. We do the responsible thing: log it, and retry the
-`fsync`. It returns `0`. Success.
+I want to show you a bug that is worse than a lie, because everybody
+involved was telling the truth.
 
-The bytes it just claimed to have persisted were never written. This
-isn't quite a lie. The kernel is telling the truth about the only
-attempt it still has any record of. This was a real bug, discovered in
-PostgreSQL in 2018, and once you understand why it happened, it changes
-what "handle the error" is even allowed to mean.
+Suppose `fsync()` returns `EIO`. A real hardware write failure,
+correctly detected, correctly surfaced. So we do the responsible thing:
+we log it, and we retry the `fsync`.
+
+It returns `0`. Success.
+
+The bytes it just claimed to have persisted were never written, and
+they never will be. The kernel is not lying to you. It is telling you
+the honest truth about the only attempt it still has any record of.
+
+This was a real bug, found in PostgreSQL in 2018, and once you see why
+it happened, it changes what the phrase "handle the error" is even
+permitted to mean.
 
 ## 4.1 Two Candidates and a Missing Number
 
-Candidate one: an `fsync` error behaves like any other I/O error: log
-it, back off, retry the call, eventually it succeeds or you escalate.
-Candidate two: retrying does nothing at all, because there's nothing
+Candidate one: an `fsync` error behaves like any other I/O error. Log
+it, back off, retry, and eventually it either succeeds or you escalate.
+
+Candidate two: retrying does nothing at all, because there is nothing
 left to retry.
 
-This isn't a ratio we can compute our way out of; it's a question about
-what the kernel does the moment writeback fails. Trace it through: a
-dirty page fails to reach the device. The kernel reports the error to
-whoever calls `fsync` next, but only once. Then it **marks the page
-clean and drops it.** Not "clean because it succeeded." Clean because
-the kernel gave up and stopped tracking it as pending. The data that
-failed to write is simply gone from the page cache now. There's
-nothing dirty left for a second `fsync` to flush, so it returns
-success, honestly enough from where it's sitting.
+This is not a ratio we can divide our way out of. It is a question
+about what the kernel does at the instant writeback fails, so let's
+just trace it through, slowly, because the answer is stranger than it
+looks.
+
+A dirty page fails to reach the device. The kernel reports the error to
+whoever calls `fsync` next, and it reports it once. Then it **marks the
+page clean and drops it.**
+
+Read that again. Not clean because it succeeded. Clean because the
+kernel gave up and stopped tracking it as pending work. The data that
+failed to write is now simply gone from the page cache. There is
+nothing dirty left for a second `fsync` to flush.
+
+So the second call returns success. Honestly. From where it is
+standing, there is genuinely nothing left to do.
 
 <div class="aside">
-The fix that shipped in Linux 4.13 (`errseq_t`) made sure every open
-file description sees the error at least once, instead of the first
-caller silently consuming it for everyone. It didn't change the deeper
-fact underneath: the page itself is still discarded after one failed
-writeback. Retry-until-success was broken before the fix, and it's
-still broken after it.
+The fix that shipped in Linux 4.13 (<code>errseq_t</code>) made sure
+every open file description sees the error at least once, instead of the
+first caller silently consuming it on everyone else's behalf. It did not
+change the deeper fact underneath: the page is still discarded after one
+failed writeback. Retry-until-success was broken before that fix, and it
+is broken after it. The fix made the error easier to see. It did not
+make the data come back.
 </div>
 
 ## 4.2 The Axioms
@@ -44,11 +60,12 @@ still broken after it.
 |---|---|
 | A writeback failure marks the page clean and evicts it | The failed bytes are gone from the page cache, not "still pending" |
 | The error surfaces to `fsync` **at most once per file description** (post-4.13) | A second caller, or a second call, can see success on a page that never made it to disk |
-| The kernel has no concept of "our" data, only dirty pages | It can't retry on our behalf; it doesn't know what the bytes were for |
+| The kernel has no concept of "our" data, only dirty pages | It cannot retry on our behalf; it does not know what the bytes were for |
 
-Put together: an `fsync` failure isn't a transient fault to retry. It's
-a terminal event. The only sound response is to treat the data as lost
-and recover it from somewhere the kernel didn't just erase.
+Put those together and you get something that sounds almost harsh: an
+`fsync` failure is not a transient fault to be retried. It is a
+terminal event. The only sound response is to treat that data as lost
+and rebuild it from somewhere the kernel did not just erase.
 
 <div class="rule" id="fsync-terminal">
 <span class="rule-id">Rule 6 · fsync failure is not retryable</span>
@@ -59,9 +76,9 @@ independent, already-durable source can.
 
 ## 4.3 Doing the Division
 
-That "independent, already-durable source" has a name: the write-ahead
-log. The pattern that survives this failure mode is narrow and
-specific, and every clause in it is load-bearing:
+That "independent, already-durable source" has a name. It is the
+write-ahead log, and the pattern that survives this failure mode is
+narrow and specific. Every clause in it is carrying weight:
 
 ```
 1. write the record to the WAL          (userspace buffer)
@@ -70,41 +87,58 @@ specific, and every clause in it is load-bearing:
 4. apply the change to the data pages   (lazily, async, whenever)
 ```
 
-Steps 1–3 are the entire durability contract. Step 4 can happen a
-second later, a minute later, or after a crash and a replay, because
-if the crash happens before step 4 finishes, we don't need step 4's
-result. We need the WAL, and we already made sure that one thing was
-durable before telling anyone we were done.
+Steps 1 through 3 are the whole durability contract. Step 4 can happen
+a second later, a minute later, or after a crash and a replay, and it
+genuinely does not matter which, because if the crash arrives before
+step 4 finishes we do not need step 4's result. We need the WAL, and we
+already made certain that one thing was durable before we told anybody
+we were done.
 
-The data pages, meanwhile, are allowed to be wrong, half-written, or
-entirely missing at any given instant, because they're *derived*
-state. The WAL is the only thing in this picture that can't be
-reconstructed from anything else, which is exactly why it's the one
-thing that gets the expensive, synchronous, ordered barrier from
-chapter 3.
+The data pages, meanwhile, are allowed to be wrong. Half-written.
+Entirely missing. At any instant you care to inspect them.
+
+That sounds reckless until you see why it is fine: they are *derived*
+state. They can be rebuilt. The WAL is the only object in this picture
+that cannot be reconstructed from anything else, and that is exactly
+why it is the one thing that gets the expensive, synchronous, ordered
+barrier we bought in chapter 3.
+
+One barrier. On the one irreplaceable thing.
 
 ## 4.4 What This Rules Out
 
 This rules out the natural instinct to spread `fsync` calls evenly
-across "important" writes. Not all durable-looking writes are equally
-irreplaceable. A data page is a cached, derivable projection of the
-log. Losing an unflushed data page after a crash costs a replay.
-Losing the log entry costs the fact itself: there's no second copy
-anywhere, and no amount of retrying a broken `fsync` call brings it
-back.
+across everything that looks important.
 
-The same logic answers a question that looks unrelated at first: why
-does PostgreSQL's torn-page protection (`full_page_writes`) source its
-reference image from the **in-memory buffer pool**, and never by
-re-reading the on-disk file it's trying to protect?
+Not all durable-looking writes are equally irreplaceable. A data page is
+a cached, derivable projection of the log. Losing an unflushed data page
+after a crash costs you a replay, which is to say it costs you some
+seconds. Losing the log entry costs you the fact itself. There is no
+second copy anywhere, and no amount of retrying a broken `fsync` brings
+it back.
 
-Because the disk file is the thing we don't trust. That's the whole
-premise of needing this protection in the first place: a page write
-that crashes partway through can leave a sector-level mix of old and
-new bytes. If our "known good" reference came from reading that same
-file back, we'd be verifying the disk against itself. The buffer pool
-copy is the one version of the page our process actually validated;
-it's the only candidate that isn't circular.
+Now here is a question that looks entirely unrelated, and I promise it
+is the same question.
+
+Why does PostgreSQL's torn-page protection (`full_page_writes`) take
+its reference image from the **in-memory buffer pool**, and never by
+re-reading the on-disk file it is trying to protect?
+
+It would be so much simpler to read the file. The file is right there.
+
+But the disk file is precisely the thing we do not trust. That is the
+entire premise of needing torn-page protection in the first place: a
+page write that crashes partway through leaves a sector-level mixture
+of old and new bytes. If our known-good reference came from reading
+that same file back, we would be verifying the disk against itself, and
+a corrupted page would cheerfully certify its own corruption.
+
+The buffer pool copy is the one version of that page our process
+actually validated. It is the only candidate in the room that is not
+circular.
+
+Same rule as before, wearing different clothes: your recovery source
+has to be independent of the thing that failed.
 
 ## 4.5 The Pictorial
 
@@ -127,10 +161,10 @@ it's the only candidate that isn't circular.
 ```
 
 <div class="aside">
-Notice the ACK sits *between* the WAL's fsync and the data-page write,
-not after both. That ordering is the whole design. Anything drawn to
-the right of the ACK arrow is allowed to fail, restart, or simply be
-slow.
+Notice the ACK sits <em>between</em> the WAL's fsync and the data-page
+write, not after both. That ordering is the whole design. Everything
+drawn to the right of the ACK arrow is allowed to fail, restart, or
+simply take its time.
 </div>
 
 <div class="challenges">
@@ -161,20 +195,29 @@ slow.
 
 ## Design Note: Design for the Failure You Can't Retry
 
-Most error-handling advice assumes failures are transient: back off,
-retry, eventually the world cooperates. `fsync` breaks that assumption
-quietly, which is worse than breaking it loudly: the retry *looks*
-like it's working, because it returns success.
+Most error-handling advice quietly assumes failures are transient. Back
+off, retry, and eventually the world cooperates. That assumption is
+correct often enough that we stop noticing we are making it.
 
-The deeper lesson generalizes past storage: any time a failure silently
+`fsync` breaks it quietly, which is far worse than breaking it loudly,
+because the retry *looks* like it worked. It returns success. Your logs
+show a transient error followed by a recovery. Everything about the
+shape of it is reassuring, and every bit of that reassurance is false.
+
+The lesson generalizes well past storage. Any time a failure silently
 discards the thing you were trying to protect, "retry the same
-operation" isn't a recovery strategy; it's a way to convince yourself
-you have one. The real fix is architectural: keep an independent,
-already-durable copy of anything you can't afford to be wrong about,
-made durable *before* you promise anyone it's safe.
+operation" is not a recovery strategy. It is a way to convince yourself
+that you have one, which is strictly worse than knowing you do not,
+because the person who knows they have no recovery path goes and builds
+one.
 
-Write-ahead logging isn't really a storage pattern, in the end. It's
-what "design for the failure you can't retry" looks like once you draw
-it out on paper.
+The real fix is architectural, and it is not subtle: keep an
+independent, already-durable copy of anything you cannot afford to be
+wrong about, and make it durable *before* you promise anybody it is
+safe.
+
+Write-ahead logging is not really a storage pattern, in the end. It is
+what "design for the failure you cannot retry" looks like once somebody
+draws it out on paper.
 
 </div>
