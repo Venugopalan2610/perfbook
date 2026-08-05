@@ -10,7 +10,8 @@ import re
 import sys
 
 SRC = pathlib.Path(__file__).resolve().parent.parent / "src"
-CHAPTERS = sorted(SRC.glob("[01][0-9]-*.md"))
+CHAPTERS = ([SRC / "preface.md", SRC / "introduction.md"]
+             + sorted(SRC.glob("[01][0-9]-*.md")))
 
 # Terms that must not land before the reader has a reason to care.
 JARGON = ["arithmetic intensity", "roofline", "ridge point", "write-ahead",

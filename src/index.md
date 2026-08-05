@@ -2,13 +2,17 @@
 
 Knowledge is one sentence away. Judgment isn't.
 
-This book is the second thing. Every chapter starts with a measurement
-that doesn't fit, and ends with a rule short enough to fit on a napkin.
-Nothing here is looked up. It is derived from about a dozen constants and
-the willingness to commit to a number before checking.
+This book is the second thing. Every chapter opens with a measurement
+that doesn't fit, and closes with a rule short enough to fit on a
+napkin. Nothing here is looked up. It is derived from about a dozen
+constants and the willingness to commit to a number before checking.
 
-**How to use this for revision.** Don't reread. Open the
-[Rules Index](./rules.md), pick a rule, and try to reconstruct the
-derivation that produced it. If you can't, *then* follow the link. The
-[Challenges](./challenges.md) page collects every question in the book
-with no answers attached, on purpose.
+Twelve chapters, in four parts. The first three are about storage and
+durability. The last two are about GPUs. The method is identical in
+both, which is the only real argument that it is a method at all.
+
+Start with the [Preface](./preface.md) if you want to know what you are
+holding, or the [Introduction](./introduction.md) if you would rather
+get straight to how the thing works. If you are impatient, skip both and
+open [Five Microseconds](./01-five-microseconds.md), which is a
+measurement that cannot possibly be true.

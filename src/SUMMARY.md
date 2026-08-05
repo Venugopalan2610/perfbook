@@ -1,6 +1,8 @@
 # Summary
 
 [Deriving Systems](./index.md)
+[Preface](./preface.md)
+[Introduction](./introduction.md)
 
 ---
 

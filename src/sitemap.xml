@@ -6,6 +6,16 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://derivingsystems.com/preface.html</loc>
+    <lastmod>2026-08-05</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://derivingsystems.com/introduction.html</loc>
+    <lastmod>2026-08-05</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://derivingsystems.com/01-five-microseconds.html</loc>
     <lastmod>2026-08-05</lastmod>
     <priority>0.8</priority>

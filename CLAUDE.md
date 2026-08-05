@@ -37,6 +37,10 @@ before every build, so adding a chapter updates it automatically.
 - **Voice conversion is complete.** All twelve chapters are in the
   Feynman voice described below. `pipeline/voicecheck.py` exits zero;
   run it before committing prose.
+- `src/index.md` is the landing page, `src/preface.md` is about the book
+  (origin, the no-lookups rule, how to revise, what it is not) and
+  `src/introduction.md` is about the subject (the method itself). They
+  are SUMMARY prefix chapters, before the first `---`.
 - `src/rules.md` — the Rules Index. The most important page in the book.
 - `src/challenges.md` — every question, no answers.
 
