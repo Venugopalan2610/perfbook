@@ -2,35 +2,51 @@
 
 > Arithmetic intensity, and the 99% idle GPU.
 
-Let's profile a 7-billion-parameter model generating one token. The
-card is an A100, 312 teraFLOPS of fp16 compute, roughly $30,000 of
-silicon. During that single token, it spends 45 microseconds computing
-and 7 milliseconds waiting.
+I want to show you a machine that costs thirty thousand dollars and
+spends nearly all of its life doing nothing at all.
 
-Do the fraction: **the GPU was busy 0.6% of the time.** Ninety-nine
-point four percent idle, on the most expensive processor in the
-building. This chapter is about why that's not a bug, and why it won't
-be fixed by buying a faster one.
+It is an A100, and it can perform three hundred and twelve trillion
+arithmetic operations every second. We hand it a 7-billion-parameter
+model and ask for a single word. It computes for forty-five
+microseconds. Then it waits for seven milliseconds.
+
+Do the fraction. The thing is busy six-tenths of one percent of the
+time.
+
+Now, when you first see a number like that, the natural thing to think
+is that somebody made a mistake. Sloppy code, a bad driver, an engineer
+who did not know what they were doing. I thought exactly that, the
+first time I saw it. It is the comfortable explanation, because it
+means somebody can go and fix it.
+
+It is not a mistake. And what I want to show you is how you can prove
+that with arithmetic you can do on a napkin, and how, once you see why
+the machine is idle, you also see precisely what to do about it.
 
 ## 7.1 Two Candidates and a Missing Number
 
-Candidate one: the GPU is slow because generating a token is
-compute-heavy: matrix multiplies, attention, the works. Candidate two:
-the GPU is slow because it's waiting on something that has nothing to
-do with how many operations it can do per second.
+There are only two possibilities worth taking seriously here.
 
-Worth counting the operations before assuming they're the bottleneck.
-Generating one token from a 7B model, batch size one, costs roughly:
+Either producing a word takes an enormous amount of arithmetic and the
+chip is straining to keep up. Or it takes hardly any arithmetic at all,
+and the chip is sitting there waiting on something that has nothing to
+do with arithmetic.
+
+Those call for opposite remedies, so before anybody argues about which
+it is, let's just count. Generating one token from a 7B model, batch
+size one, costs roughly:
 
 ```
 compute:  2 × 7×10⁹ params  ≈  14 GFLOP
 memory:   7×10⁹ params × 2 bytes (fp16)  =  14 GB  read
 ```
 
-Fourteen billion floating-point operations, fourteen billion bytes
-read. **One FLOP per byte moved.** That ratio has a name, arithmetic
-intensity, and it's the only number this chapter needs to compute
-anything else.
+Fourteen billion operations. Fourteen billion bytes.
+
+**One operation per byte moved.**
+
+That ratio has a name, arithmetic intensity, and it is the only number
+this chapter needs in order to compute everything else.
 
 ## 7.2 The Axioms
 
@@ -40,31 +56,38 @@ anything else.
 | Peak memory bandwidth | ~2 TB/s |
 | **Ridge point** (compute ÷ bandwidth) | **~156 FLOP/byte** |
 
-The ridge point is the arithmetic intensity at which a workload stops
-being memory-bound and starts being compute-bound, on this specific
-piece of hardware. Below it, the chip finishes the math faster than it
-can be fed data, and sits idle waiting on the memory bus. Above it, the
-bus finishes feeding data faster than the chip can chew through it, and
-the compute units become the limit.
+The ridge point is where a workload stops being memory-bound and starts
+being compute-bound, on this specific piece of silicon.
+
+Below it, the chip finishes its math faster than it can be fed, and
+sits idle waiting on the memory bus. Above it, the bus delivers data
+faster than the chip can chew through it, and the arithmetic units
+become the limit. It is a property of the hardware and nothing else. It
+does not know what you are running.
 
 ## 7.3 Doing the Division
 
-Our workload's arithmetic intensity is 1 FLOP/byte. The hardware's
-ridge is ~156. Let's line them up.
+Our workload sits at 1 FLOP/byte. The hardware's ridge is around 156.
+Let's line them up.
 
 <img class="ruler-chart" src="img/ruler-07-the-ridge.svg" alt="Log-scale ruler: 1 FLOP per byte measured versus a ridge point around 156 FLOP per byte. The workload sits two orders of magnitude to the left of the ridge.">
 
-Convert both halves to time, using the axioms:
+Now convert both halves into time, using the axioms:
 
 ```
 compute time:  14 GFLOP ÷ 312 TFLOP/s  ≈  45 µs
 memory time:   14 GB ÷ 2 TB/s          ≈  7 ms
 ```
 
-Memory time is **~156× longer than compute time**, not a coincidence;
-that ratio *is* the ridge point, restated in seconds instead of
-FLOP/byte. The chip finishes its 14 GFLOP of work in 45 µs and then
-waits 6.95 ms for the next byte of weight to arrive.
+Memory time is about **156× longer** than compute time.
+
+That is not a coincidence, and it is worth pausing on. That ratio *is*
+the ridge point, restated in seconds instead of FLOP per byte. The same
+number, wearing different units, arrived at from a completely different
+direction. When that happens you are usually onto something real.
+
+The chip finishes its 14 GFLOP in 45 microseconds and then waits 6.95
+milliseconds for the next byte of weight to show up.
 
 <div class="rule" id="ridge-before-flops">
 <span class="rule-id">Rule 9 · Check arithmetic intensity before adding FLOPs</span>
@@ -75,22 +98,27 @@ generates the same token in the same amount of time.
 
 ## 7.4 What This Rules Out
 
-This rules out the instinct to solve slow generation by upgrading to a
-higher-TFLOPS card. If the bottleneck sits 156× to the left of the
-ridge, tripling peak compute moves the ridge point further right and
-helps nothing. The workload was never anywhere near the compute wall
-to begin with. What would move the needle is more memory *bandwidth*,
-or (cheaper, and the more common answer) changing the workload's
-arithmetic intensity itself.
+This rules out the instinct to fix slow generation by buying a
+higher-TFLOPS card.
 
-That's the opening this chapter has been building toward: at batch
-size one, we read the entire 14 GB of weights **to compute one token's
-worth of math**. At batch size 32, we read the same 14 GB once and
-compute 32 tokens' worth of math against it before the next byte has to
-arrive. The memory cost didn't grow with batch size; the compute did.
+If your bottleneck sits 156× to the left of the ridge, tripling peak
+compute moves the ridge point further *right* and helps you not at all.
+You were never anywhere near the compute wall. You would be buying more
+of the thing you already have too much of, which is a wonderfully
+expensive way to change nothing.
 
-It's worth doing that division in symbols, because the answer comes out
-cleaner than it has any right to. Call the parameter count N. Each
+What would move the needle is more memory *bandwidth*. Or, and this is
+cheaper and much more interesting, changing the workload's arithmetic
+intensity itself.
+
+Which is what this chapter has been building toward. At batch size one,
+we read the entire 14 GB of weights **to compute one token's worth of
+math**. At batch size 32, we read the same 14 GB once and compute
+thirty-two tokens' worth of math against it before the next byte has to
+arrive. The memory cost did not grow with batch size. The compute did.
+
+It is worth doing that division in symbols, because the answer comes
+out cleaner than it has any right to. Call the parameter count N. Each
 weight is two bytes in fp16, and each weight takes part in exactly one
 multiply-and-add, which is two operations. At batch size B:
 
@@ -103,35 +131,37 @@ intensity  =  --------  =  B FLOP/byte
                   2N
 ```
 
-The twos cancel and the parameter count cancels, and what's left is the
-batch size itself. Arithmetic intensity, for this workload, *is* B. Not
-approximately, not in the limit. At batch 32 we sit at exactly 32
-FLOP/byte, still under the ridge but a lot closer to it, and throughput
-scales almost for free on the way there.
+The twos cancel. The parameter count cancels. What is left is the batch
+size itself.
 
-That identity is the one to carry out of this chapter. It turns the
-ridge point from a property of the silicon into a number we can type
-into a config file: a ridge of ~156 FLOP/byte says, in plain language,
-"run about 156 sequences at once." Every serving system in the world
-exposes that number as a tunable, and now we know what it's tuning
+Arithmetic intensity, for this workload, *is* B. Not approximately. Not
+in the limit. At batch 32 we sit at exactly 32 FLOP/byte, still under
+the ridge but far closer to it, and throughput scales almost for free
+on the way there.
+
+That identity is the thing to carry out of this chapter. It turns the
+ridge point from a property of the silicon into a number you can type
+into a config file. A ridge of 156 FLOP/byte says, in plain language,
+run about 156 sequences at once. Every serving system in the world
+exposes that number as a tunable, and now you know what it is tuning
 against.
 
 <div class="aside">
 The clean cancellation is an accident of fp16, where two bytes per
 weight happens to match two operations per weight. Store the weights in
-fp8 and the bytes halve while the operations don't, so intensity becomes
-2B. Quantization buys arithmetic intensity <em>and</em> a shorter read,
-which is two independent wins from one change. Challenge 3 is worth
-redoing with that in mind.
+fp8 and the bytes halve while the operations do not, so intensity
+becomes 2B. Quantization buys arithmetic intensity <em>and</em> a
+shorter read, which is two independent wins from one change. Challenge
+3 is worth redoing with that in mind.
 </div>
 
 <div class="aside">
 This is <a href="./05-group-commit.md#adaptive-batching">group
-commit</a>, again. There, a fixed fsync round-trip got amortized across
-however many writers queued up behind it. Here, a fixed weight-read
-gets amortized across however many tokens' worth of compute we can
-queue up behind it before the next byte has to move. Same trick,
-different barrier.
+commit</a>, again, and I hope by now it looks familiar. There, a fixed
+fsync round trip got amortized across however many writers had queued up
+behind it. Here, a fixed weight-read gets amortized across however many
+tokens' worth of compute we can pile up before the next byte has to
+move. Same trick. Different barrier. It will happen twice more.
 </div>
 
 ## 7.5 The Pictorial
@@ -140,7 +170,7 @@ different barrier.
 
 <div class="aside">
 Batching walks us rightward along the rising slope, not up onto the
-plateau: still memory-bound, just less wastefully so, until we're
+plateau. Still memory-bound, just less wastefully so, until we are
 batched heavily enough to reach the ridge itself.
 </div>
 
@@ -187,17 +217,22 @@ of peak you will get at batch 1, before you look. See
 ## Design Note: The Ridge Doesn't Care How You Feel About the GPU
 
 "99.4% idle" reads like a scandal the first time you compute it, and
-the natural response is to go looking for something to blame: bad
-kernels, an unoptimized runtime, a driver issue. Usually none of that's
-true. The chip is idle because the arithmetic says it should be, and no
-amount of engineering effort inside a single forward pass, at batch
-size one, changes which side of the ridge you're standing on.
+the natural response is to go looking for somebody to blame. Bad
+kernels. An unoptimized runtime. A driver issue. Somebody upstream who
+did not care enough.
 
-The lesson generalizes past GPUs: any time you're tempted to profile
+Usually none of that is true. The chip is idle because the arithmetic
+says it should be idle, and no amount of engineering effort inside a
+single forward pass, at batch size one, changes which side of the ridge
+you are standing on. You can rewrite that kernel with enormous skill
+and win nothing, and the failure will feel like your fault, and it will
+not be.
+
+The lesson generalizes past GPUs. Any time you are tempted to profile
 harder to explain a bottleneck, check arithmetic intensity against the
-hardware's ridge point first. If you're two orders of magnitude to the
-left of it, the profiler is going to show a chip waiting on memory no
-matter how you slice the flame graph, and the fix was never going to
-live inside the kernel you were about to optimize.
+hardware's ridge point first. If you are two orders of magnitude to the
+left of it, the profiler is going to show you a chip waiting on memory
+no matter how you slice the flame graph, and the fix was never going to
+live inside the kernel you were about to spend a week on.
 
 </div>
