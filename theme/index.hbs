@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>{{ title }}</title>
+        <title>{{#if (eq chapter_title book_title)}}{{ book_title }}: performance engineering from first principles{{else}}{{ chapter_title }} · {{ book_title }}: performance engineering from first principles{{/if}}</title>
         {{#if is_print }}
         <meta name="robots" content="noindex">
         {{/if}}
