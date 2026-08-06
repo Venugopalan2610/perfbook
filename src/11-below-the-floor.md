@@ -22,13 +22,13 @@ measured        =                         7.80 ms/token
 
 Two and a half times the floor.
 
+<p class="quip">Check the promises you like best. They are the ones nobody else is going to check for you.</p>
+
 The card is achieving 153 GB/s out of the 380 it demonstrably has,
 which is forty percent of a bus chapter 7 said should be saturated.
 Somewhere inside every single token, four and a half milliseconds are
 going somewhere that is not the memory bus, on a workload we have spent
 two chapters calling memory-bound.
-
-<p class="quip">Check the promises you like best. They are the ones nobody else is going to check for you.</p>
 
 ## 11.1 Candidates and the Ratio
 
@@ -102,12 +102,12 @@ they account for the missing time almost exactly.
 
 <img class="chart" src="img/launch-overhead-11-below-the-floor.svg" alt="Two stacked horizontal bars of time per decode token. The eager bar is 7.8 milliseconds: 3.13 milliseconds of memory traffic and 4.67 milliseconds of CPU launch overhead. The CUDA graph bar is 3.4 milliseconds: the same 3.13 milliseconds of memory traffic and a thin remainder of replay overhead. A dashed line marks the 3.13 millisecond roofline floor.">
 
+<p class="quip">The bus is not slow. The bus is bored.</p>
+
 So the first candidate goes. The bus is not slow. The bus is *idle*, waiting
 for a CPU that is 280 function calls behind. Each kernel, once launched,
 runs at full bandwidth. The problem was never inside any of them. The
 problem is the gaps between them.
-
-<p class="quip">The bus is not slow. The bus is bored.</p>
 
 <div class="rule" id="floor-gap-is-cpu">
 <span class="rule-id">Rule 13 · A workload that misses its own roofline floor is not yet bound by what you think</span>
@@ -176,13 +176,13 @@ One token, drawn as a timeline of who is doing the work:
 The GPU work is identical in both pictures. The only thing we deleted
 was waiting for permission.
 
+<p class="quip">One division, and we never once had to open a kernel. I have had entire weeks go worse than that.</p>
+
 And notice what we did not have to understand to get here. We never
 opened a kernel. We never looked at an access pattern. We never learned
 what the attention implementation does with its tiles, and I could not
 tell you offhand. We computed a floor, found a gap, divided the gap by a
 count, and the answer named itself.
-
-<p class="quip">One division, and we never once had to open a kernel. I have had entire weeks go worse than that.</p>
 
 <div class="aside">
 <strong>Build it.</strong> Stage 03 of

@@ -16,9 +16,9 @@ Take five candidate tokens, produced by something cheap. Hand all five
 to the 7B model and ask it to check them in a single forward pass. Five
 times the arithmetic of an ordinary decode step.
 
-It takes the same 7 milliseconds.
-
 <p class="quip">Five times the work at the same price. This is the one place in the book where that sentence is not a warning.</p>
+
+It takes the same 7 milliseconds.
 
 ## 12.1 Candidates and the Ratio
 

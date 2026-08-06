@@ -135,6 +135,22 @@ Two custom HTML components, defined in `theme/custom.css`:
   threshold is derived from the geometry rather than guessed, because
   `main` is centred so the surplus is halved. Nothing in a `.quip` is
   load-bearing: it is a joke, and it is allowed to be missed.
+
+  **Placement rule: a float anchors to what comes AFTER it.** So put a
+  `.quip` immediately *before* the paragraph you want it beside, and it
+  will comment on the one above it, which the reader has just finished.
+  Put one at the end of a section and it floats beside the next
+  section's heading, which is wrong and looks it. 25 of the 60 were
+  written that way at first and all had to be moved.
+
+  Two things to check after adding any (`pipeline/quipcheck.py`): that
+  the block after each quip is prose rather than a heading, rule box,
+  aside, chart or code fence; and that consecutive quips are far enough
+  apart. They `clear: right`, so two closer together than one is tall
+  will stack and drift away from the paragraphs they belong to. Count a
+  chart as real vertical space when you eyeball this: it is easy to
+  measure the prose between two quips, forget the figure sitting between
+  them, and "fix" a collision that was never there.
 - `.stage-diff` and `.stage-meta` — `src/course.md` only, and **emitted
   by `pipeline/make_course.py`**, so renaming either class means editing
   the script too.

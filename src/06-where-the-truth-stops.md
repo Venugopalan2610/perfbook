@@ -16,11 +16,11 @@ remaining 129 are whatever happened to be occupying that block before
 this write ever started. And nothing about the record's *structure*
 tells us where the truth stops and the leftovers begin.
 
+<p class="quip">Corruption that looks like corruption is a gift. Nobody ever writes a postmortem about the bytes that looked wrong.</p>
+
 That is the thing I want you to sit with. Torn writes do not announce
 themselves. They do not arrive corrupted-looking. They look like data,
 because they are data. They are just somebody else's.
-
-<p class="quip">Corruption that looks like corruption is a gift. Nobody ever writes a postmortem about the bytes that looked wrong.</p>
 
 ## 6.1 Two Candidates and a Missing Number
 
@@ -106,13 +106,13 @@ That 4-bit remainder ships alongside the message. On read-back we run
 the same division over the record *including* its stored remainder, and
 a clean write divides evenly and lands on zero.
 
+<p class="quip">Four billion to one is a comfortable margin. It is also a number you will meet in person if you write enough records.</p>
+
 A torn write, real bytes followed by stale ones, essentially never
 does. And the reason is worth stating plainly: the stale tail was not
 chosen to satisfy this particular division. It was chosen by whatever
 used to live on that block, months ago, by a process that had never
 heard of us.
-
-<p class="quip">Four billion to one is a comfortable margin. It is also a number you will meet in person if you write enough records.</p>
 
 <div class="rule" id="checksum-the-edge">
 <span class="rule-id">Rule 8 · Checksum every record; seed the register nonzero</span>
@@ -161,10 +161,10 @@ all-zero message no longer produces an all-zero result, the degenerate
 case that used to sail through now perturbs the register, and it gets
 caught like anything else.
 
+<p class="quip">Thirty-two bits of careful mathematics, defeated by a block of nothing at all, and fixed by starting somewhere other than nothing.</p>
+
 One line. And you only ever find it by asking what your own check does
 on its worst input, rather than on a typical one.
-
-<p class="quip">Thirty-two bits of careful mathematics, defeated by a block of nothing at all, and fixed by starting somewhere other than nothing.</p>
 
 ## 6.5 The Pictorial
 

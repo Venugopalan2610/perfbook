@@ -183,10 +183,10 @@ and everything below it provably on the media:
                                         only past this line
 ```
 
+<p class="quip">Three records behind the barrier, or three thousand, at the same price. Enjoy it. Very little else in this book is on offer.</p>
+
 That is the shape you want, and it costs one round trip no matter how
 many records are stacked above the line.
-
-<p class="quip">Three records behind the barrier, or three thousand, at the same price. Enjoy it. Very little else in this book is on offer.</p>
 
 <div class="aside">
 Fsync-per-record redraws that picture a thousand times for a thousand

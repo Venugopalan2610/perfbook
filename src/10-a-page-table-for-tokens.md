@@ -17,11 +17,11 @@ ought to hold something in the neighbourhood of four hundred sequences.
 
 It holds 66.
 
+<p class="quip">A budget that cannot go down is not a budget. It is a bill.</p>
+
 It held 66 back when requests averaged 2048 tokens, and it holds 66 now
 that they average 350. The budget did not notice that the work got
 smaller, and I find that a genuinely strange thing for a budget to do.
-
-<p class="quip">A budget that cannot go down is not a budget. It is a bill.</p>
 
 ## 10.1 Candidates and the Ratio
 
@@ -64,11 +64,11 @@ starts, because we cannot move it afterwards without invalidating every
 pointer into it. And its final size is unknowable at admission, because
 the model decides when to stop and it has not decided yet.
 
+<p class="quip">Reserved for a conversation nobody had, in the most expensive memory anybody sells.</p>
+
 Three reasonable facts. Put them together and the allocator's hand is
 forced: reserve the worst case, or risk running out mid-sequence with
 nowhere to grow.
-
-<p class="quip">Reserved for a conversation nobody had, in the most expensive memory anybody sells.</p>
 
 ## 10.3 Doing the Division
 
@@ -160,10 +160,10 @@ with, gets computed once and pointed at by all of them. Refcount the
 blocks, copy on write when a sequence diverges, and prefix sharing
 falls out of the very same table we built to fix fragmentation.
 
+<p class="quip">You go in to fix fragmentation and come out holding prefix sharing. Nobody planned that, and everybody takes the credit.</p>
+
 That is the sign of a good structure, incidentally. You build it for
 one reason and it hands you a second thing you were not asking for.
-
-<p class="quip">You go in to fix fragmentation and come out holding prefix sharing. Nobody planned that, and everybody takes the credit.</p>
 
 <div class="aside">
 The cost is that attention can no longer stride a contiguous tensor:

@@ -49,10 +49,10 @@ Fourteen billion operations. Fourteen billion bytes.
 
 **One operation per byte moved.**
 
+<p class="quip">One operation per byte. The most powerful chip in the building, being used as a very expensive way to read memory.</p>
+
 That ratio has a name, arithmetic intensity, and it is the only number
 this chapter needs in order to compute everything else.
-
-<p class="quip">One operation per byte. The most powerful chip in the building, being used as a very expensive way to read memory.</p>
 
 ## 7.2 The Axioms
 
@@ -161,8 +161,6 @@ run about 156 sequences at once. Every serving system in the world
 exposes that number as a tunable, and now you know what it is tuning
 against.
 
-<p class="quip">Every serving framework has this knob. Most of the people turning it are doing so by feel, which is a shame, because it is just a division.</p>
-
 <div class="aside">
 The clean cancellation is an accident of fp16, where two bytes per
 weight happens to match two operations per weight. Store the weights in
@@ -182,6 +180,8 @@ move. Same trick. Different barrier. It will happen twice more.
 </div>
 
 ## 7.5 The Pictorial
+
+<p class="quip">Every serving framework has this knob. Most of the people turning it are doing so by feel, which is a shame, because it is just a division.</p>
 
 All of this fits on one chart, and it is worth learning to read because
 you will meet it again for the rest of your career. Arithmetic intensity

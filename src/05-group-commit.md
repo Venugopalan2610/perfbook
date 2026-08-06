@@ -74,13 +74,13 @@ costs about the same whether it carries one record or a thousand.
 Look at that table for a second longer than it seems to deserve,
 because that equality is the entire opportunity.
 
+<p class="quip">Only one of these questions requires guessing about the future, which is a good reason to prefer the other one.</p>
+
 If a barrier crossing is nearly free per additional record, then the
 thing worth optimizing is not how many records we force ourselves to
 wait for. It is how many records happen to arrive during a crossing we
 are *already paying for*. Those are completely different questions, and
 only one of them requires us to guess about the future.
-
-<p class="quip">Only one of these questions requires guessing about the future, which is a good reason to prefer the other one.</p>
 
 ## 5.3 Doing the Division
 
@@ -107,11 +107,11 @@ its "batch" is size one, and it waits exactly one fsync round trip.
 Not a hundred seconds. One round trip, which is the least it could
 possibly have waited.
 
+<p class="quip">The best batch size is the one nobody chose. There is a lesson in there about several other constants in your codebase.</p>
+
 That is the pleasing part. The scheme is not a compromise between the
 two cases. It is optimal at both ends, and it got there by refusing to
 answer a question it did not have to answer.
-
-<p class="quip">The best batch size is the one nobody chose. There is a lesson in there about several other constants in your codebase.</p>
 
 <div class="rule" id="adaptive-batching">
 <span class="rule-id">Rule 7 · Let the barrier set its own batch size</span>
@@ -145,12 +145,12 @@ The fix is a small floor: hold the batch open for a minimum of roughly
 caps how often the device gets hit, at the cost of a bounded, small,
 constant addition to latency.
 
+<p class="quip">The rejected idea comes back in the last act, behaving itself. This happens more often than the tidy version of engineering admits.</p>
+
 Which is the same trade as the fixed window we rejected two sections
 ago. Exactly the same trade. The difference is that here it is sized to
 be negligible instead of dominant, and I think that is worth saying out
 loud: the idea was never bad, it was just badly sized.
-
-<p class="quip">The rejected idea comes back in the last act, behaving itself. This happens more often than the tidy version of engineering admits.</p>
 
 ## 5.5 The Pictorial
 

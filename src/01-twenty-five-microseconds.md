@@ -80,10 +80,10 @@ too.
 | NVMe SSD | ~2 GB/s |
 | spinning disk | ~150 MB/s |
 
+<p class="quip">A dozen constants is fewer than most people carry for their own family's birthdays, and considerably more useful at two in the morning.</p>
+
 A dozen numbers roughly like these make up most of the toolkit. Twelve
 numbers. That's it. What we do with them is the entire skill.
-
-<p class="quip">A dozen constants is fewer than most people carry for their own family's birthdays, and considerably more useful at two in the morning.</p>
 
 ## 1.3 Doing the Division
 

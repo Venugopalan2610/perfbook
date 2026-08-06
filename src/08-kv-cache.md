@@ -17,9 +17,9 @@ tune a knob and miss by ten percent. The process died with an
 out-of-memory error, two and a half times short of the target the
 previous chapter set for us.
 
-Something is spending memory that chapter 7 assumed was free.
-
 <p class="quip">Sixty-four is not a tuning failure. It is an arithmetic result that nobody had got around to computing.</p>
+
+Something is spending memory that chapter 7 assumed was free.
 
 ## 8.1 Two Candidates and a Missing Number
 
@@ -93,12 +93,12 @@ Sixty-six. Before we account for activation memory, the CUDA context,
 and the other fixed overhead that eats a couple more gigabytes off the
 top, which is exactly how we land at the observed 64.
 
+<p class="quip">Somewhere there is a very tidy padding fix, thoroughly reviewed and merged with compliments, that bought absolutely nobody anything.</p>
+
 **The KV cache arithmetic alone explains the shortfall.** All of it.
 There is nothing left over for padding to be responsible for, and if we
 had gone hunting for padding bugs we would have found some, fixed them
 carefully, and moved the number by almost nothing.
-
-<p class="quip">Somewhere there is a very tidy padding fix, thoroughly reviewed and merged with compliments, that bought absolutely nobody anything.</p>
 
 <div class="rule" id="kv-budget-not-guess">
 <span class="rule-id">Rule 10 · Size your batch from the KV budget, not a guess</span>

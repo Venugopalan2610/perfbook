@@ -56,12 +56,12 @@ output length by two orders of magnitude, and neither one is unusual.
 That last row is doing all the damage, and I want to point at it
 directly, because it is a choice dressed up as a law.
 
+<p class="quip">"What is 2+2?" and "Explain the CAP theorem" are billed at the same rate, and one of them is subsidising the other rather heavily.</p>
+
 We launch a batch. We run it to completion. We launch the next one.
 That is the obvious way to write the loop. It is how you would write it
 on a whiteboard, it is how every framework wrote it the first time, and
 there is nothing wrong with it except what it costs.
-
-<p class="quip">"What is 2+2?" and "Explain the CAP theorem" are billed at the same rate, and one of them is subsidising the other rather heavily.</p>
 
 ## 9.3 Doing the Division
 
@@ -99,10 +99,10 @@ lanes go dark inside the first eleven steps and then just sit there,
 dark, for another hundred and nine, while one long sequence grinds to
 the end.
 
+<p class="quip">Batch size is what you configured. Occupancy is what you bought. Only one of them is on the dashboard, and it is the wrong one.</p>
+
 The slots did not fail. They finished. And then they waited, because we
 never built them a way to leave.
-
-<p class="quip">Batch size is what you configured. Occupancy is what you bought. Only one of them is on the dashboard, and it is the wrong one.</p>
 
 <div class="rule" id="iteration-scheduling">
 <span class="rule-id">Rule 11 · Release the slot when the sequence ends, not when the batch does</span>
@@ -175,12 +175,12 @@ every forward pass:
     forward  one single-token pass over whatever survived
 ```
 
+<p class="quip">The largest throughput win in modern inference serving is four lines long and swaps the order of two of them.</p>
+
 Four steps. And the order of the middle two is the entire chapter.
 Evict before the forward pass and a finished sequence costs you
 nothing. Evict after it, or at the end of the batch like we used to,
 and you are back at eighteen percent.
-
-<p class="quip">The largest throughput win in modern inference serving is four lines long and swaps the order of two of them.</p>
 
 <div class="aside">
 <strong>Build it.</strong> This is where the book hands off to

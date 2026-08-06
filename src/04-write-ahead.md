@@ -49,10 +49,10 @@ kernel gave up and stopped tracking it as pending work. The data that
 failed to write is now simply gone from the page cache. There is
 nothing dirty left for a second `fsync` to flush.
 
+<p class="quip">Nobody lied. The kernel answered exactly the question it was asked, which was not the question anybody meant.</p>
+
 So the second call returns success. Honestly. From where it is
 standing, there is genuinely nothing left to do.
-
-<p class="quip">Nobody lied. The kernel answered exactly the question it was asked, which was not the question anybody meant.</p>
 
 <div class="aside">
 The fix that shipped in Linux 4.13 (<code>errseq_t</code>) made sure
@@ -76,6 +76,8 @@ have to be true at once for the bug above to happen.
 | A writeback failure marks the page clean and evicts it | The failed bytes are gone from the page cache, not "still pending" |
 | The error surfaces to `fsync` **at most once per file description** (post-4.13) | A second caller, or a second call, can see success on a page that never made it to disk |
 | The kernel has no concept of "our" data, only dirty pages | It cannot retry on our behalf; it does not know what the bytes were for |
+
+<p class="quip">A backup on the same disk is not a backup. Everybody agrees with this, and roughly half of us keep one anyway.</p>
 
 Put those together and you get something that sounds almost harsh: an
 `fsync` failure is not a transient fault to be retried. It is a
@@ -118,9 +120,9 @@ that cannot be reconstructed from anything else, and that is exactly
 why it is the one thing that gets the expensive, synchronous, ordered
 barrier we bought in chapter 3.
 
-One barrier. On the one irreplaceable thing.
-
 <p class="quip">The data pages are allowed to be wrong. It takes a while to be comfortable writing that sentence down.</p>
+
+One barrier. On the one irreplaceable thing.
 
 ## 4.4 What This Rules Out
 
@@ -181,8 +183,6 @@ sits, because everything in the design follows from its position:
  │  data pages  │  ← derived. Can be rebuilt from the WAL.
  └──────────────┘     Never the thing we promised on.
 ```
-
-<p class="quip">A backup on the same disk is not a backup. Everybody agrees with this, and roughly half of us keep one anyway.</p>
 
 <div class="aside">
 Notice the ACK sits <em>between</em> the WAL's fsync and the data-page
