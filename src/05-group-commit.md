@@ -45,6 +45,8 @@ at      10 events/sec:  1000 ÷      10  = 100  s  to fill    (not fine)
 
 **Ten million times worse.** Same constant. Just a quieter night.
 
+<p class="quip">The constant did not change. The world did, and the constant had no way of finding out.</p>
+
 And that number is the argument against the first all by itself.
 There is no single value of N that is safe across a range that wide.
 Whatever you pick is correct at the traffic level you tuned it for and
@@ -78,6 +80,8 @@ wait for. It is how many records happen to arrive during a crossing we
 are *already paying for*. Those are completely different questions, and
 only one of them requires us to guess about the future.
 
+<p class="quip">Only one of these questions requires guessing about the future, which is a good reason to prefer the other one.</p>
+
 ## 5.3 Doing the Division
 
 So let's not set N at all. Let's set a rule instead.
@@ -106,6 +110,8 @@ possibly have waited.
 That is the pleasing part. The scheme is not a compromise between the
 two cases. It is optimal at both ends, and it got there by refusing to
 answer a question it did not have to answer.
+
+<p class="quip">The best batch size is the one nobody chose. There is a lesson in there about several other constants in your codebase.</p>
 
 <div class="rule" id="adaptive-batching">
 <span class="rule-id">Rule 7 · Let the barrier set its own batch size</span>
@@ -143,6 +149,8 @@ Which is the same trade as the fixed window we rejected two sections
 ago. Exactly the same trade. The difference is that here it is sized to
 be negligible instead of dominant, and I think that is worth saying out
 loud: the idea was never bad, it was just badly sized.
+
+<p class="quip">The rejected idea comes back in the last act, behaving itself. This happens more often than the tidy version of engineering admits.</p>
 
 ## 5.5 The Pictorial
 

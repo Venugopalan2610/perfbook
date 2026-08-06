@@ -83,6 +83,8 @@ too.
 A dozen numbers roughly like these make up most of the toolkit. Twelve
 numbers. That's it. What we do with them is the entire skill.
 
+<p class="quip">A dozen constants is fewer than most people carry for their own family's birthdays, and considerably more useful at two in the morning.</p>
+
 ## 1.3 Doing the Division
 
 One megabyte, three plausible paths home.
@@ -132,6 +134,8 @@ result of the loop was never read, so the compiler noticed this and
 deleted the entire computation, and the benchmark was faithfully timing
 an empty program. The number was real. The measurement was honest. The
 work had simply not occurred.
+
+<p class="quip">The graph was beautiful. Somebody had put the four hundred in bold.</p>
 
 That is the same rule as the one in the box, wearing different clothes,
 and it is why I trust it more than almost anything else in this book. A
@@ -243,6 +247,8 @@ profiler on a 1000× gap isn't rigor. It's procrastination that
 produces artifacts.
 </div>
 
+<p class="quip">Nobody has ever been criticized in a review for adding more instrumentation, which is most of what is wrong with reviews.</p>
+
 For the day you genuinely need them: `strace -c` counts syscalls,
 `perf trace` times them. They are excellent tools and you should need
 them far less often than you think.
@@ -282,6 +288,8 @@ moment. `write()` is the syscall that *leaves* userspace, which the
 name rather undersells. Your data lands in page cache. And `fsync()` is
 not "send it to the kernel," because it is already there. `fsync` is
 what pushes it *out* of the kernel, toward the media.
+
+<p class="quip"><code>write()</code> does not write and <code>fsync()</code> does not send. Both names are older than I am and neither is going to be fixed now.</p>
 
 Most people know about `fsync`. What catches people off guard is
 subtler, and it is the thing I would tattoo on a wall if I could: the

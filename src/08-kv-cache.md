@@ -19,6 +19,8 @@ previous chapter set for us.
 
 Something is spending memory that chapter 7 assumed was free.
 
+<p class="quip">Sixty-four is not a tuning failure. It is an arithmetic result that nobody had got around to computing.</p>
+
 ## 8.1 Two Candidates and a Missing Number
 
 Something is eating the difference, and there are two obvious suspects.
@@ -96,6 +98,8 @@ There is nothing left over for padding to be responsible for, and if we
 had gone hunting for padding bugs we would have found some, fixed them
 carefully, and moved the number by almost nothing.
 
+<p class="quip">Somewhere there is a very tidy padding fix, thoroughly reviewed and merged with compliments, that bought absolutely nobody anything.</p>
+
 <div class="rule" id="kv-budget-not-guess">
 <span class="rule-id">Rule 10 · Size your batch from the KV budget, not a guess</span>
 Before assuming a batch ceiling is a scheduling inefficiency, compute
@@ -119,6 +123,8 @@ headroom, at GPU prices, for a problem that feels quadratic from the
 inside. Every additional sequence costs another gigabyte *for the whole
 time it is in flight*, not once.
 
+<p class="quip">A gigabyte per conversation, for as long as the conversation lasts. Thinking out loud turns out to be an expensive habit.</p>
+
 So the field's answer was not bigger GPUs. It was making the 512 KB
 number itself smaller. And if you have ever wondered why half the
 acronyms in this corner of the field exist, this is where they come
@@ -136,6 +142,8 @@ you will meet all three.
   worst-case length. Hand out fixed-size pages on demand, like virtual
   memory, so unused headroom in a short sequence is not locked away
   from a longer one running beside it.
+
+<p class="quip">Half the acronyms in this corner of the field are attacks on one constant. Once you know which constant, the reading list gets much shorter.</p>
 
 Every one of those attacks the 512 KB constant, or the waste around it.
 None of them touch the ridge point from chapter 7. Different wall,

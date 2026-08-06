@@ -52,6 +52,8 @@ Fourteen billion operations. Fourteen billion bytes.
 That ratio has a name, arithmetic intensity, and it is the only number
 this chapter needs in order to compute everything else.
 
+<p class="quip">One operation per byte. The most powerful chip in the building, being used as a very expensive way to read memory.</p>
+
 ## 7.2 The Axioms
 
 One FLOP per byte is a fact about our workload. To know whether that is
@@ -116,6 +118,8 @@ You were never anywhere near the compute wall. You would be buying more
 of the thing you already have too much of, which is a wonderfully
 expensive way to change nothing.
 
+<p class="quip">There is always a bigger card, and it always comes with a graph showing how much bigger it is.</p>
+
 What would move the needle is more memory *bandwidth*. Or, and this is
 cheaper and much more interesting, changing the workload's arithmetic
 intensity itself.
@@ -143,6 +147,8 @@ intensity  =  --------  =  B FLOP/byte
 The twos cancel. The parameter count cancels. What is left is the batch
 size itself.
 
+<p class="quip">When everything cancels and one variable is left standing, sit up. Nature is rarely that accommodating twice in a chapter.</p>
+
 Arithmetic intensity, for this workload, *is* B. Not approximately. Not
 in the limit. At batch 32 we sit at exactly 32 FLOP/byte, still under
 the ridge but far closer to it, and throughput scales almost for free
@@ -154,6 +160,8 @@ into a config file. A ridge of 156 FLOP/byte says, in plain language,
 run about 156 sequences at once. Every serving system in the world
 exposes that number as a tunable, and now you know what it is tuning
 against.
+
+<p class="quip">Every serving framework has this knob. Most of the people turning it are doing so by feel, which is a shame, because it is just a division.</p>
 
 <div class="aside">
 The clean cancellation is an accident of fp16, where two bytes per

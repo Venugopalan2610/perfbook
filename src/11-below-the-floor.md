@@ -28,6 +28,8 @@ Somewhere inside every single token, four and a half milliseconds are
 going somewhere that is not the memory bus, on a workload we have spent
 two chapters calling memory-bound.
 
+<p class="quip">Check the promises you like best. They are the ones nobody else is going to check for you.</p>
+
 ## 11.1 Candidates and the Ratio
 
 There are two ways to explain a measurement that misses its floor, and
@@ -105,6 +107,8 @@ for a CPU that is 280 function calls behind. Each kernel, once launched,
 runs at full bandwidth. The problem was never inside any of them. The
 problem is the gaps between them.
 
+<p class="quip">The bus is not slow. The bus is bored.</p>
+
 <div class="rule" id="floor-gap-is-cpu">
 <span class="rule-id">Rule 13 · A workload that misses its own roofline floor is not yet bound by what you think</span>
 When a memory-bound workload takes materially longer than
@@ -136,6 +140,8 @@ decisions several hundred times a second, and it makes them correctly
 every time, and none of them were ever in doubt.
 
 That is a recording problem.
+
+<p class="quip">Several hundred times a second, a computer carefully re-derives a conclusion it has never once got wrong.</p>
 
 CUDA graphs let us capture the whole launch sequence once and replay it
 as a single submission. The host makes one call instead of 280, and the
@@ -175,6 +181,8 @@ opened a kernel. We never looked at an access pattern. We never learned
 what the attention implementation does with its tiles, and I could not
 tell you offhand. We computed a floor, found a gap, divided the gap by a
 count, and the answer named itself.
+
+<p class="quip">One division, and we never once had to open a kernel. I have had entire weeks go worse than that.</p>
 
 <div class="aside">
 <strong>Build it.</strong> Stage 03 of

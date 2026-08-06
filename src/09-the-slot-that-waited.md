@@ -61,6 +61,8 @@ That is the obvious way to write the loop. It is how you would write it
 on a whiteboard, it is how every framework wrote it the first time, and
 there is nothing wrong with it except what it costs.
 
+<p class="quip">"What is 2+2?" and "Explain the CAP theorem" are billed at the same rate, and one of them is subsidising the other rather heavily.</p>
+
 ## 9.3 Doing the Division
 
 Take eight requests with a spread any real service would call a quiet
@@ -100,6 +102,8 @@ the end.
 The slots did not fail. They finished. And then they waited, because we
 never built them a way to leave.
 
+<p class="quip">Batch size is what you configured. Occupancy is what you bought. Only one of them is on the dashboard, and it is the wrong one.</p>
+
 <div class="rule" id="iteration-scheduling">
 <span class="rule-id">Rule 11 · Release the slot when the sequence ends, not when the batch does</span>
 Schedule at the granularity of one forward pass, not one request. A
@@ -128,6 +132,8 @@ spread in *output* lengths across the batch's whole lifetime, which is
 80×. Those are not the same problem and they are nowhere near the same
 size, and if you spend a week on the first one you will move the second
 one by nothing.
+
+<p class="quip">Padding is the wrong suspect, and it has the enormous advantage of being easy to arrest.</p>
 
 What survives is the second, and the fix falls straight out of it.
 If the loss comes from a finished sequence holding a slot, then let it
@@ -173,6 +179,8 @@ Four steps. And the order of the middle two is the entire chapter.
 Evict before the forward pass and a finished sequence costs you
 nothing. Evict after it, or at the end of the batch like we used to,
 and you are back at eighteen percent.
+
+<p class="quip">The largest throughput win in modern inference serving is four lines long and swaps the order of two of them.</p>
 
 <div class="aside">
 <strong>Build it.</strong> This is where the book hands off to

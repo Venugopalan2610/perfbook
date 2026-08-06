@@ -21,6 +21,8 @@ It held 66 back when requests averaged 2048 tokens, and it holds 66 now
 that they average 350. The budget did not notice that the work got
 smaller, and I find that a genuinely strange thing for a budget to do.
 
+<p class="quip">A budget that cannot go down is not a budget. It is a bill.</p>
+
 ## 10.1 Candidates and the Ratio
 
 Either the number is right and our expectation was wrong, or the number
@@ -65,6 +67,8 @@ the model decides when to stop and it has not decided yet.
 Three reasonable facts. Put them together and the allocator's hand is
 forced: reserve the worst case, or risk running out mid-sequence with
 nowhere to grow.
+
+<p class="quip">Reserved for a conversation nobody had, in the most expensive memory anybody sells.</p>
 
 ## 10.3 Doing the Division
 
@@ -136,6 +140,8 @@ the return on buying more of it is seventeen cents on the dollar, and
 that ratio holds no matter how much of it you buy. You cannot purchase
 your way out of a waste fraction.
 
+<p class="quip">Seventeen cents on the dollar, and the ratio is politely indifferent to how many dollars you bring.</p>
+
 It also rules out a subtler instinct, which is to shrink the context
 limit. Dropping the maximum from 2048 to 512 genuinely would cut the
 reservation by four. It would also break every request that needed more
@@ -156,6 +162,8 @@ falls out of the very same table we built to fix fragmentation.
 
 That is the sign of a good structure, incidentally. You build it for
 one reason and it hands you a second thing you were not asking for.
+
+<p class="quip">You go in to fix fragmentation and come out holding prefix sharing. Nobody planned that, and everybody takes the credit.</p>
 
 <div class="aside">
 The cost is that attention can no longer stride a contiguous tensor:

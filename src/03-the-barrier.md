@@ -54,6 +54,8 @@ The first candidate is not slightly wrong, or wrong in the details. It is
 wrong by more than four orders of magnitude, which is the kind of wrong
 you can see from orbit. Set it aside.
 
+<p class="quip">Being wrong by four orders of magnitude is oddly restful. There is no danger whatsoever that you were nearly right.</p>
+
 Which leaves candidate two, and a question we cannot answer by staring
 at it any harder: if we are not paying for bytes, what exactly are we
 paying for? For that we need some numbers.
@@ -85,6 +87,8 @@ only one thing from it, take this instead.
 
 Every one of those numbers stays nearly flat whether you sync 8 bytes
 or 8 kilobytes.
+
+<p class="quip">A cost that ignores a thousandfold change in the payload is trying to tell you something, and it is not being subtle about it.</p>
 
 That flatness is the whole tell. If a cost barely moves when you change
 the payload by a factor of a thousand, then the payload was never the
@@ -153,6 +157,8 @@ to buy them separately.
 `fsync` will not let you. It sells both, bundled, whether or not you
 wanted the bundle.
 
+<p class="quip">Two guarantees, one price, and no itemized receipt.</p>
+
 And once you notice that, the design that follows is almost forced. Put
 only the thing that must be *ordered and durable* behind the barrier,
 and let everything else move lazily along behind it. That is chapter 4,
@@ -179,6 +185,8 @@ and everything below it provably on the media:
 
 That is the shape you want, and it costs one round trip no matter how
 many records are stacked above the line.
+
+<p class="quip">Three records behind the barrier, or three thousand, at the same price. Enjoy it. Very little else in this book is on offer.</p>
 
 <div class="aside">
 Fsync-per-record redraws that picture a thousand times for a thousand

@@ -18,6 +18,8 @@ It loses data on the very first try.
 
 Ten thousand for ten thousand on one test. Zero for one on the other.
 
+<p class="quip">Ten thousand passes and a single failure, and the single failure is the only one that was asking the right question.</p>
+
 Now, that is not a flaky test. I want to be firm about this, because
 "flaky" is the word everyone reaches for and it is the wrong word, and
 reaching for it is how the afternoon gets wasted. Those are two
@@ -130,6 +132,8 @@ one hundred percent too, and so would ten billion, and this is the part
 I want you to feel: the number does not improve, ever, no matter how
 long you run it, because the experiment cannot reach the thing.
 
+<p class="quip">Statistics will cheerfully hand you a confidence interval on a question you never asked, and it will be a beautifully tight one.</p>
+
 The test was not flaky and it was not lucky. It was accurate to three
 significant figures about row one, while the data we were worried about
 lived three rows further down.
@@ -150,6 +154,8 @@ it has validated exactly one row of the ladder, and it is the row that
 was never in danger, because page cache does not care in the slightest
 whether your process is still alive. The kernel is holding your bytes.
 The kernel is fine. It watched your process die with total equanimity.
+
+<p class="quip">"We crash-test in CI" is a sentence about the CI. It is not a sentence about the crash.</p>
 
 The claim that needed testing was different: *does an acknowledged
 write survive losing the wall socket?* Answering that requires reaching
@@ -174,6 +180,8 @@ failure mode stops your data. `kill -9`'s ✗ sits at the very top. Power
 loss without a capacitor puts its ✗ two rows deeper than most test
 suites ever bother to look.
 </div>
+
+<p class="quip">Chapter 1 got you to row one in twenty-five microseconds. The other three rows take the rest of the book.</p>
 
 Twenty-five microseconds put you on row one, back in chapter 1. The rest of
 this book is about what it costs, in time and in engineering, to walk

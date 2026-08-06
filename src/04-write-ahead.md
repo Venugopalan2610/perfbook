@@ -52,6 +52,8 @@ nothing dirty left for a second `fsync` to flush.
 So the second call returns success. Honestly. From where it is
 standing, there is genuinely nothing left to do.
 
+<p class="quip">Nobody lied. The kernel answered exactly the question it was asked, which was not the question anybody meant.</p>
+
 <div class="aside">
 The fix that shipped in Linux 4.13 (<code>errseq_t</code>) made sure
 every open file description sees the error at least once, instead of the
@@ -118,6 +120,8 @@ barrier we bought in chapter 3.
 
 One barrier. On the one irreplaceable thing.
 
+<p class="quip">The data pages are allowed to be wrong. It takes a while to be comfortable writing that sentence down.</p>
+
 ## 4.4 What This Rules Out
 
 This rules out the natural instinct to spread `fsync` calls evenly
@@ -145,6 +149,8 @@ page write that crashes partway through leaves a sector-level mixture
 of old and new bytes. If our known-good reference came from reading
 that same file back, we would be verifying the disk against itself, and
 a corrupted page would cheerfully certify its own corruption.
+
+<p class="quip">Asking the suspect to vouch for the suspect. It passes every test you can think of, which is the trouble.</p>
 
 The buffer pool copy is the one version of that page our process
 actually validated. It is the only candidate in the room that is not
@@ -175,6 +181,8 @@ sits, because everything in the design follows from its position:
  │  data pages  │  ← derived. Can be rebuilt from the WAL.
  └──────────────┘     Never the thing we promised on.
 ```
+
+<p class="quip">A backup on the same disk is not a backup. Everybody agrees with this, and roughly half of us keep one anyway.</p>
 
 <div class="aside">
 Notice the ACK sits <em>between</em> the WAL's fsync and the data-page

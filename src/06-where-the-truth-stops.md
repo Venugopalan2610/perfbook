@@ -20,6 +20,8 @@ That is the thing I want you to sit with. Torn writes do not announce
 themselves. They do not arrive corrupted-looking. They look like data,
 because they are data. They are just somebody else's.
 
+<p class="quip">Corruption that looks like corruption is a gift. Nobody ever writes a postmortem about the bytes that looked wrong.</p>
+
 ## 6.1 Two Candidates and a Missing Number
 
 If structure cannot tell us where the record stops, we need to ask what
@@ -110,6 +112,8 @@ chosen to satisfy this particular division. It was chosen by whatever
 used to live on that block, months ago, by a process that had never
 heard of us.
 
+<p class="quip">Four billion to one is a comfortable margin. It is also a number you will meet in person if you write enough records.</p>
+
 <div class="rule" id="checksum-the-edge">
 <span class="rule-id">Rule 8 · Checksum every record; seed the register nonzero</span>
 Torn writes don't fail structural checks; they pass them by accident.
@@ -138,6 +142,8 @@ one of the *most common* shapes a torn write takes. Plenty of
 filesystems and devices hand back zero-filled bytes for storage that
 was allocated but never written. This is not exotic. This is Tuesday.
 
+<p class="quip">Zero is the most popular number in computing, and every check you write should be asked what it does when handed a great many of them.</p>
+
 So picture the crash that leaves us a real header, followed by all
 zeros where the payload and the checksum should be. The zero-seeded CRC
 computes 0. It reads the stored trailer, which is also 0. It declares a
@@ -157,6 +163,8 @@ caught like anything else.
 
 One line. And you only ever find it by asking what your own check does
 on its worst input, rather than on a typical one.
+
+<p class="quip">Thirty-two bits of careful mathematics, defeated by a block of nothing at all, and fixed by starting somewhere other than nothing.</p>
 
 ## 6.5 The Pictorial
 

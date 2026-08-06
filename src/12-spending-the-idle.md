@@ -18,6 +18,8 @@ times the arithmetic of an ordinary decode step.
 
 It takes the same 7 milliseconds.
 
+<p class="quip">Five times the work at the same price. This is the one place in the book where that sentence is not a warning.</p>
+
 ## 12.1 Candidates and the Ratio
 
 That should not be possible, so one of our assumptions is wrong. Either
@@ -56,6 +58,8 @@ That first row carries the chapter, so let me say it in words too. A
 forward pass over K tokens reads the weights exactly once, in precisely
 the way a forward pass over one token does, because the weights have no
 idea how many tokens are passing through them.
+
+<p class="quip">The weights have no idea how many tokens are passing through them, and knowing would not help them in the slightest.</p>
 
 Which is the same fact chapter 7 used to justify batching, applied
 along a different axis. Batching puts K *different sequences* through
@@ -133,6 +137,8 @@ approximately. Exactly.
 The tokens that come out are distributed according to p. Not close to
 p. Not p within a tolerance. p.
 
+<p class="quip">Lossless and merely-fast produce text that reads exactly alike. Only one of them survives a statistician.</p>
+
 If you only remember one line of algebra from this chapter, make it
 that subtraction. It is the difference between a technique that is
 lossless and one that is merely fast, and you cannot tell them apart by
@@ -160,6 +166,8 @@ expected tokens per pass  =  1 + a + a² + ... + a^K
 
 at a = 0.7:   K=4 → 2.77      K=8 → 3.19      K=16 → 3.32
 ```
+
+<p class="quip">Eight consecutive correct guesses is an optimistic afternoon, and 0.7 to the eighth power agrees.</p>
 
 Doubling K from 4 to 8 buys 0.42 tokens, because reaching the eighth
 proposal requires eight consecutive acceptances, and 0.7 to the eighth
