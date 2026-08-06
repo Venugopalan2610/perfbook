@@ -59,6 +59,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      # The default timeout is 10 minutes. On 2026-08-06 two consecutive
+      # deploys sat in `deployment_queued` and hit it, and the action
+      # cancels its own deployment on the way out. That cancellation is
+      # keyed on the commit SHA, so afterwards *re-running the job can
+      # never work*: it recreates the same deployment id, finds it
+      # already cancelled, and fails in about ten seconds. The only way
+      # out of that state is a new commit.
+      #
+      # Deploy time had been climbing for a while before it broke (24s,
+      # 48s, 2m34s, 4m45s), which reads more like a slow backend than a
+      # broken one, so give it half an hour before concluding anything.
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          timeout: 1800000
