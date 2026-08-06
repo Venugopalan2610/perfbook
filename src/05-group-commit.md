@@ -11,6 +11,8 @@ thousand records, fsync once, acknowledge all of them together.
 Under load, throughput jumps fifty-fold. We ship it. We are pleased
 with ourselves, and I think reasonably so.
 
+<p class="quip">A hundred seconds. Long enough to make a cup of tea while your database decides whether your write happened.</p>
+
 Then overnight, traffic drops to ten events a second. And the same
 code, unchanged, takes **one hundred seconds** to acknowledge a single
 write.

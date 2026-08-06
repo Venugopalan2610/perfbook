@@ -63,6 +63,15 @@ not by eye.
 Two custom HTML components, defined in `theme/custom.css`:
 
 - `.rule` — a boxed single-sentence takeaway with a permanent anchor id.
+- `.quip` — a wry one-liner that moves into the right margin when there
+  is room, and falls back inline when there is not. This is the second
+  attempt at marginalia; the first was reverted. See the long comment in
+  `custom.css` before touching it. Two things keep it safe: it uses a
+  **container query**, not a viewport media query, because the sidebar
+  eats ~300px of viewport that a media query cannot see; and the
+  threshold is derived from the geometry rather than guessed, because
+  `main` is centred so the surplus is halved. Nothing in a `.quip` is
+  load-bearing: it is a joke, and it is allowed to be missed.
 - `.aside` — margin note, rendered inline at every viewport width.
   (It used to float into the right margin above 1500px via a
   hardcoded negative margin; that clipped off-screen at real-world

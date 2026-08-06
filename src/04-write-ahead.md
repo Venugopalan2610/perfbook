@@ -11,6 +11,8 @@ Suppose `fsync()` returns `EIO`. A real hardware write failure,
 correctly detected, correctly surfaced. So we do the responsible thing:
 we log it, and we retry the `fsync`.
 
+<p class="quip">The most dangerous error message is the one that says everything is fine.</p>
+
 It returns `0`. Success.
 
 The bytes it just claimed to have persisted were never written, and

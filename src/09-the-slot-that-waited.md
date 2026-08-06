@@ -78,6 +78,8 @@ slot-steps used       =  5+8+6+120+7+9+6+11    =  172
 occupancy  =  172 / 960  =  18%
 ```
 
+<p class="quip">You bought eight seats and one passenger. The airline model, applied to compute.</p>
+
 Eighteen percent.
 
 We provisioned a batch of eight and got the throughput of roughly one

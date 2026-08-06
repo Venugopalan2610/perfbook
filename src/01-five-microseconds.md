@@ -11,6 +11,8 @@ back.
 On an ordinary machine, on an ordinary day, it comes back in about five
 microseconds.
 
+<p class="quip">Five microseconds is about how long it takes light to cross a football pitch. Your megabyte did not go anywhere near that far.</p>
+
 Now, if you run that a hundred times, the number stops registering.
 It's small, the write worked, the test passed, and there's a whole
 afternoon of other work waiting. I have done exactly this and thought

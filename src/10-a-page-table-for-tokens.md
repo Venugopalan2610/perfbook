@@ -92,6 +92,8 @@ a point.
 And now, if you squint at the problem rather than at the vocabulary, the
 answer becomes visible. Because this is not a new problem.
 
+<p class="quip">The Atlas computer shipped virtual memory in 1962. The paper reinventing it for attention came out sixty-one years later.</p>
+
 A resource that must appear contiguous to whoever is using it, whose
 final size is unknown when you allocate it, handed out to many
 processes at once. That is the problem operating systems solved in

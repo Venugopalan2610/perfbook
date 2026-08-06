@@ -68,6 +68,8 @@ thing that determines what can kill it.
 That third row is the one nobody's intuition gets for free, and it is
 worth a digression, because it is where the money is.
 
+<p class="quip">The capacitor costs about forty cents. It is the difference between a drive that keeps its promises and one that merely makes them.</p>
+
 Consumer SSDs and spinning disks both carry a small volatile write
 cache *on the device itself*. Not in your process. Not in the kernel.
 Physically on the drive, after the data has already left the operating

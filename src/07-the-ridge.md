@@ -12,6 +12,8 @@ arithmetic operations every second. We hand it a 7-billion-parameter
 model and ask for a single word. It computes for forty-five
 microseconds. Then it waits for seven milliseconds.
 
+<p class="quip">Thirty thousand dollars of silicon, idle 99.4% of the time. Even a landlord would be embarrassed.</p>
+
 Do the fraction. The thing is busy six-tenths of one percent of the
 time.
 

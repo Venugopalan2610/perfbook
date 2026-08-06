@@ -84,6 +84,8 @@ compute time, generate 1  :  14 GFLOP ÷ 312 TFLOP/s  =   45 µs
 compute time, verify 5    :  70 GFLOP ÷ 312 TFLOP/s  =  225 µs
 ```
 
+<p class="quip">Doing five times the arithmetic for free is the closest thing to a free lunch in this book, and it took the field until 2023 to order it.</p>
+
 The compute grew by a hundred and eighty microseconds, against a seven
 millisecond wait. We went from 99.4% idle to 96.8% idle and the wall
 clock did not move, because at 5 FLOP/byte we are still thirty-one

@@ -130,6 +130,8 @@ never once per write.
 Take that rule seriously for a moment and notice what it costs us,
 because it is more than a tuning suggestion.
 
+<p class="quip">Twenty-five thousand times slower, for eight bytes. You could hand-deliver the eight bytes.</p>
+
 It rules out the intuition that durability is something you sprinkle on.
 "Just fsync after every write, to be safe." Safety is not the axis that
 scales badly here. Call *count* is. A service that fsyncs every record

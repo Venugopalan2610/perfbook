@@ -88,6 +88,8 @@ unaccounted time      =  7.80 ms − 3.13 ms    =  4.67 ms
 per launch            =  4.67 ms ÷ 280        =  ~17 µs
 ```
 
+<p class="quip">Two hundred and eighty times per token, a CPU says go, and a GPU that could have started already waits to be told.</p>
+
 Seventeen microseconds per operation, which sits comfortably inside the
 5 to 20 µs the axiom table gives for eager dispatch.
 

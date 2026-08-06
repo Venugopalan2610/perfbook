@@ -367,3 +367,73 @@ a:focus-visible, button:focus-visible {
   padding: 0.6rem 1.1rem 0 0;
   color: var(--flag);
 }
+
+/* --- Marginalia ----------------------------------------------
+   A wry line in the margin, next to the paragraph it is teasing.
+
+   READ THIS BEFORE EDITING. There was an earlier attempt at margin
+   notes here that had to be reverted: `.aside` floated right with a
+   hardcoded negative margin above a `@media (min-width: 1500px)`
+   query, and it clipped off-screen at real viewport and zoom
+   combinations.
+
+   The reason it failed is worth writing down, because the obvious fix
+   (a bigger number) would have failed too. A viewport media query
+   measures the WINDOW. mdBook's sidebar eats roughly 300px of that
+   window when it is open, and the note has no way to know. Tune the
+   breakpoint with the sidebar closed and it overflows with the sidebar
+   open; tune it for open and the margin never appears when closed.
+
+   A container query measures the container, which is the thing that
+   actually has or has not got room. That is why this version is safe
+   where the last one was not. Do not replace it with a media query.
+
+   `.aside` is untouched and stays inline: it carries real argument and
+   belongs in the reading path. Only `.quip` goes to the margin, and
+   nothing in it is load-bearing. -------------------------------- */
+.content { container-type: inline-size; }
+
+.quip {
+  font-family: var(--display);
+  font-size: 1.45rem;         /* 14.5px */
+  line-height: 1.45;
+  color: var(--muted);
+  border-left: 2px solid var(--flag);
+  padding-left: 1.2rem;
+  margin: 2rem 0;
+}
+
+/* The threshold is derived, not guessed, because guessing is what broke
+   this the first time. `main` is 700px and CENTRED, so the free space to
+   its right is only half the container's surplus:
+
+       room to the right of main = (C - 700) / 2
+       the note needs            = 32 gutter + 220 width = 252
+       so                          (C - 700) / 2 >= 252
+       therefore                   C >= 1204 px
+
+   I first wrote 990px here, by adding 700 + 32 + 220 + slack and
+   forgetting the centring halves the surplus. That would have clipped by
+   214px: the identical failure to the one this component was rewritten
+   to avoid, reached by a different route. Do the division. */
+@container (min-width: 124rem) {
+  .content main { position: relative; }
+  .quip {
+    position: absolute;
+    left: 100%;               /* relative to the column, not to a guess */
+    width: 22rem;             /* 220px */
+    margin: 0 0 0 3.2rem;
+    border-left: none;
+    padding-left: 0;
+    text-align: left;
+  }
+  .quip::before {
+    content: "";
+    display: block;
+    width: 2.2rem;
+    height: 2px;
+    background: var(--flag);
+    opacity: 0.5;
+    margin-bottom: 0.8rem;
+  }
+}

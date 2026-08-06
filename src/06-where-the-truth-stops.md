@@ -67,6 +67,8 @@ value the writer committed to before the crash.
 
 ## 6.3 Doing the Division
 
+<p class="quip">Long division, with subtraction swapped for XOR. You already know how to do this; you just did not know it had a Galois field in it.</p>
+
 I want to do this by hand. Not because you will ever need to, but
 because "it's just arithmetic" is the sort of phrase that stays
 abstract forever unless somebody makes you watch it happen once.

@@ -67,6 +67,8 @@ first thing people reach for. It is a per-token cost that accrues for
 as long as that token stays in context, for every sequence running
 concurrently, and no amount of scheduling makes it smaller.
 
+<p class="quip">A 2048-token conversation costs a gigabyte. The complete works of Shakespeare are about five megabytes.</p>
+
 Half a megabyte. Per word. Per conversation.
 
 If you are used to thinking of a model as its weights, that is the
