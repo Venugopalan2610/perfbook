@@ -17,6 +17,25 @@ Repo Settings → Pages → Source must be set to **GitHub Actions**. The
 workflow's `branches:` list has to match the branch name, or nothing
 runs and nothing says why.
 
+⚠ **If a deploy hangs in `deployment_queued`, do not "Re-run failed
+jobs". It cannot work.** `actions/deploy-pages` cancels its own
+deployment when it times out, and a Pages deployment's id *is the
+commit SHA*. A re-run recreates the same id, finds it already
+cancelled, and fails in about ten seconds with `Deployment cancelled.`
+The only way out is a new commit. Raising the action's timeout does not
+help either: a stall shows as scores of identical `deployment_queued`
+polls with no movement, which is stuck, not slow. That was tried on
+2026-08-06 and reverted.
+
+Before blaming the book, check the inputs, because they are cheap to
+check and have never yet been the cause: the uploaded artifact should
+unpack to a well-formed `artifact.tar` (`gh api
+repos/:owner/:repo/actions/artifacts/<id>/zip`), `src/CNAME` must match
+the configured domain exactly, and
+`gh api repos/:owner/:repo/pages/deployments/<sha>/status` returning 404
+means the Pages service never registered the deployment at all, which is
+GitHub's side rather than ours.
+
 Live at **https://derivingsystems.com** (the github.io URL 301-redirects
 there).
 
