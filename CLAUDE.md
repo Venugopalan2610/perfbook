@@ -17,27 +17,41 @@ Repo Settings → Pages → Source must be set to **GitHub Actions**. The
 workflow's `branches:` list has to match the branch name, or nothing
 runs and nothing says why.
 
-⚠ **If a deploy hangs in `deployment_queued`, do not "Re-run failed
-jobs". It cannot work.** `actions/deploy-pages` cancels its own
-deployment when it times out, and a Pages deployment's id *is the
-commit SHA*. A re-run recreates the same id, finds it already
-cancelled, and fails in about ten seconds with `Deployment cancelled.`
-The only way out is a new commit.
+⚠ **A red X on the deploy job does not mean the site failed to
+deploy. Check the site first.** Since 2026-08-06 Pages takes over ten
+minutes, `actions/deploy-pages` gives up at 600s and reports failure,
+and the content publishes anyway a few minutes later. Every deploy that
+day was marked failed and every one of them went live.
 
-Then find out **which** stall you have, because two different failures
-look identical from the run list:
+```
+curl -sI https://derivingsystems.com/<page>.html | head -1
+```
+
+Raising the action's `timeout` does **not** help. It is a real,
+documented input, the log echoes the new value back, and the action
+still aborts at 600s exactly. It was tried and removed; do not re-add
+it.
+
+**If a deploy genuinely fails, do not "Re-run failed jobs". It cannot
+work.** The action cancels its own deployment on timeout, and a Pages
+deployment's id *is the commit SHA*. A re-run recreates the same id,
+finds it already cancelled, and fails in about ten seconds with
+`Deployment cancelled.` Only a new commit clears it, and
+`git commit --allow-empty` is enough.
+
+Which stall you have is worth knowing, and the two look identical from
+the run list:
 
 ```
 gh run view --job=<deploy job id> --log \
   | grep -oE "Current status: [a-z_]+" | sort | uniq -c
 ```
 
-`deployment_queued` means Pages never picked the deployment up, and a
-longer timeout cannot help. `deployment_in_progress` means it is working
-and the action's 10-minute default is too short, which is what the
-`timeout: 1800000` in the workflow is for. On 2026-08-06 it was the
-first for about an hour and then became the second, so do not assume it
-is the same one you saw last time.
+`deployment_in_progress` means Pages is working and slow, and the
+content will probably land regardless of what the run says.
+`deployment_queued` means it was never picked up and nothing will land.
+On 2026-08-06 it was the second for about an hour and then became the
+first, so do not assume it is the same one you saw last time.
 
 Before blaming the book, check the inputs, because they are cheap to
 check and have never yet been the cause: the uploaded artifact should

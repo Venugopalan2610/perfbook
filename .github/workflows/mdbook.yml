@@ -59,24 +59,32 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      # 30 minutes, not the default 10. On 2026-08-06 deploys stopped
-      # finishing, and the two failure modes look identical from the
-      # outside but are not:
+      # ⚠ A red X on this job does NOT mean the site failed to deploy.
       #
-      #   116 polls of `deployment_queued`      -> Pages never picked it
-      #                                            up. Stuck. A longer
-      #                                            timeout cannot help.
-      #   116 polls of `deployment_in_progress` -> Pages is working on
-      #                                            it and 10 minutes is
-      #                                            not enough. Slow.
+      # Since 2026-08-06 Pages takes longer than ten minutes to finish a
+      # deployment. `actions/deploy-pages` gives up at exactly 600s,
+      # cancels, and reports failure, and then the content shows up
+      # anyway a few minutes later. Every deploy that day was marked
+      # failed and every one of them published.
       #
-      # It was the first, then it became the second, so check which one
-      # you have before concluding anything:
+      # So: check the site before believing the run.
+      #
+      #   curl -sI https://derivingsystems.com/<page>.html | head -1
+      #
+      # `timeout: 1800000` was tried here and REMOVED because it does
+      # nothing. The input exists and is documented, the log echoes it
+      # back, and the action still aborts at 600s on the dot. Do not
+      # re-add it thinking it will help.
+      #
+      # Which stall you have, when it does genuinely fail, is worth
+      # knowing, and the two look identical from the run list:
       #
       #   gh run view --job=<deploy job id> --log \
       #     | grep -oE "Current status: [a-z_]+" | sort | uniq -c
+      #
+      # `deployment_in_progress` means Pages is working and slow, and
+      # the content will probably land. `deployment_queued` means it was
+      # never picked up, and nothing will land.
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
-        with:
-          timeout: 1800000
