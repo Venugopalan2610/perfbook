@@ -184,11 +184,34 @@ adding a new one.
 
 ### ⚠ `theme/index.hbs` is a fork
 
-The site-wide footer ("Venugopalan Iyengar · © 2026")
-needs a template override, because mdBook has no footer config. So
 `theme/index.hbs` is a **verbatim copy of mdBook 0.4.52's default
-template** with one `<footer class="book-footer">` block added just
-after `{{{ content }}}`.
+template** with five deviations, each marked by a comment in the file:
+
+1. A `<footer class="book-footer">` block after `{{{ content }}}`,
+   because mdBook has no footer config.
+2. `{{{ content }}}` wrapped in `<div class="chapter-body">`, so `.quip`
+   can float (a float is ignored on a flex item, and `main` is flex).
+3. The `<title>` uses an `eq` helper for the tagline.
+4. The generic `<meta name="description">` is **deleted**.
+   `theme/head.hbs` emits a per-page one instead; leaving both shipped
+   two description tags on every page.
+5. The theme picker button and `<ul id="theme-list">` are **not
+   rendered**. See the comment there before restoring it: `custom.css`
+   styles light only, and picking a dark theme made search results
+   near-black on near-black.
+
+`theme/head.hbs` is **generated** by `pipeline/make_head.py` and holds
+the per-page description, canonical link, and Open Graph / Twitter tags.
+Regenerate and commit it after adding or renaming a page:
+
+```
+python3 pipeline/make_head.py
+```
+
+The link-preview image it points at, `src/img/social-card.png`, is built
+by `pipeline/make_social_card.py`, which needs PIL and so borrows
+`~/illustrations/.venv/bin/python`. Rebuild it only if the title or
+palette changes.
 
 That means it does not pick up template fixes from newer mdBook
 releases. On upgrade:

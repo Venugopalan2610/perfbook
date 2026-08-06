@@ -15,7 +15,11 @@
         <!-- Custom HTML head -->
         {{> head}}
 
-        <meta name="description" content="{{ description }}">
+        {{!-- The generic book-wide description that lived here is gone.
+              theme/head.hbs (generated) emits a per-page one instead,
+              along with the canonical link and the link-preview tags.
+              Leaving both in place shipped two <meta name="description">
+              tags per page. --}}
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
@@ -149,17 +153,20 @@
                         <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
-                        </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
-                        </ul>
+                        {{!-- The theme picker is deliberately not rendered.
+                              theme/custom.css styles the light theme only.
+                              It loads after variables.css so it wins on 25
+                              of the 34 theme variables, but 9 leak through
+                              from whichever dark theme was picked, and one
+                              of them is --searchresults-li-bg (#2b2b2f).
+                              Search result text is --fg (#14181f), so
+                              choosing Coal, Navy or Ayu made the search
+                              results near-black on near-black. book.toml
+                              already pins preferred-dark-theme to light, so
+                              the control could only ever break the page.
+                              Restore this block if custom.css ever gains a
+                              real dark theme; the JS behind it is untouched
+                              and still works. --}}
                         {{#if search_enabled}}
                         <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
                             <i class="fa fa-search"></i>

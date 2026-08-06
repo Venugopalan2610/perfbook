@@ -121,7 +121,9 @@ next to each other rather than in two books.
 
 ## What a rule is
 
-Each chapter earns exactly one, and each is a single sentence in a box.
+Each chapter earns one, and each is a single sentence in a box. Chapter
+1 is the exception and earns three, because it is about the method
+itself and the method has three moving parts.
 
 They are short deliberately. A rule you cannot recall at eleven at night
 is not doing anything for you, and the test of whether you have learned

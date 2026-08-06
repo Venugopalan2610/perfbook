@@ -7,7 +7,7 @@ that doesn't fit, and closes with a rule short enough to fit on a
 napkin. Nothing here is looked up. It is derived from about a dozen
 constants and the willingness to commit to a number before checking.
 
-Twelve chapters, in four parts. The first three are about storage and
+Twelve chapters, in four parts. The first two are about storage and
 durability. The last two are about GPUs. The method is identical in
 both, which is the only real argument that it is a method at all.
 

@@ -89,3 +89,56 @@ retrieval, not rereading.
    point, the batch ceiling, or both?
 4. Estimate whether a 70B model's KV-cache-per-token is closer to 5× or
    10× the 7B figure, and redo the 80 GB budget.
+
+## 9 · The Slot That Waited
+
+1. The loop evicts finished sequences before the forward pass. What
+   happens if you evict after it, and precisely which token goes missing?
+2. Admitting a request means splicing its prefilled KV into a batch whose
+   sequences are all at different lengths. What is the copy cost
+   proportional to, and why does that make admission expensive exactly
+   when you want it cheap?
+3. What output-length distribution still produces low occupancy under
+   iteration-level scheduling, and does it occur in practice?
+4. Design the admission rule for a request arriving at a full batch,
+   given that you do not know how long it will run.
+
+## 10 · A Page Table for Tokens
+
+1. Average internal fragmentation per sequence at block sizes 1, 16 and
+   256. What goes wrong at each end? One failure isn't about memory.
+2. Paging drops the admission cost from 1 GB to one block. Write the
+   admission rule, then find the failure it introduces mid-generation.
+3. Two sequences share a block by refcount; one writes into it. What must
+   happen, in what order, and what breaks if the refcount is decremented
+   after the copy instead of before?
+4. Why isn't hashing a block's own tokens enough to recognise a shared
+   prefix, and what else goes into the hash? (The failure is a
+   correctness bug and a privacy bug at once.)
+
+## 11 · Below the Floor
+
+1. Count the real GPU operations in one transformer layer, redo the
+   per-launch division, and say whether 17 µs still looks like dispatch.
+2. Graphs are captured at batch 1, 2, 4, 8 and padded up. Cost of that
+   padding at batch 5, and when it exceeds the launch overhead it saves.
+3. Redo the floor and the gap for a 7B model on the same card. Is launch
+   overhead a larger or smaller fraction, and which deployments care?
+4. Graph replay reuses one output buffer. Describe the bug that causes
+   under concurrency, and how you would detect it given that it produces
+   plausible text rather than a crash.
+
+## 12 · Spending the Idle
+
+1. Batch 32 with K=5 verification sits at what arithmetic intensity?
+   Compare to the ridge and say whether both techniques are still free
+   together.
+2. Derive expected tokens per pass from the acceptance rate a, then find
+   the K that maximizes it once the draft costs 5% of a target pass per
+   proposed token.
+3. Is acceptance rate higher for code or for poetry? Justify it from the
+   target's output distribution, and say what that implies about
+   advertising one speedup number.
+4. Order the four throughput levers (batch, page, delete launch
+   overhead, speculate) for a deployment averaging 30 output tokens at 4
+   requests/sec, using arithmetic rather than preference.
