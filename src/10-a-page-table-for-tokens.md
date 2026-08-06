@@ -4,16 +4,12 @@
 
 <img class="chapter-illustration" src="img/illus-10-a-page-table-for-tokens.png" alt="A librarian standing before an enormous wall of card catalogue drawers, holding a single card.">
 
-Chapter 8 priced the KV cache at 512 KB per token, 1 GB per 2048-token
-sequence, and concluded that 66 GB of free memory holds about 66
-sequences. Chapter 9 taught those 66 slots to release themselves the
-moment they finish.
+Go and measure what a real service actually produces. The mean request
+runs to about 350 tokens. Not 2048. Three hundred and fifty.
 
-Now go and measure the traffic. On a real service, the mean request
-produces about 350 tokens. Not 2048. Three hundred and fifty.
-
-That is a sixth of the length chapter 8 budgeted for, so the same 66 GB
-ought to hold something in the neighbourhood of four hundred sequences.
+That is a sixth of the length the last two chapters budgeted for, so the
+card ought to hold something in the neighbourhood of four hundred
+sequences.
 
 It holds 66.
 
@@ -22,6 +18,11 @@ It holds 66.
 It held 66 back when requests averaged 2048 tokens, and it holds 66 now
 that they average 350. The budget did not notice that the work got
 smaller, and I find that a genuinely strange thing for a budget to do.
+
+Those figures are chapter 8's: 512 KB per token, 1 GB per 2048-token
+sequence, and 66 GB of free memory holding about 66 of them. Chapter 9
+then taught those 66 slots to release themselves the moment they
+finish. Neither chapter ever priced a sequence that stops early.
 
 ## 10.1 Candidates and the Ratio
 

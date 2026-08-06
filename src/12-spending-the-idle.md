@@ -4,13 +4,7 @@
 
 <img class="chapter-illustration" src="img/illus-12-spending-the-idle.png" alt="One worker at a single bench, with a vast and otherwise empty factory hall stretching away behind him.">
 
-Chapter 7 opened with a complaint. Generating one token from a 7B model
-on an A100 spends 45 microseconds computing and 7 milliseconds waiting,
-and the most expensive processor in the building sits 99.4% idle. Five
-chapters later we have moved an enormous amount of memory around and
-never once gone back for it.
-
-So here is a measurement that ought to be impossible.
+Here is a measurement that ought to be impossible.
 
 Take five candidate tokens, produced by something cheap. Hand all five
 to the 7B model and ask it to check them in a single forward pass. Five
@@ -19,6 +13,13 @@ times the arithmetic of an ordinary decode step.
 <p class="quip">Five times the work at the same price. This is the one place in the book where that sentence is not a warning.</p>
 
 It takes the same 7 milliseconds.
+
+Chapter 7 opened this book's second half with a complaint about exactly
+the resource that just paid for those five tokens. Generating one token
+from a 7B model on an A100 spends 45 microseconds computing and 7
+milliseconds waiting, and the most expensive processor in the building
+sits 99.4% idle. Five chapters later we have moved an enormous amount of
+memory around and never once gone back for it.
 
 ## 12.1 Candidates and the Ratio
 

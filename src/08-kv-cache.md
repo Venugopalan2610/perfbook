@@ -4,18 +4,19 @@
 
 <img class="chapter-illustration" src="img/illus-08-kv-cache.png" alt="An enormously fat and rather smug cat filling an entire small room, bookshelves pressed against the walls behind it.">
 
-Chapter 7 ended with an instruction that felt like a victory. Batch 156
-sequences together and we reach the A100's ridge point: the GPU stops
-idling, compute finally becomes the limit, everybody goes home happy.
+Put a 7B model on an 80 GB card and ask it to run 156 sequences at once.
 
-So let's try it. Same 7B model, 80 GB card.
-
-We run out of memory at roughly **64**.
+It dies at **64**.
 
 Not 156. Sixty-four. Less than half, and it is not close. We did not
 tune a knob and miss by ten percent. The process died with an
-out-of-memory error, two and a half times short of the target the
-previous chapter set for us.
+out-of-memory error, two and a half times short of the target.
+
+That target was chapter 7's parting instruction, and it felt like a
+victory at the time. Batch 156 sequences together and we reach the
+A100's ridge point: the GPU stops idling, compute finally becomes the
+limit, everybody goes home happy. So we tried it, on the same model and
+the same card, and the card declined.
 
 <p class="quip">Sixty-four is not a tuning failure. It is an arithmetic result that nobody had got around to computing.</p>
 

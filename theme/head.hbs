@@ -104,48 +104,48 @@
 {{/if}}
 {{#if (eq path "08-kv-cache.md")}}
 <link rel="canonical" href="https://derivingsystems.com/08-kv-cache.html">
-<meta name="description" content="512 KB per token, and why the field went where it went. Chapter 7 ended with an instruction that felt like a victory. Batch 156 sequences together and...">
+<meta name="description" content="512 KB per token, and why the field went where it went. Put a 7B model on an 80 GB card and ask it to run 156 sequences at once.">
 <meta property="og:url" content="https://derivingsystems.com/08-kv-cache.html">
 <meta property="og:title" content="The Cache That Ate the Batch · Deriving Systems">
-<meta property="og:description" content="512 KB per token, and why the field went where it went. Chapter 7 ended with an instruction that felt like a victory. Batch 156 sequences together and...">
+<meta property="og:description" content="512 KB per token, and why the field went where it went. Put a 7B model on an 80 GB card and ask it to run 156 sequences at once.">
 <meta name="twitter:title" content="The Cache That Ate the Batch · Deriving Systems">
-<meta name="twitter:description" content="512 KB per token, and why the field went where it went. Chapter 7 ended with an instruction that felt like a victory. Batch 156 sequences together and...">
+<meta name="twitter:description" content="512 KB per token, and why the field went where it went. Put a 7B model on an 80 GB card and ask it to run 156 sequences at once.">
 {{/if}}
 {{#if (eq path "09-the-slot-that-waited.md")}}
 <link rel="canonical" href="https://derivingsystems.com/09-the-slot-that-waited.html">
-<meta name="description" content="Eight sequences in flight, and one of them doing all the work. Chapter 8 left us a number we could act on. On an 80 GB card the KV cache holds about 64...">
+<meta name="description" content="Eight sequences in flight, and one of them doing all the work. Size the batch at 64, fill every slot, and go and look at the throughput counter with...">
 <meta property="og:url" content="https://derivingsystems.com/09-the-slot-that-waited.html">
 <meta property="og:title" content="The Slot That Waited · Deriving Systems">
-<meta property="og:description" content="Eight sequences in flight, and one of them doing all the work. Chapter 8 left us a number we could act on. On an 80 GB card the KV cache holds about 64...">
+<meta property="og:description" content="Eight sequences in flight, and one of them doing all the work. Size the batch at 64, fill every slot, and go and look at the throughput counter with...">
 <meta name="twitter:title" content="The Slot That Waited · Deriving Systems">
-<meta name="twitter:description" content="Eight sequences in flight, and one of them doing all the work. Chapter 8 left us a number we could act on. On an 80 GB card the KV cache holds about 64...">
+<meta name="twitter:description" content="Eight sequences in flight, and one of them doing all the work. Size the batch at 64, fill every slot, and go and look at the throughput counter with...">
 {{/if}}
 {{#if (eq path "10-a-page-table-for-tokens.md")}}
 <link rel="canonical" href="https://derivingsystems.com/10-a-page-table-for-tokens.html">
-<meta name="description" content="The KV cache we paid for, and the KV cache we used. Chapter 8 priced the KV cache at 512 KB per token, 1 GB per 2048-token sequence, and concluded that...">
+<meta name="description" content="The KV cache we paid for, and the KV cache we used. Go and measure what a real service actually produces. The mean request runs to about 350 tokens...">
 <meta property="og:url" content="https://derivingsystems.com/10-a-page-table-for-tokens.html">
 <meta property="og:title" content="A Page Table for Tokens · Deriving Systems">
-<meta property="og:description" content="The KV cache we paid for, and the KV cache we used. Chapter 8 priced the KV cache at 512 KB per token, 1 GB per 2048-token sequence, and concluded that...">
+<meta property="og:description" content="The KV cache we paid for, and the KV cache we used. Go and measure what a real service actually produces. The mean request runs to about 350 tokens...">
 <meta name="twitter:title" content="A Page Table for Tokens · Deriving Systems">
-<meta name="twitter:description" content="The KV cache we paid for, and the KV cache we used. Chapter 8 priced the KV cache at 512 KB per token, 1 GB per 2048-token sequence, and concluded that...">
+<meta name="twitter:description" content="The KV cache we paid for, and the KV cache we used. Go and measure what a real service actually produces. The mean request runs to about 350 tokens...">
 {{/if}}
 {{#if (eq path "11-below-the-floor.md")}}
 <link rel="canonical" href="https://derivingsystems.com/11-below-the-floor.html">
-<meta name="description" content="Two hundred and eighty launches, and the bus waiting through all of them. Chapter 7 told us decoding is memory-bound, and that claim came with a...">
+<meta name="description" content="Two hundred and eighty launches, and the bus waiting through all of them. A 0.6B model in bf16. 1.19 GB of weights, on a card whose streaming bandwidth...">
 <meta property="og:url" content="https://derivingsystems.com/11-below-the-floor.html">
 <meta property="og:title" content="Below the Floor · Deriving Systems">
-<meta property="og:description" content="Two hundred and eighty launches, and the bus waiting through all of them. Chapter 7 told us decoding is memory-bound, and that claim came with a...">
+<meta property="og:description" content="Two hundred and eighty launches, and the bus waiting through all of them. A 0.6B model in bf16. 1.19 GB of weights, on a card whose streaming bandwidth...">
 <meta name="twitter:title" content="Below the Floor · Deriving Systems">
-<meta name="twitter:description" content="Two hundred and eighty launches, and the bus waiting through all of them. Chapter 7 told us decoding is memory-bound, and that claim came with a...">
+<meta name="twitter:description" content="Two hundred and eighty launches, and the bus waiting through all of them. A 0.6B model in bf16. 1.19 GB of weights, on a card whose streaming bandwidth...">
 {{/if}}
 {{#if (eq path "12-spending-the-idle.md")}}
 <link rel="canonical" href="https://derivingsystems.com/12-spending-the-idle.html">
-<meta name="description" content="Five tokens for the price of one, and no asterisk. Chapter 7 opened with a complaint. Generating one token from a 7B model on an A100 spends 45...">
+<meta name="description" content="Five tokens for the price of one, and no asterisk. Here is a measurement that ought to be impossible.">
 <meta property="og:url" content="https://derivingsystems.com/12-spending-the-idle.html">
 <meta property="og:title" content="Spending the Idle · Deriving Systems">
-<meta property="og:description" content="Five tokens for the price of one, and no asterisk. Chapter 7 opened with a complaint. Generating one token from a 7B model on an A100 spends 45...">
+<meta property="og:description" content="Five tokens for the price of one, and no asterisk. Here is a measurement that ought to be impossible.">
 <meta name="twitter:title" content="Spending the Idle · Deriving Systems">
-<meta name="twitter:description" content="Five tokens for the price of one, and no asterisk. Chapter 7 opened with a complaint. Generating one token from a 7B model on an A100 spends 45...">
+<meta name="twitter:description" content="Five tokens for the price of one, and no asterisk. Here is a measurement that ought to be impossible.">
 {{/if}}
 {{#if (eq path "course.md")}}
 <link rel="canonical" href="https://derivingsystems.com/course.html">

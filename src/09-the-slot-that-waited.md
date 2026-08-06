@@ -4,9 +4,8 @@
 
 <img class="chapter-illustration" src="img/illus-09-the-slot-that-waited.png" alt="One person sitting alone in a vast auditorium, rows of empty seats sweeping away on both sides.">
 
-Chapter 8 left us a number we could act on. On an 80 GB card the KV
-cache holds about 64 sequences, so we size the batch at 64, fill every
-slot, and go look at the throughput counter with some optimism.
+Size the batch at 64, fill every slot, and go and look at the throughput
+counter with some optimism.
 
 It reads like a batch of sixteen.
 
@@ -14,6 +13,10 @@ Now, everything checks out. Every slot is occupied. Memory is full. The
 scheduler reports 64 live sequences and nothing is queued. And we are
 getting a quarter of the tokens per second that chapter 7's arithmetic
 promised for a batch that size.
+
+The 64 was not a guess, incidentally. It is chapter 8's number: on an
+80 GB card the KV cache holds about that many, so we took it at its word
+and filled every slot it would give us.
 
 Nothing in the last two chapters explains a factor of four. So let's go
 find it.

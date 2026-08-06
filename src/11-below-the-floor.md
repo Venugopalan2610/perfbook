@@ -4,16 +4,9 @@
 
 <img class="chapter-illustration" src="img/illus-11-below-the-floor.png" alt="A clerk stamping a towering stack of forms one at a time, while a large machine stands idle beside him.">
 
-Chapter 7 told us decoding is memory-bound, and that claim came with a
-promise attached, whether or not it was stated out loud. If the
-bottleneck is the memory bus, then the time to make a token should be
-the time it takes to drag the weights across that bus. Nothing more.
-Nothing else is on the critical path.
-
-Promises like that are checkable, and I think you should check them,
-especially the ones you like. So let's check it on a small model where
-every number is easy to hold in your head. A 0.6B model in bf16, 1.19
-GB of weights, on a card whose streaming bandwidth measures 380 GB/s.
+A 0.6B model in bf16. 1.19 GB of weights, on a card whose streaming
+bandwidth measures 380 GB/s. Every number small enough to hold in your
+head, which is the only reason to use a model this size.
 
 ```
 roofline floor  =  1.19 GB ÷ 380 GB/s  =  3.13 ms/token
@@ -21,6 +14,12 @@ measured        =                         7.80 ms/token
 ```
 
 Two and a half times the floor.
+
+That floor is chapter 7's promise, presented for payment. If decoding is
+memory-bound, then the time to make a token should be the time it takes
+to drag the weights across the bus. Nothing more. Nothing else is on the
+critical path. Promises like that are checkable, and I think you should
+check them, especially the ones you like.
 
 <p class="quip">Check the promises you like best. They are the ones nobody else is going to check for you.</p>
 
