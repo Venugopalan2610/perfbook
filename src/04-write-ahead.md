@@ -2,6 +2,8 @@
 
 > Never make a promise you cannot reconstruct.
 
+<img class="chapter-illustration" src="img/illus-04-write-ahead.png" alt="A monk writing in a huge open ledger. Through the archway behind him a messenger waits with a horse, not yet permitted to leave.">
+
 I want to show you a bug that is worse than a lie, because everybody
 involved was telling the truth.
 

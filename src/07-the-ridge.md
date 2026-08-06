@@ -2,6 +2,8 @@
 
 > Arithmetic intensity, and the 99% idle GPU.
 
+<img class="chapter-illustration" src="img/illus-07-the-ridge.png" alt="An enormous mountain ridge sweeping up and away, with one tiny figure sitting idle on a rock at the very bottom of the slope.">
+
 I want to show you a machine that costs thirty thousand dollars and
 spends nearly all of its life doing nothing at all.
 

@@ -70,6 +70,19 @@ Two custom HTML components, defined in `theme/custom.css`:
   reintroduce the float without a way to actually verify it across
   viewport sizes — see the comment in custom.css.)
 
+Each chapter opens with a **spot illustration**: `<img
+class="chapter-illustration">` sitting between the epigraph and the
+first paragraph. These are drawings, not diagrams, and they are
+deliberately narrower than the reading column so they do not read as
+figures. Generated with FLUX.1-schnell in `~/illustrations`; the
+subjects, the art-direction rules and the picked seed per chapter are
+recorded there in `subjects.py`, `picks.md` and `assemble.py`.
+
+Note that the drop cap in `theme/custom.css` targets `blockquote + p`,
+and the illustration sits between those two, so there is a second
+selector for `.chapter-illustration + p`. Move the picture and the drop
+cap silently stops rendering.
+
 Any diagram that plots numbers — the ruler (the signature: a log-scale
 strip placing a measurement against the candidates it must beat, one
 per chapter max), a roofline chart, a memory-budget bar — is a

@@ -2,6 +2,8 @@
 
 > Eight sequences in flight, and one of them doing all the work.
 
+<img class="chapter-illustration" src="img/illus-09-the-slot-that-waited.png" alt="One person sitting alone in a vast auditorium, rows of empty seats sweeping away on both sides.">
+
 Chapter 8 left us a number we could act on. On an 80 GB card the KV
 cache holds about 64 sequences, so we size the batch at 64, fill every
 slot, and go look at the throughput counter with some optimism.

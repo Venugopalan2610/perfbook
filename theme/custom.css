@@ -340,3 +340,30 @@ a:focus-visible, button:focus-visible {
   margin-bottom: 0.9rem;
   opacity: 0.55;
 }
+
+/* --- Chapter illustration ------------------------------------
+   One spot drawing per chapter, sitting between the epigraph and
+   the first paragraph. Deliberately narrower than the reading
+   column: a picture that runs full measure reads as a diagram,
+   and these are not diagrams. -------------------------------- */
+.content .chapter-illustration {
+  display: block;
+  width: 100%;
+  max-width: 54rem;           /* 540px inside a 700px column */
+  height: auto;
+  margin: 2.6rem auto 3.4rem;
+  border: none;
+}
+
+/* The drop cap targeted `blockquote + p`, and the illustration now
+   sits between those two. Add the new adjacency rather than moving
+   the picture, because after the epigraph is where it belongs. */
+.content .chapter-illustration + p::first-letter {
+  float: left;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 6.4rem;
+  line-height: 0.82;
+  padding: 0.6rem 1.1rem 0 0;
+  color: var(--flag);
+}

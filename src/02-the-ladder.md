@@ -2,6 +2,8 @@
 
 > Your test suite has never once lost power.
 
+<img class="chapter-illustration" src="img/illus-02-the-ladder.png" alt="A small figure leaning over the rim of a deep round stone well, with a very long ladder descending into it.">
+
 Let me tell you about a test that passed ten thousand times and proved
 nothing at all.
 

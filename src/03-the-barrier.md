@@ -2,6 +2,8 @@
 
 > fsync is not a save button. It is a purchase.
 
+<img class="chapter-illustration" src="img/illus-03-the-barrier.png" alt="A tollkeeper standing between two plain stone posts, holding a single small envelope up to the light and squinting at it.">
+
 Here is a loop you can write in about a minute. Take an 8-byte counter.
 Append it to a file. Do that over and over.
 

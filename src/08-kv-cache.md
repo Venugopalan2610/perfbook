@@ -2,6 +2,8 @@
 
 > 512 KB per token, and why the field went where it went.
 
+<img class="chapter-illustration" src="img/illus-08-kv-cache.png" alt="An enormously fat and rather smug cat filling an entire small room, bookshelves pressed against the walls behind it.">
+
 Chapter 7 ended with an instruction that felt like a victory. Batch 156
 sequences together and we reach the A100's ridge point: the GPU stops
 idling, compute finally becomes the limit, everybody goes home happy.

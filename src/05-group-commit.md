@@ -2,6 +2,8 @@
 
 > A constant that works at one load level is a bug waiting for load to change.
 
+<img class="chapter-illustration" src="img/illus-05-group-commit.png" alt="A small ferry pulling away from a jetty with one passenger aboard, while a crowd still waits on the jetty watching it go.">
+
 Say we have read chapter 3 and taken it seriously. Fsync-per-record was
 costing 25,000× what the bytes warranted, so we batch. Collect a
 thousand records, fsync once, acknowledge all of them together.

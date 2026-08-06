@@ -2,6 +2,8 @@
 
 > The KV cache we paid for, and the KV cache we used.
 
+<img class="chapter-illustration" src="img/illus-10-a-page-table-for-tokens.png" alt="A librarian standing before an enormous wall of card catalogue drawers, holding a single card.">
+
 Chapter 8 priced the KV cache at 512 KB per token, 1 GB per 2048-token
 sequence, and concluded that 66 GB of free memory holds about 66
 sequences. Chapter 9 taught those 66 slots to release themselves the

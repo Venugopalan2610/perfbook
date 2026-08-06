@@ -2,6 +2,8 @@
 
 > Two hundred and eighty launches, and the bus waiting through all of them.
 
+<img class="chapter-illustration" src="img/illus-11-below-the-floor.png" alt="A clerk stamping a towering stack of forms one at a time, while a large machine stands idle beside him.">
+
 Chapter 7 told us decoding is memory-bound, and that claim came with a
 promise attached, whether or not it was stated out loud. If the
 bottleneck is the memory bus, then the time to make a token should be

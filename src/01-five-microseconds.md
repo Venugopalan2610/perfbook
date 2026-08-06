@@ -2,6 +2,8 @@
 
 > Any sufficiently advanced measurement is indistinguishable from a lie.
 
+<img class="chapter-illustration" src="img/illus-01-five-microseconds.png" alt="A postman cheerfully posting a letter into the front of a pillar box while a cascade of mail spills out of a crack in its side onto the pavement behind him. He is not looking.">
+
 I want to start with something you can do right now, without leaving
 this page. Write a megabyte to a file. Time the call. See what comes
 back.

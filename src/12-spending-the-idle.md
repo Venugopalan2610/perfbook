@@ -2,6 +2,8 @@
 
 > Five tokens for the price of one, and no asterisk.
 
+<img class="chapter-illustration" src="img/illus-12-spending-the-idle.png" alt="One worker at a single bench, with a vast and otherwise empty factory hall stretching away behind him.">
+
 Chapter 7 opened with a complaint. Generating one token from a 7B model
 on an A100 spends 45 microseconds computing and 7 milliseconds waiting,
 and the most expensive processor in the building sits 99.4% idle. Five

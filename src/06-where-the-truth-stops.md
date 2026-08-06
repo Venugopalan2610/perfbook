@@ -2,6 +2,8 @@
 
 > Torn writes, CRC, and finding the edge of what survived.
 
+<img class="chapter-illustration" src="img/illus-06-where-the-truth-stops.png" alt="A puzzled scribe holding up a scroll that ends halfway down in a ragged torn edge, peering over the top of it.">
+
 Picture recovery scanning a log forward from the last checkpoint. It
 reaches the final record. There is a valid magic byte. There is a
 length field reading 200. And there are 200 bytes following it that
