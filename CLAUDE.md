@@ -22,10 +22,22 @@ jobs". It cannot work.** `actions/deploy-pages` cancels its own
 deployment when it times out, and a Pages deployment's id *is the
 commit SHA*. A re-run recreates the same id, finds it already
 cancelled, and fails in about ten seconds with `Deployment cancelled.`
-The only way out is a new commit. Raising the action's timeout does not
-help either: a stall shows as scores of identical `deployment_queued`
-polls with no movement, which is stuck, not slow. That was tried on
-2026-08-06 and reverted.
+The only way out is a new commit.
+
+Then find out **which** stall you have, because two different failures
+look identical from the run list:
+
+```
+gh run view --job=<deploy job id> --log \
+  | grep -oE "Current status: [a-z_]+" | sort | uniq -c
+```
+
+`deployment_queued` means Pages never picked the deployment up, and a
+longer timeout cannot help. `deployment_in_progress` means it is working
+and the action's 10-minute default is too short, which is what the
+`timeout: 1800000` in the workflow is for. On 2026-08-06 it was the
+first for about an hour and then became the second, so do not assume it
+is the same one you saw last time.
 
 Before blaming the book, check the inputs, because they are cheap to
 check and have never yet been the cause: the uploaded artifact should

@@ -59,6 +59,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      # 30 minutes, not the default 10. On 2026-08-06 deploys stopped
+      # finishing, and the two failure modes look identical from the
+      # outside but are not:
+      #
+      #   116 polls of `deployment_queued`      -> Pages never picked it
+      #                                            up. Stuck. A longer
+      #                                            timeout cannot help.
+      #   116 polls of `deployment_in_progress` -> Pages is working on
+      #                                            it and 10 minutes is
+      #                                            not enough. Slow.
+      #
+      # It was the first, then it became the second, so check which one
+      # you have before concluding anything:
+      #
+      #   gh run view --job=<deploy job id> --log \
+      #     | grep -oE "Current status: [a-z_]+" | sort | uniq -c
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          timeout: 1800000
