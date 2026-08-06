@@ -45,40 +45,20 @@ detected a hypervisor before it prints a single measurement. If that
 block does not say what you expected, stop there. The environment is
 the result; the latency is just a number attached to it.
 
-## Part IV is a separate repository
+## Part IV has a course rather than a lab
 
 Chapters 9 through 12 derive an inference engine, and deriving it is as
-far as prose can honestly take you. The build lives in
-[vllm-from-scratch](https://github.com/Venugopalan2610/vllm-from-scratch):
-twenty stages, each gated on a measurement rather than on your code
-merely running.
-
-```bash
-gh repo fork Venugopalan2610/vllm-from-scratch --clone
-cd vllm-from-scratch && ./setup.sh
-./vc guide
-```
+far as prose can honestly take you. Building it is too big to be a lab
+on this page, so it is twenty stages in a repository of its own, and
+[The Course](./course.md) is its map: the whole ladder, which chapter
+derives which stage, and a notebook that runs the thing on a free GPU
+without your installing anything.
 
 It is the same contract as the labs here, scaled up. A stage does not
 pass because the code executes; it passes because continuous batching
 used under 60% of the forward passes static batching needed, or because
 your Triton kernel beat your PyTorch one by more than 3x while agreeing
-with it to 1e-3. The chapters tell you which number matters. The stages
-will not let you past until yours moves.
-
-| Chapter | Stages |
-|---|---|
-| [The Ridge](./07-the-ridge.md) | 01–03, the naive loop and the roofline |
-| [The Cache That Ate the Batch](./08-kv-cache.md) | 02, KV bytes per token |
-| [The Slot That Waited](./09-the-slot-that-waited.md) | 04–05, static then continuous batching |
-| [A Page Table for Tokens](./10-a-page-table-for-tokens.md) | 06–09, blocks, paged attention, prefix cache |
-| [Below the Floor](./11-below-the-floor.md) | 03 and 12, the gap and CUDA graphs |
-| [Spending the Idle](./12-spending-the-idle.md) | 17, the n-gram proposer and rejection sampler |
-
-The remaining stages (10, 11, 13 through 16, 18 through 20) build the
-scheduler, chunked prefill, the sampler, the detokenizer, the server,
-quantization, guided decoding and tensor parallelism. No chapter derives
-those yet.
+with it to 1e-3.
 
 ## What each one tests
 

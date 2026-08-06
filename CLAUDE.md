@@ -43,6 +43,24 @@ before every build, so adding a chapter updates it automatically.
   are SUMMARY prefix chapters, before the first `---`.
 - `src/rules.md` — the Rules Index. The most important page in the book.
 - `src/challenges.md` — every question, no answers.
+- `src/course.md` — Part V. The map of
+  [vllm-from-scratch](https://github.com/Venugopalan2610/vllm-from-scratch),
+  which stays a separate repository. **The ladder section is generated**,
+  by `pipeline/make_course.py`, from that repo's `stages.yaml`. Only the
+  text between `<!-- BEGIN LADDER -->` and `<!-- END LADDER -->` is
+  written by the script; the prose around it is by hand. Unlike
+  `make_sitemap.py` this does **not** run in CI, because CI checks out
+  perfbook alone and cannot see the other repo, so the output is
+  committed and you re-run it by hand when stages change:
+
+  ```
+  ~/vllm-from-scratch/.venv/bin/python pipeline/make_course.py
+  ```
+
+  It needs PyYAML, which is why it borrows the course's virtualenv.
+  Twenty stage guides as twenty chapters was considered and rejected: a
+  stage is an exercise, not an anomaly, so it would violate invariant 3
+  and double the book with material in a different voice.
 
 ## The format
 
@@ -72,6 +90,9 @@ Two custom HTML components, defined in `theme/custom.css`:
   threshold is derived from the geometry rather than guessed, because
   `main` is centred so the surplus is halved. Nothing in a `.quip` is
   load-bearing: it is a joke, and it is allowed to be missed.
+- `.stage-diff` and `.stage-meta` — `src/course.md` only, and **emitted
+  by `pipeline/make_course.py`**, so renaming either class means editing
+  the script too.
 - `.aside` — margin note, rendered inline at every viewport width.
   (It used to float into the right margin above 1500px via a
   hardcoded negative margin; that clipped off-screen at real-world

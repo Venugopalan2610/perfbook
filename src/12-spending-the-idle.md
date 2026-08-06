@@ -266,7 +266,7 @@ whenever compute is scarce. It is precisely wrong here. Telling those
 two situations apart is what the ratio in chapter 7 was always for.
 
 That is where this book stops deriving and
-[vllm-from-scratch](https://github.com/Venugopalan2610/vllm-from-scratch)
+[the course](./course.md)
 starts building. Twenty stages, each gated on a measurement rather than
 on your code merely running: the naive loop, the KV cache, the roofline
 you just read about, static and then continuous batching, the block
