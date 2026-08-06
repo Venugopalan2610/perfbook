@@ -14,5 +14,5 @@ both, which is the only real argument that it is a method at all.
 Start with the [Preface](./preface.md) if you want to know what you are
 holding, or the [Introduction](./introduction.md) if you would rather
 get straight to how the thing works. If you are impatient, skip both and
-open [Five Microseconds](./01-five-microseconds.md), which is a
+open [Twenty-Five Microseconds](./01-twenty-five-microseconds.md), which is a
 measurement that cannot possibly be true.

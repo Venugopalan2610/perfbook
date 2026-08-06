@@ -43,7 +43,7 @@ The second: the bus really does deliver 380 GB/s, and the extra 4.67
 ms is time when nothing is being read at all.
 
 Chapter 1 handed us the tool for exactly this shape of question, and it
-is worth going back for it. The [floor test](./01-five-microseconds.md#floor-test)
+is worth going back for it. The [floor test](./01-twenty-five-microseconds.md#floor-test)
 says a measurement that beats a theoretical floor means the work did not
 happen.
 

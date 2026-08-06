@@ -1,4 +1,4 @@
-# Five Microseconds
+# Twenty-Five Microseconds
 
 > Any sufficiently advanced measurement is indistinguishable from a lie.
 
@@ -8,15 +8,15 @@ I want to start with something you can do right now, without leaving
 this page. Write a megabyte to a file. Time the call. See what comes
 back.
 
-On an ordinary machine, on an ordinary day, it comes back in about five
+On an ordinary machine, on an ordinary day, it comes back in about twenty-five
 microseconds.
 
-<p class="quip">Five microseconds is about how long it takes light to cross a football pitch. Your megabyte did not go anywhere near that far.</p>
+<p class="quip">Twenty-five microseconds is about how long it takes light to run seven and a half kilometres. Your megabyte did not go anywhere near that far.</p>
 
 Now, if you run that a hundred times, the number stops registering.
 It's small, the write worked, the test passed, and there's a whole
 afternoon of other work waiting. I have done exactly this and thought
-nothing of it. But five microseconds is the loudest thing that will
+nothing of it. But twenty-five microseconds is the loudest thing that will
 happen to you all week, and this chapter is about learning to actually
 hear it.
 
@@ -101,12 +101,12 @@ comfortable feeling of learning without any of the learning.
 
 Now let's put those next to the thing we actually measured.
 
-<img class="ruler-chart" src="img/ruler-01-five-microseconds.svg" alt="Log-scale ruler: 5 microseconds measured, versus 100 microsecond memcpy, 500 microsecond NVMe write, and 6.7 millisecond disk write floors. The measurement lands to the left of every candidate.">
+<img class="ruler-chart" src="img/ruler-01-twenty-five-microseconds.svg" alt="Log-scale ruler: 25 microseconds measured, versus 100 microsecond memcpy, 500 microsecond NVMe write, and 6.7 millisecond disk write floors. The measurement lands to the left of every candidate.">
 
 Sit with that a moment, because it is not the outcome anybody was set
 up to expect.
 
-Five microseconds beats every option on the list. Every one. Including
+Twenty-five microseconds beats every option on the list. Every one. Including
 the option that never touches storage at all. So the conclusion is not
 "it must be in memory." The conclusion is much better than that:
 **our list of candidates was wrong.**
@@ -137,7 +137,7 @@ That is the same rule as the one in the box, wearing different clothes,
 and it is why I trust it more than almost anything else in this book. A
 result that is too good does not mean you won. It means you should go
 looking for the step that got skipped. Nobody moved a megabyte anywhere
-in five microseconds, and now we get to find out what got skipped.
+in twenty-five microseconds, and now we get to find out what got skipped.
 
 ## 1.4 Turning It On Our Own Answer
 
@@ -160,7 +160,7 @@ other people's claims. It applies to your own favourite answer, and it
 should be aimed there first.
 </div>
 
-Page cache is **twenty times too slow** to explain what we saw.
+Page cache is **four times too slow** to explain what we saw.
 
 It does not survive contact with our own arithmetic. Not because we
 read something that contradicted it, not because an expert corrected
@@ -182,34 +182,29 @@ null syscall (post-Spectre)         ~0.5–5 µs
 1 MB memcpy                         ~100 µs
 ```
 
-Five microseconds is a thousand times too slow for a bare function
-call, and twenty times too fast for the copy. It is wedged between two
-floors, and that particular gap has a name.
+Twenty-five microseconds is five thousand times too slow for a bare
+function call, and four times too fast for a full DRAM-bandwidth
+copy. It is wedged between two floors, and the gap is narrow enough
+to mean something specific.
 
-**One to ten microseconds is the signature of a syscall that did some
-bookkeeping and handed the real work off.** It crossed into the kernel,
-wrote something into a queue, and came straight back without moving
-your bytes anywhere at all. That is an asynchronous submission:
-`io_uring`, or something in that family.
+**Twenty to fifty microseconds is the signature of a `memcpy` into a
+buffer that is already hot in the CPU cache.** L2 and L3 can move
+data at 30–50 GB/s on a modern core, three to five times the
+~10 GB/s you get when the destination lives in main memory. The
+bytes never left your process. No syscall happened at all.
 
-Now, there is a second candidate here that feels just as good as the
-first one did, and I want to name it precisely so we can watch it fail.
-Maybe no syscall happened. `fwrite`, `BufWriter`, and the default file
-API in nearly every language keep your bytes in your own process's
-memory and defer the syscall until there is enough to make the trip
-worthwhile.
+That is exactly what `fwrite`, `BufWriter`, and the default buffered
+file API in most languages do. They keep your bytes in the process's
+own memory and defer the syscall until there is enough to make the
+trip worthwhile. At twenty-five microseconds, the floor test does
+not reject this: 1 MB in 25 µs is roughly 40 GB/s, which is
+comfortable L2/L3 cache bandwidth on a modern core.
 
-All of that is true. And it is still not an explanation for this
-measurement.
-
-Buffering does not make the megabyte disappear. It copies it somewhere
-closer, and a copy into a userspace buffer is a copy, and we know what
-a megabyte of copying costs because we derived it two sections ago:
-100 µs. To return in five, that copy would have to run at roughly
-200 GB/s through a single core. That is an order of magnitude past
-what any core can do.
-
-So the floor test takes this one too.
+So the explanation here is simpler than it first looked. The data
+was copied, but only into a cache-hot userspace buffer sitting in
+the CPU's own backyard. No kernel crossing, no device, no page cache.
+Just a fast, local `memcpy` that the DRAM-bandwidth floor fails to
+catch because the destination was never in DRAM.
 
 <div class="aside">
 That is three times in one chapter that the same 100 µs has been used
@@ -219,8 +214,8 @@ own, is most of the method. You are not accumulating facts. You are
 accumulating one number and pointing it at things.
 </div>
 
-What survives is the asynchronous submission: a syscall that queued a
-pointer and returned without touching the bytes.
+What survives is the buffered copy: a `memcpy` into a cache-hot
+userspace buffer that never crossed into the kernel.
 
 And here is a detail I find genuinely delightful. Buffering explains
 plenty of fast returns, just smaller ones. Ask for four kilobytes
@@ -280,7 +275,7 @@ Four layers, in the order they would survive:
  └──────────────────┘
 ```
 
-At five microseconds, you are at level one. Not two. Not four.
+At twenty-five microseconds, you are at level one. Not two. Not four.
 
 Now, the names in that diagram are worth complaining about for a
 moment. `write()` is the syscall that *leaves* userspace, which the
@@ -322,7 +317,7 @@ re-read, you would have the chat log.
    faster." Using Rule 3, what's the first thing you'd ask, and what
    would make you reach for `perf` instead of a stopwatch?
 
-4. `fsync` on NVMe costs ~100 µs. `write()` costs ~5 µs. Derive the
+4. `fsync` on NVMe costs ~100 µs. `write()` costs ~25 µs. Derive the
    maximum sustainable durable-write rate for a system that syncs once
    per request, and explain why real databases beat that number anyway.
 

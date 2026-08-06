@@ -175,7 +175,7 @@ loss without a capacitor puts its ✗ two rows deeper than most test
 suites ever bother to look.
 </div>
 
-Five microseconds put you on row one, back in chapter 1. The rest of
+Twenty-five microseconds put you on row one, back in chapter 1. The rest of
 this book is about what it costs, in time and in engineering, to walk
 down to row four on purpose. And about not fooling yourself into
 thinking you are already standing there.

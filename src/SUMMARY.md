@@ -8,7 +8,7 @@
 
 # I. The Method
 
-- [Five Microseconds](./01-five-microseconds.md)
+- [Twenty-Five Microseconds](./01-twenty-five-microseconds.md)
 
 # II. Durability
 
@@ -29,6 +29,10 @@
 - [A Page Table for Tokens](./10-a-page-table-for-tokens.md)
 - [Below the Floor](./11-below-the-floor.md)
 - [Spending the Idle](./12-spending-the-idle.md)
+
+# V. Building It Yourself
+
+- [The Course](./course.md)
 
 ---
 

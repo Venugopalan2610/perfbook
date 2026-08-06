@@ -3,7 +3,7 @@
 Every question in the book, stripped of context and answers. Revision by
 retrieval, not rereading.
 
-## 1 · Five Microseconds
+## 1 · Twenty-Five Microseconds
 
 1. A 4 KB write measures 900 ns. Which layer, and which floor decided it?
 2. A service acks after `write()` returns. Which failure loses acked data,

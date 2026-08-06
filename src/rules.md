@@ -6,12 +6,12 @@ done; if not, follow the link.
 
 ## I. The Method
 
-- **[Ratio triage](./01-five-microseconds.md#ratio-triage)**: sort next
+- **[Ratio triage](./01-twenty-five-microseconds.md#ratio-triage)**: sort next
   questions by the spread between their possible answers. >10×: ask now.
   <2×: it's a detail.
-- **[The floor test](./01-five-microseconds.md#floor-test)**: when a
+- **[The floor test](./01-twenty-five-microseconds.md#floor-test)**: when a
   measurement beats your theoretical floor, the work didn't happen.
-- **[Match the instrument to the ratio](./01-five-microseconds.md#instrument-precision)**:
+- **[Match the instrument to the ratio](./01-twenty-five-microseconds.md#instrument-precision)**:
   1000× apart, wall clock. 1.5× apart, counters.
 
 ## II. Durability

@@ -88,7 +88,7 @@ those yet.
 | `03_fsync_cost` | [The Barrier](./03-the-barrier.md) | 3, all ratios |
 | `05_group_commit` | [Group Commit](./05-group-commit.md) | 4, ratios, at two arrival rates |
 | `06_crc_zero_seed` | [Where the Truth Stops](./06-where-the-truth-stops.md) | 6, exact, including a CRC-32 known-answer test |
-| `01_write_latency` | [Five Microseconds](./01-five-microseconds.md) | timing survey |
+| `01_write_latency` | [Twenty-Five Microseconds](./01-twenty-five-microseconds.md) | timing survey |
 
 ## Where the data has been, located by survival
 

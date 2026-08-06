@@ -101,9 +101,9 @@ def ruler(name, points, xlim, caption, figwidth=7.2, figheight=1.7):
 
 
 ruler(
-    "ruler-01-five-microseconds.svg",
+    "ruler-01-twenty-five-microseconds.svg",
     points=[
-        (5e-6, "5 µs", "measured", True),
+        (25e-6, "25 µs", "measured", True),
         (100e-6, "100 µs", "memcpy", False),
         (500e-6, "500 µs", "NVMe", False),
         (6.7e-3, "6.7 ms", "disk", False),
