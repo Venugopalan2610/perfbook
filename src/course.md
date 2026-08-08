@@ -20,7 +20,8 @@ this afternoon.
 There are 229 checks across the twenty stages, and most of them assert a
 measurement rather than a behaviour. `./vc submit` refuses to advance
 while anything is red, so there is no way to skip a stage by being
-impatient with it.
+impatient with it. (222 checks if you take the JAX route, which is two
+sections down, and which is the same twenty stages.)
 
 That refusal is the whole product. Anybody can read twenty descriptions
 of PagedAttention. Rather fewer people have had a test inform them that
@@ -61,6 +62,7 @@ on that.
 gh repo fork Venugopalan2610/vllm-from-scratch --clone
 cd vllm-from-scratch
 ./setup.sh        # python 3.12 venv, torch, and the model. once, ~5 min.
+./setup.sh --jax  # and JAX too, if you want the second track. +400 MB.
 ```
 
 Fork rather than clone, because `./vc submit` commits your work and you
@@ -87,6 +89,128 @@ for your own card rather than the book's A100, and `./vc peek` if you
 are genuinely stuck and would rather read the answer than abandon the
 ladder. Reading the answer is a worse outcome than working it out and a
 much better one than quitting.
+
+## Two ladders, one physics
+
+Here is a question I did not expect to have to answer, and the answer
+turned out to be worth more than the question. Does any of this depend
+on PyTorch?
+
+It had better not. The whole book is an argument from one physical fact,
+that fetching a weight from HBM costs far more than the arithmetic you
+then do with it, and silicon does not care which Python library you type
+at it. But claiming that and demonstrating it are different activities.
+So the course runs on two backends now.
+
+```bash
+./vc backend jax      # switch tracks. progress is banked per track.
+./vc test 8 --jax     # or just one command on the other, without switching
+```
+
+Twenty stages either way. Eleven of them get a JAX twin, so you edit
+`app/j08_paged_pallas.py` where the other track edits
+`app/s08_paged_triton.py`. The remaining nine are not twins. They are
+the same file.
+
+Read that again, because it is the finding, and I did not go looking for
+it. The block allocator, the prefix cache, the scheduler, chunked
+prefill, the incremental detokenizer, the async server, the metrics, the
+speculative sampler and the guided decoder were never ported, because
+there is nothing in them to port. Not one of them contains a tensor
+operation worth the name. Nearly half of an inference engine is
+refcounts, free lists, three queues and a hash table, and it would look
+much the same if you wrote it in Go.
+
+Allow yourself a moment of disappointment about that, and then notice
+that it is good news twice over. The hard part is not the framework. And
+the part you were afraid of, the kernel, is a minority of the work.
+
+### Where they do diverge, they diverge from one cause
+
+XLA compiles a program for exact shapes. Torch dispatches a kernel per
+operation, at runtime, from whatever shape the tensor happens to have.
+So a KV cache that grows by one token per step, which is the obvious
+design and the one the torch track uses, is a brand new program every
+step. Seconds of compiler. Per token.
+
+You fix it by refusing to change the shape: preallocate the cache to its
+maximum and write into it. That is one sentence, and it moves four
+stages sideways.
+
+Stage 2 hands you back the bookkeeping torch was quietly doing on your
+behalf, because now `cache_len` is yours to carry. Stage 4 right-pads
+where the other track left-pads, since the padding belongs where the
+generated tokens are about to land, and then you have to tell the model
+which row's logits to read. Get that wrong and the short prompts in your
+batch produce fluent continuations of the padding, which is a much worse
+failure than an error, because it looks like text.
+
+Stage 5 is the one I would send somebody to. When a sequence finishes
+you cannot shrink the batch, because the batch dimension *is* the
+compilation. So the batch becomes a fixed table of slots. Finishing
+frees one, admitting fills one, and nothing is copied or re-indexed at
+all. That is a page table with one page per sequence, and you have
+arrived at it a whole arc before the course meant to introduce the idea.
+
+There is a sting in it. A step costs the same whether one slot is busy
+or eight, so continuous batching cannot possibly show up as a faster
+step. It shows up as useful tokens per forward pass, and occupancy
+becomes the entire game. The idea from
+[The Slot That Waited](./09-the-slot-that-waited.md) survives intact.
+The number you measure it with does not.
+
+### The stage that convinced me
+
+Stage 12, on the torch track, captures CUDA graphs. You know why from
+[Below the Floor](./11-below-the-floor.md): a decode step at batch 1 is
+about a millisecond of GPU work and about a millisecond of Python
+issuing kernel launches, and the graph deletes the second millisecond.
+
+None of that is true in JAX. XLA already fused the step into one
+program. There is one launch. The Python is gone.
+
+And stage 12 on the JAX track does exactly the same thing anyway. Pick a
+handful of batch sizes, compile ahead of time for each, pad up to the
+nearest one. The same fix, to the letter, for a completely unrelated
+disease: not launch overhead but compilation, which is what you pay
+every time a batch size you have not seen before walks in the door.
+
+That is the strongest evidence in the repository that bucketing is not a
+CUDA trick. It is what you do whenever preparing to run the work has
+started to cost more than the work.
+
+### Two places JAX is simply better, and one where it is not
+
+Stage 8 is Pallas rather than Triton, and the online softmax is, line for
+line, the same idea. What changes is the indirection. Pallas gives you a
+BlockSpec that declares which tile of an array each program sees, which
+is a lovely abstraction right until the tile you need depends on a page
+table you have not read yet. So the block table lookup moves inside the
+kernel, with an index you compute there. The one thing the abstraction
+cannot do for you is precisely the thing PagedAttention is.
+
+Stage 20 stops being a simulation, and I am slightly embarrassed by how
+much better it gets. The torch track shards weights in a Python loop and
+then spawns two gloo processes to prove a collective works. JAX simply
+hands you devices. `shard_map` over a mesh, column-parallel and then
+row-parallel, and the psum is a real all-reduce, so "exactly one
+collective per block" stops being a claim in prose and becomes something
+the check counts in the compiled HLO.
+
+Now the honest one. Decode on the JAX track gets slower as the cache
+gets bigger, and it should not. The preallocated buffer is rewritten
+functionally, per layer, inside the scan, so you pay for the ceiling you
+chose rather than the context you actually hold. Roughly 1.3x going from
+a 128-slot cache to a 1024-slot one, where the torch track is nearly
+flat. Buffer donation does not rescue it, because the copy is inside the
+scan where the donation cannot reach.
+
+Stage 3 says so, in the test, with the number, rather than quietly
+choosing a friendlier measurement. What actually fixes it is making the
+buffer granular so that a step only touches the blocks it needs, which
+is PagedAttention, which is the next arc. The JAX track gives you a
+reason to want stages 6 through 9 before you have finished stage 3. I
+would not have been clever enough to design that on purpose.
 
 ## Which chapter derives which stage
 
