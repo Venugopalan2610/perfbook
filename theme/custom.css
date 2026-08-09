@@ -100,6 +100,37 @@ html {
   line-height: 1.45;
 }
 
+/* Code sits on the same light grey as a blockquote, inline and in a
+   block, and it is pinned HERE rather than left to highlight.js.
+
+   highlight.js's stylesheet carries a background of its own on `.hljs`,
+   and mdBook used to link three of those stylesheets at once, so
+   whichever loaded last decided what colour the code on this site was.
+   That is how every inline `code` span spent a while rendering as a
+   solid black rectangle you could only read by selecting it: ayu won,
+   and its near-black background sat under chrome.css's dark brown
+   --inline-code-color. index.hbs now links the light theme only.
+
+   Note the selectors are STRUCTURAL, not `.hljs`. That class is added at
+   runtime by a script that does throw on some builds, and a background
+   that depends on it disappears exactly when the highlighting does. An
+   element's position in the tree is always there. */
+.content :not(pre) > code,
+.content pre > code {
+  background: #eef1f5;
+}
+.content pre > code { color: var(--ink); }
+
+/* The inline padding is set here for the same reason. chrome.css only
+   pads inline code that carries `.hljs`, so without this the grey box
+   fits tight against the glyphs on any page where the script did not
+   run, and loose on the pages where it did. Square corners, because the
+   code blocks and the rule boxes are square. */
+.content :not(pre) > code {
+  padding: 0.15em 0.35em;
+  border-radius: 0;
+}
+
 .content table { font-size: 0.9em; }
 
 .sidebar .chapter { font-family: var(--display); font-size: 1.5rem; }

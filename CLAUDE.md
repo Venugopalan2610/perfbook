@@ -185,7 +185,7 @@ adding a new one.
 ### ⚠ `theme/index.hbs` is a fork
 
 `theme/index.hbs` is a **verbatim copy of mdBook 0.4.52's default
-template** with five deviations, each marked by a comment in the file:
+template** with six deviations, each marked by a comment in the file:
 
 1. A `<footer class="book-footer">` block after `{{{ content }}}`,
    because mdBook has no footer config.
@@ -199,6 +199,34 @@ template** with five deviations, each marked by a comment in the file:
    rendered**. See the comment there before restoring it: `custom.css`
    styles light only, and picking a dark theme made search results
    near-black on near-black.
+6. Only `highlight.css` is linked. The default template links three
+   highlight themes and lets the picker disable two of them. Deviation
+   5 removed the picker, so nothing ever disabled them: all three
+   stayed live and the last one won. Code blocks went dark, and every
+   inline `code` span rendered as a **solid black rectangle** that you
+   could only read by selecting it, because `chrome.css` paints inline
+   code in `--inline-code-color` (`#301900`) on top of that background.
+   Restore the two links if the picker comes back.
+
+Deviation 6 has a lesson in it that is bigger than the deviation.
+Removing a control does not remove what the control controlled. The
+picker was deleted; the three stylesheets it switched between stayed,
+and the page silently took whichever loaded last. Look for the state
+when you delete the switch.
+
+There is a second, still-live instance of the same class of bug, and it
+is worth knowing about before you touch the palette. `custom.css` sets
+the mdBook theme variables on `html { ... }`, but `variables.css` sets
+them on `.light, html:not(.js)`, and a class beats an element. So the
+`--links`, `--bg`, `--sidebar-bg` and `--quote-bg` overrides in
+`custom.css` **do not apply**: the computed values are mdBook's light
+defaults (`--links` is `#20609f`, not `--signal`). The page still looks
+right because `custom.css` also styles most of those elements directly,
+by selector, further down. The comment on deviation 5 claims custom.css
+"wins on 25 of the 34 theme variables"; measured in the browser, it
+wins on none of them. Fixing it means changing `html {` to
+`html, .light {`, which will visibly move link and sidebar colours, so
+it is a deliberate design change and not a tidy-up.
 
 `theme/head.hbs` is **generated** by `pipeline/make_head.py` and holds
 the per-page description, canonical link, and Open Graph / Twitter tags.

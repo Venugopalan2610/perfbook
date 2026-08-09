@@ -43,9 +43,21 @@
         {{/if}}
 
         <!-- Highlight.js Stylesheets -->
+        {{!-- DEVIATION 6: only the light highlight theme is linked.
+              The default template links all three and lets the theme
+              picker disable two of them. That picker is not rendered
+              (see DEVIATION 5 below), so nothing ever disabled them,
+              all three stayed live, and the last one to load won:
+              ayu's `.hljs { background: #191f26 }`. Code blocks came
+              out dark, and inline code came out as a SOLID BLACK
+              RECTANGLE, because chrome.css paints inline code with
+              --inline-code-color (#301900) on top of that background.
+              You could only find the text by selecting it.
+              Overriding the background alone is not enough: ayu's
+              token colours include #e6e1cf and #ffee99, which are
+              invisible on a light background. The theme has to go.
+              Restore these two links if the picker ever comes back. --}}
         <link rel="stylesheet" id="highlight-css" href="{{ resource "highlight.css" }}">
-        <link rel="stylesheet" id="tomorrow-night-css" href="{{ resource "tomorrow-night.css" }}">
-        <link rel="stylesheet" id="ayu-highlight-css" href="{{ resource "ayu-highlight.css" }}">
 
         <!-- Custom theme stylesheets -->
         {{#each additional_css}}
