@@ -29,8 +29,24 @@
   --measure: 70rem;   /* 700px reading column */
 }
 
-/* --- mdBook variable overrides ------------------------------ */
-html {
+/* --- mdBook variable overrides ------------------------------
+   Three selectors, and all three are needed. variables.css sets these
+   same variables on `.light, html:not(.js)`, and a class outranks an
+   element, so a plain `html {` here lost every one of them: the site ran
+   on mdBook's light defaults and only looked designed because the rules
+   further down this file also style those elements directly, by
+   selector. Match the weight and the later file wins.
+
+     html            the base case
+     html.light      0,1,1 against variables.css's .light at 0,1,0
+     html:not(.js)   ties variables.css, and custom.css loads after it
+
+   Add a variable here and check it in the browser, not by eye:
+   getComputedStyle(document.documentElement).getPropertyValue('--links')
+   ------------------------------------------------------------ */
+html,
+html.light,
+html:not(.js) {
   --bg: var(--paper);
   --fg: var(--ink);
   --sidebar-bg: #eef0f4;

@@ -214,19 +214,38 @@ picker was deleted; the three stylesheets it switched between stayed,
 and the page silently took whichever loaded last. Look for the state
 when you delete the switch.
 
-There is a second, still-live instance of the same class of bug, and it
-is worth knowing about before you touch the palette. `custom.css` sets
-the mdBook theme variables on `html { ... }`, but `variables.css` sets
-them on `.light, html:not(.js)`, and a class beats an element. So the
-`--links`, `--bg`, `--sidebar-bg` and `--quote-bg` overrides in
-`custom.css` **do not apply**: the computed values are mdBook's light
-defaults (`--links` is `#20609f`, not `--signal`). The page still looks
-right because `custom.css` also styles most of those elements directly,
-by selector, further down. The comment on deviation 5 claims custom.css
-"wins on 25 of the 34 theme variables"; measured in the browser, it
-wins on none of them. Fixing it means changing `html {` to
-`html, .light {`, which will visibly move link and sidebar colours, so
-it is a deliberate design change and not a tidy-up.
+There was a second instance of the same class of bug, in `custom.css`,
+and it is now fixed. It is recorded here because the shape of it will
+come back. `custom.css` set the mdBook theme variables on `html { ... }`,
+but `variables.css` sets them on `.light, html:not(.js)`, and a class
+beats an element. So **none** of the `--links`, `--bg`, `--sidebar-bg`
+or `--quote-bg` overrides applied: the computed values were mdBook's
+light defaults, and `--links` was `#20609f` rather than `--signal`. The
+page still looked designed, because `custom.css` also styles most of
+those elements directly by selector further down, which is exactly why
+nobody noticed for so long.
+
+The comment on deviation 5 claims custom.css "wins on 25 of the 34 theme
+variables". Measured in the browser, it won none of them. Treat that
+sentence as history, not as fact.
+
+The block is now `html, html.light, html:not(.js)`, which matches
+variables.css on weight and wins on load order. The visible effects,
+which were the whole reason to check rather than assume:
+
+- Links go teal (`--signal`), not mdBook blue.
+- The active sidebar entry and the chapter numbers go crimson
+  (`--flag`), not `#1f1fff`.
+- The page background goes `--paper`, not pure white.
+- The epigraph gains a teal rule above and below it, from
+  `--quote-border`. This is the largest single change to how a chapter
+  looks, and it had never rendered before.
+
+Check any new variable in the browser rather than by eye:
+
+```
+getComputedStyle(document.documentElement).getPropertyValue('--links')
+```
 
 `theme/head.hbs` is **generated** by `pipeline/make_head.py` and holds
 the per-page description, canonical link, and Open Graph / Twitter tags.
