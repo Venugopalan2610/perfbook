@@ -23,7 +23,7 @@ This was a real bug, found in PostgreSQL in 2018, and once you see why
 it happened, it changes what the phrase "handle the error" is even
 permitted to mean.
 
-## 4.1 Two Candidates and a Missing Number
+## 10.1 Two Candidates and a Missing Number
 
 Before we decide what to do about that, we have to settle what actually
 happened, and there are two readings of it that lead somewhere very
@@ -64,7 +64,7 @@ is broken after it. The fix made the error easier to see. It did not
 make the data come back.
 </div>
 
-## 4.2 The Axioms
+## 10.2 The Axioms
 
 There is no arithmetic to do here, which is unusual for this book. What
 we need instead are three facts about kernel behaviour, none of which
@@ -85,13 +85,13 @@ terminal event. The only sound response is to treat that data as lost
 and rebuild it from somewhere the kernel did not just erase.
 
 <div class="rule" id="fsync-terminal">
-<span class="rule-id">Rule 6 · fsync failure is not retryable</span>
+<span class="rule-id">Rule 12 · fsync failure is not retryable</span>
 Once `fsync` reports an error, the page behind it is already gone.
 Retrying the same call can't recover it; only replaying from an
 independent, already-durable source can.
 </div>
 
-## 4.3 Doing the Division
+## 10.3 Doing the Division
 
 That "independent, already-durable source" has a name. It is the
 write-ahead log, and the pattern that survives this failure mode is
@@ -118,13 +118,13 @@ That sounds reckless until you see why it is fine: they are *derived*
 state. They can be rebuilt. The WAL is the only object in this picture
 that cannot be reconstructed from anything else, and that is exactly
 why it is the one thing that gets the expensive, synchronous, ordered
-barrier we bought in chapter 3.
+barrier we bought in chapter 2.
 
 <p class="quip">The data pages are allowed to be wrong. It takes a while to be comfortable writing that sentence down.</p>
 
 One barrier. On the one irreplaceable thing.
 
-## 4.4 What This Rules Out
+## 10.4 What This Rules Out
 
 This rules out the natural instinct to spread `fsync` calls evenly
 across everything that looks important.
@@ -161,7 +161,7 @@ circular.
 Same rule as before, wearing different clothes: your recovery source
 has to be independent of the thing that failed.
 
-## 4.5 The Pictorial
+## 10.5 The Pictorial
 
 Four boxes and one arrow that matters. Watch where the acknowledgement
 sits, because everything in the design follows from its position:
@@ -196,7 +196,7 @@ simply take its time.
 ## Challenges
 
 1. A junior engineer "fixes" the retry bug by calling `fsync` in a loop
-   until it returns success three times in a row. Explain, from Rule 6,
+   until it returns success three times in a row. Explain, from Rule 12,
    why this is no safer than calling it once.
 
 2. Your WAL fsync succeeds and you ACK the client. The process then
@@ -210,7 +210,7 @@ simply take its time.
    it?
 
 4. `full_page_writes` doubles WAL volume right after every checkpoint.
-   Using Rule 5 from the previous chapter, propose a way to reduce that
+   Using Rule 4 from the previous chapter, propose a way to reduce that
    cost without weakening the torn-page guarantee.
 
 </div>

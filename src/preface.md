@@ -30,7 +30,7 @@ knowledge comes from.
 Everything else is derived in front of you, including the parts where
 the derivation sets aside an answer I liked. I got things wrong writing
 this, and where the recovery taught more than the correction would have,
-I left the wrongness in and showed the recovery. Chapter 6 walks
+I left the wrongness in and showed the recovery. Chapter 11 walks
 deliberately into a checksum that certifies its own failure.
 
 ## Why bother, when you could just ask

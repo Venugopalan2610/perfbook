@@ -5,15 +5,40 @@
 <img class="chapter-illustration" src="img/illus-03-the-barrier.png" alt="A tollkeeper standing between two plain stone posts, holding a single small envelope up to the light and squinting at it.">
 
 Here is a loop you can write in about a minute. Take an 8-byte counter.
-Append it to a file. Do that over and over.
+Append it to a file. Do that over and over. Then do it again with one
+extra call, `fsync()`, after every append.
 
-In memory, that loop runs fifty million times a second. Now add one
-call, `fsync()` after every append, and it runs two thousand times a
-second.
+Before you run it, guess how much slower the second loop will be. Two
+times? Ten? Write it down.
 
-Twenty-five thousand times slower. To persist eight bytes.
+```python
+import os, time
 
-Not eight megabytes. Eight bytes. Hold that number next to the size for
+def appends_per_second(n, sync):
+    fd = os.open("counter.bin", os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
+    start = time.perf_counter()
+    for i in range(n):
+        os.write(fd, i.to_bytes(8, "little"))   # an 8-byte counter
+        if sync:
+            os.fsync(fd)
+    rate = n / (time.perf_counter() - start)
+    os.close(fd)
+    return rate
+
+fast = appends_per_second(100_000, sync=False)
+slow = appends_per_second(1_000, sync=True)
+print(f"without fsync: {fast:>12,.0f} appends per second")
+print(f"with fsync:    {slow:>12,.0f} appends per second")
+print(f"one fsync:     {1e6 / slow:>12,.0f} µs")
+print(f"slower by:     {fast / slow:>12,.0f}×")
+```
+
+Run it on a laptop with an SSD and the second loop typically comes out
+hundreds of times slower. Run it on a spinning disk and it is worse.
+One call, added to a loop that was already making a system call every
+time round, and the loop falls off a cliff.
+
+To persist eight bytes. Not eight megabytes. Eight bytes. Hold that number next to the size for
 a moment, because something has gone badly wrong with our intuition
 about what we just bought.
 
@@ -25,7 +50,7 @@ something else entirely and the data is beside the point.
 Those two possibilities are the whole chapter, so let's take them
 seriously one at a time.
 
-## 3.1 Two Candidates and a Missing Number
+## 2.1 Two Candidates and a Missing Number
 
 The first candidate is the intuitive one. `fsync` is slow because it
 moves our bytes to the device, and moving bytes takes time proportional
@@ -40,16 +65,19 @@ Those two lead to opposite fixes, so it is worth an hour to tell them
 apart. And we can do better than an hour, because there is a division
 here that settles it in about ten seconds.
 
-Name the ratio before you pick. At even a modest 2 GB/s of device
-bandwidth, eight bytes should cost:
+Name the ratio before you pick. At the reference machine's 2 GB/s of
+device bandwidth, eight bytes should cost:
 
 ```
 8 B ÷ 2 GB/s ≈ 4 nanoseconds
 ```
 
-We measured about 100 microseconds for that same call.
+Now look at the last lines your program printed: one `fsync`, in
+microseconds. On the reference machine it is 100 µs. On a laptop it is
+often closer to a millisecond. Divide either one by 4 ns.
 
-That is not a near miss. That is **25,000×** over the bandwidth floor.
+That is not a near miss. On the reference machine it is **25,000×**
+over the bandwidth floor, and your machine is very likely worse.
 The first candidate is not slightly wrong, or wrong in the details. It is
 wrong by more than four orders of magnitude, which is the kind of wrong
 you can see from orbit. Set it aside.
@@ -68,25 +96,27 @@ proves the cost is not the thing we assumed we were buying. Same
 instrument. You are just reading it from the other end.
 </div>
 
-## 3.2 The Axioms
+## 2.2 The Axioms
 
-We cannot derive what an `fsync` costs. It depends on a device, and a
-device is a fact about the world rather than a consequence of anything.
-So here are the three numbers, handed over, for the three kinds of
-storage you are likely to be sitting on:
+We cannot derive what an `fsync` costs on a solid-state drive. It
+depends on the drive's controller, and a controller is a fact about the
+world rather than a consequence of anything. So the reference machine
+hands us one number: an NVMe-class `fsync` round trip of 100 µs.
 
-| Device | Typical `fsync` latency |
-|---|---|
-| NVMe SSD | ~100 µs |
-| SATA SSD | ~1–3 ms |
-| 7200 RPM spinning disk | ~5–10 ms |
+A spinning disk we can do better with, because there is a piece of
+physics in it. A platter at 7200 revolutions per minute turns once every
+60 ÷ 7200 seconds, which is 8.3 ms. If the head has to wait for the
+right spot to come round, it waits half a turn on average: about 4 ms,
+before a single byte is written. No firmware update will ever change
+that, because it is a wheel.
 
-Roughly a hundredfold spread top to bottom, which is worth knowing. But
-the spread is not the interesting part of that table, and if you take
-only one thing from it, take this instead.
+But the spread between those two is not the interesting part, and if
+you take only one thing from this section, take this instead.
 
-Every one of those numbers stays nearly flat whether you sync 8 bytes
-or 8 kilobytes.
+Change the `8` in the program to `8192`, and run it again. The `fsync`
+time barely moves. Run each size twice and you will likely find that two
+runs of the same size disagree with each other more than the two sizes
+do. The payload grew a thousandfold and the bill did not notice.
 
 <p class="quip">A cost that ignores a thousandfold change in the payload is trying to tell you something, and it is not being subtle about it.</p>
 
@@ -99,7 +129,7 @@ on the bill.
 So we are paying for an event rather than a quantity. The next question
 writes itself: what event?
 
-## 3.3 Doing the Division
+## 2.3 Doing the Division
 
 The answer is that `fsync` is not really a write at all. It is a
 **barrier**.
@@ -114,6 +144,21 @@ stops being mysterious. You are not paying to move bytes. You are paying
 for a round trip: a request out to the device, a confirmation back, and
 a wait in between that no amount of shrinking your payload will shorten.
 
+This is the first tool of this part of the book, and it will outlive
+every drive you ever own. Write any cost as two terms: a fixed price per
+trip, and a price per byte carried.
+
+```
+time  =  fixed cost per event  +  bytes ÷ bandwidth
+```
+
+Then ask which term is the big one. For an 8-byte `fsync` the second
+term is 4 ns and the first is 100 µs or more, so the second term is a
+rounding error. The same two terms describe a network packet, a GPU
+kernel launch, a database query and a trip to the shops, and the
+question is always the same: are you paying for the trip or for the
+cargo?
+
 <img class="ruler-chart" src="img/ruler-03-the-barrier.svg" alt="Log-scale ruler: 4 nanosecond bandwidth floor versus 100 microsecond measured fsync, 1-3 millisecond SATA, and 5-10 millisecond spinning disk. The floor sits six orders of magnitude to the left.">
 
 And that reframing immediately changes what we should do about it.
@@ -123,13 +168,14 @@ remotely the same purchase. The first is one round trip. The second is a
 thousand of them, each one carrying almost nothing.
 
 <div class="rule" id="boundary-not-spray">
-<span class="rule-id">Rule 5 · Buy durability at boundaries, not by the record</span>
-`fsync` cost is dominated by the round trip to the barrier, not the
-bytes behind it. Pay it once per boundary you actually need to defend,
-never once per write.
+<span class="rule-id">Rule 4 · A cost that ignores the payload is charged per event</span>
+When a cost barely moves as the payload grows a thousandfold, you are
+paying for the trip, not the cargo. Pay it once per batch, never once
+per item. For `fsync`: once per boundary you need to defend, never once
+per write.
 </div>
 
-## 3.4 What This Rules Out
+## 2.4 What This Rules Out
 
 Take that rule seriously for a moment and notice what it costs us,
 because it is more than a tuning suggestion.
@@ -161,12 +207,13 @@ wanted the bundle.
 
 And once you notice that, the design that follows is almost forced. Put
 only the thing that must be *ordered and durable* behind the barrier,
-and let everything else move lazily along behind it. That is chapter 4,
-and that is the entire idea. Before we get there, it is worth seeing the
-barrier drawn out, because the picture makes the waste obvious in a way
+and let everything else move lazily along behind it. That design has a
+name, write-ahead logging, and chapter 10 comes back for it once we have
+learned to distrust our own evidence. Before we leave it, it is worth
+seeing the barrier drawn out, because the picture makes the waste obvious in a way
 the arithmetic does not.
 
-## 3.5 The Pictorial
+## 2.5 The Pictorial
 
 Here it is drawn out. Three records queued above the line, one crossing,
 and everything below it provably on the media:
@@ -191,7 +238,7 @@ many records are stacked above the line.
 <div class="aside">
 Fsync-per-record redraws that picture a thousand times for a thousand
 records. A thousand barriers, each paying a full round trip to escort a
-single row across. Group commit, in chapter 5, is what happens once you
+single row across. Group commit, in chapter 3, is what happens once you
 let the queue fill up before you draw the line.
 </div>
 

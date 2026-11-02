@@ -32,17 +32,17 @@ slow for a reason that has nothing to do with this chapter: the program
 is still asking the kernel for the memory its buffer will live in. Keep
 an eye on that `buffering=2_000_000`, too. It is going to matter.
 
-On an ordinary machine, on an ordinary day, it comes back in a few tens
-of microseconds. On the laptop I am writing this on, it said 35. The C
-version of the same experiment, which has no interpreter in the way,
-says about twenty-five.[^laptop] That is the number this chapter is
-named after.
+Write your number down. On an ordinary machine, on an ordinary day, it
+comes back in a few tens of microseconds. On the book's reference
+machine, which I will introduce properly in a moment, it takes
+twenty-five. That is the number this chapter is named after, and I will
+use it from here on. If yours says fifty, or fifteen, nothing below
+changes, and by the end you will know why.
 
 <p class="quip">Twenty-five microseconds is about how long it takes light to run seven and a half kilometres. Your megabyte did not go anywhere near that far.</p>
 
 Now, once you have seen a number like that a few times, it stops
-registering.
-It's small, the write worked, the test passed, and there's a whole
+registering. It's small, the write worked, the test passed, and there's a whole
 afternoon of other work waiting. I have done exactly this and thought
 nothing of it. But twenty-five microseconds is the loudest thing that will
 happen to you all week, and this chapter is about learning to actually
@@ -102,23 +102,25 @@ So let's take them as given. There is no shame in being handed a
 constant. The only real shame is needing to be handed the conclusion
 too.
 
-| Path | Throughput |
-|---|---|
-| memory copy, single core | ~10 GB/s |
-| NVMe SSD | ~2 GB/s |
-| spinning disk | ~150 MB/s |
+And here is a confession about where the constants come from. This
+book does its arithmetic on a machine that does not exist. It is a
+reference machine with round numbers, the way Donald Knuth's books run
+on an imaginary computer called MIX, and for the same reason: an
+invented machine never goes out of date. Every real one does.
 
-Handed over is not the same as made up, so here is where each one comes
-from. They are round numbers on purpose, rounded toward slow, because
-every question in this chapter is about factors of four and ten, not
-about ten percent. The disk figure sits below what the manufacturers
-print for the fastest part of the platter: Seagate's data sheet for its
-7200 RPM BarraCuda drives gives 190 to 220 MB/s on the outer tracks,
-and the inner tracks are slower.[^seagate] The NVMe figure sits below
-what a recent drive does: the one in my laptop took 204 µs to write a
-megabyte straight to the device, about 5 GB/s, and cheaper drives are
-slower.[^laptop] The memory copy figure you will watch hold up in
-section 1.4.
+| Path | Reference machine |
+|---|---|
+| memory copy, one core | 10 GB/s |
+| NVMe SSD | 2 GB/s |
+| spinning disk | 150 MB/s |
+
+They are round on purpose, and about the right size for the machines
+of the 2020s, because every question in this chapter is about factors
+of four and ten, not about ten percent. Your machine is faster than the
+reference machine at some of these and slower at others. The labs
+measure exactly how, so wherever one of my numbers appears, you can put
+yours in its place and watch whether the conclusion moves. It almost
+never does, and that is the point.
 
 <p class="quip">A dozen constants is fewer than most people carry for their own family's birthdays, and considerably more useful at two in the morning.</p>
 
@@ -165,15 +167,18 @@ fast. The work did not happen.
 </div>
 
 Let me digress for a paragraph, because this rule has a family
-resemblance to something you have probably already lived through.
+resemblance to a classic benchmark mistake, and once you have seen it
+you will see it everywhere.
 
-Years ago I watched somebody optimize a numerical loop and report a
-speedup of about four hundred times. Four hundred! Everyone was
-delighted. There was a graph. What had actually happened was that the
-result of the loop was never read, so the compiler noticed this and
-deleted the entire computation, and the benchmark was faithfully timing
-an empty program. The number was real. The measurement was honest. The
-work had simply not occurred.
+Somebody optimizes a numerical loop and reports a speedup of four
+hundred times. Four hundred! Everyone is delighted. There is a graph.
+What actually happened is that the result of the loop is never read, so
+the compiler notices and deletes the entire computation, and the
+benchmark is faithfully timing an empty program. The number is real.
+The measurement is honest. The work simply did not occur. It happened
+while this chapter's own lab was being written: one missing line, and
+the compiler deleted a memory copy and reported a megabyte moved in no
+time at all. The lab now carries a comment about it.
 
 <p class="quip">The graph was beautiful. Somebody had put the four hundred in bold.</p>
 
@@ -208,10 +213,10 @@ Page cache is **four times too slow** to explain what we saw.
 
 And you do not have to take my word for that, because you can make the
 page cache happen. Delete `, buffering=2_000_000` from the snippet, so
-that Python uses its default buffer, and run it again. On my laptop the
-median goes from 35 µs to about 190. That is a real copy into the
-kernel's memory, and it lands above the 100 µs floor, exactly where the
-floor says it must. Python's default buffer is typically 128
+that Python uses its default buffer, and run it again. Watch the median
+jump by several times. That is a real copy into the kernel's memory,
+and it lands above the 100 µs floor, exactly where the floor says it
+must. In 2026, Python's default buffer was typically 128
 kilobytes,[^python] too small to hold a megabyte, so the write goes
 straight through to the kernel.
 
@@ -231,23 +236,22 @@ direction.
 
 ```
 plain function call, off the stack  ~1 ns
-null syscall                        ~0.1–1 µs
+null syscall                        ~0.1 µs
 1 MB memcpy                         ~100 µs
 ```
 
-The first two I measured on the same laptop: under a nanosecond for the
-call, about a tenth of a microsecond for a system call that does
-nothing, and that second number depends on the processor.[^laptop] Twenty-five
+Those are reference-machine numbers too, and `experiments/01_constants.c`
+prints all three for yours. Twenty-five
 microseconds is tens of thousands of times too slow for a bare function
 call, and four times too fast for a full DRAM-bandwidth copy. It is
 wedged between two floors, and the gap is narrow enough to mean
 something specific.
 
 **Twenty to fifty microseconds is the signature of a `memcpy` into a
-buffer that is already hot in the CPU cache.** On my laptop, a megabyte
-copied into a cache-hot buffer moves at 50 to 70 GB/s, five to seven
-times the ~10 GB/s you get when the destination lives in main
-memory.[^laptop] The bytes never left your process. No syscall
+buffer that is already hot in the CPU cache.** On the reference
+machine that copy runs at 40 GB/s, four times the 10 GB/s you get when
+the destination lives in main memory, and the same lab measures your
+own ratio. The bytes never left your process. No syscall
 happened at all.
 
 That is what buffered file APIs are for: `fwrite` in C, `BufWriter` in
@@ -255,12 +259,12 @@ Rust, `BufferedOutputStream` in Java, `open` in Python. They keep your
 bytes in the process's own memory and defer the syscall until there is
 enough to make the trip worthwhile. But only if the bytes fit. Their
 default buffers are small, 8 KB in Rust[^rust] and typically 128 KB in
-Python,[^python] and a write bigger than the buffer does not squeeze
+Python[^python] as of 2026, and a write bigger than the buffer does not squeeze
 through it. Java's documentation says so in one sentence: if the
 requested length is at least as large as the buffer, the bytes go
 directly to the underlying stream.[^java] That is why the snippet asks
-for a two-megabyte buffer, and why taking it away sent the number to
-190. With the buffer in place, the floor test does not reject the
+for a two-megabyte buffer, and why taking it away sent the number up
+past the floor. With the buffer in place, the floor test does not reject the
 copy: 1 MB in 25 µs is roughly 40 GB/s, comfortably inside what the
 cache can do.
 
@@ -296,10 +300,10 @@ more second, and ask what the tool would actually buy.
 
 We are separating a copy that stayed in your process, about twenty-five
 microseconds, from a copy that crossed into the kernel, well over a
-hundred. Five times apart. That is a gap a stopwatch can settle, as
-long as you use it carefully, and the snippet already does: it takes
-the median of a hundred runs, so one slow run cannot fool it. Scheduler
-jitter and thermal drift do not close a factor of five. **The stopwatch
+hundred. Four times apart, at least. That is a gap a stopwatch can
+settle, as long as you use it carefully, and the snippet already does:
+it takes the median of a hundred runs, so one slow run cannot fool it.
+Scheduler jitter and thermal drift do not close a factor of four. **The stopwatch
 already answered it.**
 
 <div class="rule" id="instrument-precision">
@@ -325,7 +329,7 @@ Four layers, in the order they would survive:
  ┌──────────────────┐
  │ userspace buffer │  gone if your process crashes
  └──────────────────┘
-          │  write()        ~120 µs per MB
+          │  write()        ~100 µs per MB
           ▼
    THE KERNEL
  ┌──────────────────┐
@@ -373,8 +377,9 @@ other than to avoid taking it more often than they must.
 
 <div class="aside">
 <strong>Run it.</strong> <code>experiments/01_write_latency.c</code> writes
-a megabyte four ways and prints each one against the floors above. Commit
-to your four numbers before you run it. See <a href="./experiments.md">Experiments</a>.
+a megabyte four ways and prints each one against the floors above, and
+<code>experiments/01_constants.c</code> measures this chapter's band on your
+machine. Commit to your numbers before you run either. See <a href="./experiments.md">Experiments</a>.
 </div>
 
 <div class="challenges">
@@ -434,26 +439,6 @@ numbers were wrong by 10× and I do not remember a single one I got
 right.
 
 </div>
-
-[^laptop]: Measured on 2 November 2026, on a laptop with an Intel Core
-    i9-13900HX, Linux 7.0, ext4 on a Micron 3400 1 TB NVMe drive.
-    `experiments/01_write_latency.c`, in performance mode, median of 200:
-    `fwrite()` into a 2 MB userspace buffer 23.85 µs, `write()` into the
-    page cache 120.92 µs, `write()` plus `fsync()` 871.59 µs, `O_DIRECT`
-    straight to the device 204.20 µs. The Python snippet above, Python
-    3.14, median of 100: 33 to 35 µs with the 2 MB buffer, 183 to 197 µs
-    without it. `experiments/01_constants.c`: a function call 1.1 to
-    1.9 ns, an empty system call (`getppid`) 136 to 171 ns, a megabyte
-    copied into a cache-hot buffer at 51 to 53 GB/s and into main memory
-    at 11 to 16 GB/s. Your numbers will differ. The ratios between them
-    are what the chapter relies on. See [Experiments](./experiments.md).
-
-[^seagate]: Seagate, *BarraCuda 3.5 HDD Data Sheet*, DS17.2-2603US,
-    "Max Sustained Data Rate, OD Read": 190 MB/s for the 7200 RPM
-    ST12000DM003 to ST24000DM001, 220 MB/s for the 7200 RPM ST1000DM014.
-    The sheet adds: "Actual data rates may vary depending on operating
-    environment and other factors."
-    <https://www.seagate.com/content/dam/seagate/en/content-fragments/products/datasheets/barracuda-3-5-hdd/barracuda-3-5-hdd-DS17-2-2603US-en_US.pdf>
 
 [^python]: Python documentation, built-in function `open()`, parameter
     `buffering`: "Binary files are buffered in fixed-size chunks ... On

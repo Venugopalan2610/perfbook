@@ -12,7 +12,7 @@ Not 156. Sixty-four. Less than half, and it is not close. We did not
 tune a knob and miss by ten percent. The process died with an
 out-of-memory error, two and a half times short of the target.
 
-That target was chapter 7's parting instruction, and it felt like a
+That target was chapter 4's parting instruction, and it felt like a
 victory at the time. Batch 156 sequences together and we reach the
 A100's ridge point: the GPU stops idling, compute finally becomes the
 limit, everybody goes home happy. So we tried it, on the same model and
@@ -20,9 +20,9 @@ the same card, and the card declined.
 
 <p class="quip">Sixty-four is not a tuning failure. It is an arithmetic result that nobody had got around to computing.</p>
 
-Something is spending memory that chapter 7 assumed was free.
+Something is spending memory that chapter 4 assumed was free.
 
-## 8.1 Two Candidates and a Missing Number
+## 5.1 Two Candidates and a Missing Number
 
 Something is eating the difference, and there are two obvious suspects.
 One of them is a scheduling problem we could fix by being cleverer. The
@@ -33,10 +33,10 @@ variable-length sequences to a common size, and the padding is eating
 the capacity.
 
 The second: it is not padding at all. There is a second, growing
-memory cost that chapter 7 never priced.
+memory cost that chapter 4 never priced.
 
 Before we go hunting for padding bugs, it is worth checking the ratio.
-And the fastest way in is to ask what chapter 7 actually accounted for.
+And the fastest way in is to ask what chapter 4 actually accounted for.
 
 It accounted for exactly one thing living on that GPU: 14 GB of
 weights. It said nothing whatsoever about what accumulates *during*
@@ -50,7 +50,7 @@ chapter's arithmetic, not because anybody was careless, but because at
 batch size one, generating one token, there was nothing yet to
 accumulate.
 
-## 8.2 The Axioms
+## 5.2 The Axioms
 
 For a 7B-class model (32 layers, 4096-dim hidden state, fp16):
 
@@ -79,7 +79,7 @@ number that will catch you out, and it caught me out too. The weights
 are the part that has a name and a download size. The cache is the part
 that decides how many people you can serve.
 
-## 8.3 Doing the Division
+## 5.3 Doing the Division
 
 With a number for what a token costs, the batch ceiling is one
 subtraction and one division. Take the card, remove the weights, and see
@@ -102,15 +102,15 @@ had gone hunting for padding bugs we would have found some, fixed them
 carefully, and moved the number by almost nothing.
 
 <div class="rule" id="kv-budget-not-guess">
-<span class="rule-id">Rule 10 · Size your batch from the KV budget, not a guess</span>
+<span class="rule-id">Rule 7 · Size your batch from the KV budget, not a guess</span>
 Before assuming a batch ceiling is a scheduling inefficiency, compute
 bytes-per-token × context length × desired concurrency, and check it
 against free memory. The wall is usually arithmetic, not a bug.
 </div>
 
-## 8.4 What This Rules Out
+## 5.4 What This Rules Out
 
-This rules out the idea that chapter 7's ridge is reachable just by
+This rules out the idea that chapter 4's ridge is reachable just by
 batching harder.
 
 The ridge told us the compute-optimal batch size. This chapter shows
@@ -137,7 +137,7 @@ you will meet all three.
   distinct KV pair for each. Divides the 512 KB directly by the sharing
   factor.
 - **KV cache quantization**: store K and V in int8 or lower instead of
-  fp16. The same lever as quantizing weights in chapter 7's challenge
+  fp16. The same lever as quantizing weights in chapter 4's challenge
   3, pointed at the cache instead.
 - **PagedAttention**: stop pre-allocating each sequence's cache for its
   worst-case length. Hand out fixed-size pages on demand, like virtual
@@ -147,14 +147,14 @@ you will meet all three.
 <p class="quip">Half the acronyms in this corner of the field are attacks on one constant. Once you know which constant, the reading list gets much shorter.</p>
 
 Every one of those attacks the 512 KB constant, or the waste around it.
-None of them touch the ridge point from chapter 7. Different wall,
+None of them touch the ridge point from chapter 4. Different wall,
 different tool, and that distinction is the whole reason these are two
 chapters instead of one.
 
-## 8.5 The Pictorial
+## 5.5 The Pictorial
 
 Two bars, one card. The top one is what we can actually run. The bottom
-one is what chapter 7 told us to run, drawn to the same scale so you can
+one is what chapter 4 told us to run, drawn to the same scale so you can
 see exactly how far past the edge of the card it goes:
 
 <img class="chart" src="img/kv-budget-08-kv-cache.svg" alt="Bar chart comparing an 80 GB A100's memory budget. Top bar: 14 GB weights plus 64 GB KV cache fits under the 80 GB card line. Bottom bar: what the ridge point wants, 14 GB weights plus 156 GB KV cache for 156 sequences, extends well past the 80 GB card line and doesn't fit.">
@@ -193,7 +193,7 @@ enough. See <a href="./experiments.md">Experiments</a>.
    actually doing under the hood.)
 
 3. int8 KV quantization halves the 512 KB/token figure. Does it change
-   the *ridge point* from chapter 7, or only the batch ceiling from
+   the *ridge point* from chapter 4, or only the batch ceiling from
    this chapter? Be precise about which number moves and which
    doesn't.
 
@@ -213,7 +213,7 @@ enough. See <a href="./experiments.md">Experiments</a>.
 "Generation is slow" and "batch size is capped" arrive as the same
 complaint. Throughput is not what it should be. Somebody is unhappy.
 
-Chapters 7 and 8 are proof that the identical complaint can have
+Chapters 4 and 5 are proof that the identical complaint can have
 completely unrelated causes. One is a compute-versus-bandwidth ratio on
 the chip. The other is a bytes-versus-capacity ratio in memory. Neither
 diagnosis transfers to the other's fix, and neither one is visible from

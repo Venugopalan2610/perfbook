@@ -22,7 +22,7 @@ That is the thing I want you to sit with. Torn writes do not announce
 themselves. They do not arrive corrupted-looking. They look like data,
 because they are data. They are just somebody else's.
 
-## 6.1 Two Candidates and a Missing Number
+## 11.1 Two Candidates and a Missing Number
 
 If structure cannot tell us where the record stops, we need to ask what
 can. There are two answers, and they differ in a way we can put a number
@@ -48,12 +48,12 @@ Four billion to one against, versus whatever the stale bytes happen to
 look like today. That is not a close call, and it is not a judgement
 call either.
 
-## 6.2 The Axioms
+## 11.2 The Axioms
 
 So we want an arithmetic check rather than a structural one. Before we
 build it, here is what the standard one actually promises, because the
 guarantees are sharper than most people expect and the one gap in them
-is the whole of section 6.4.
+is the whole of section 11.4.
 
 | Property | Value |
 |---|---|
@@ -67,7 +67,7 @@ care whether the bytes *look* like a record. It has no opinion about
 what a record looks like. It only cares whether they divide down to the
 value the writer committed to before the crash.
 
-## 6.3 Doing the Division
+## 11.3 Doing the Division
 
 <p class="quip">Long division, with subtraction swapped for XOR. You already know how to do this; you just did not know it had a Galois field in it.</p>
 
@@ -115,13 +115,13 @@ used to live on that block, months ago, by a process that had never
 heard of us.
 
 <div class="rule" id="checksum-the-edge">
-<span class="rule-id">Rule 8 · Checksum every record; seed the register nonzero</span>
+<span class="rule-id">Rule 13 · Checksum every record; seed the register nonzero</span>
 Torn writes don't fail structural checks; they pass them by accident.
 Only an arithmetic check, computed over the content, reliably finds
 where the truth stops.
 </div>
 
-## 6.4 What This Rules Out
+## 11.4 What This Rules Out
 
 This rules out "trust the length field" as a recovery strategy. Good.
 
@@ -166,7 +166,7 @@ caught like anything else.
 One line. And you only ever find it by asking what your own check does
 on its worst input, rather than on a typical one.
 
-## 6.5 The Pictorial
+## 11.5 The Pictorial
 
 Here is what recovery sees when it walks the log and hits the crash. Two
 good records, then one that passes every structural test it has and
@@ -208,7 +208,7 @@ machine as on mine. See <a href="./experiments.md">Experiments</a>.
    to parse?
 
 2. You upgrade from a 16-bit to a 32-bit checksum. Using the
-   coincidence rate from 6.1, what's the new odds of an undetected
+   coincidence rate from 11.1, what's the new odds of an undetected
    corruption, and at what write rate would you expect to see one
    anyway over a year of operation?
 
@@ -243,7 +243,7 @@ purpose*. It encodes information that could only be true if the rest of
 the record is also intact. That redundancy is the entire value
 proposition, and it is the same argument that made PostgreSQL take its
 torn-page reference from the buffer pool rather than from the file it
-was protecting, back in chapter 4. Your verifier cannot come from
+was protecting, back in chapter 10. Your verifier cannot come from
 inside the thing you are verifying.
 
 It is worth noticing how rarely we apply this outside of storage. Any

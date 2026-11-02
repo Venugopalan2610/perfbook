@@ -15,7 +15,7 @@ measured        =                         7.80 ms/token
 
 Two and a half times the floor.
 
-That floor is chapter 7's promise, presented for payment. If decoding is
+That floor is chapter 4's promise, presented for payment. If decoding is
 memory-bound, then the time to make a token should be the time it takes
 to drag the weights across the bus. Nothing more. Nothing else is on the
 critical path. Promises like that are checkable, and I think you should
@@ -24,12 +24,12 @@ check them, especially the ones you like.
 <p class="quip">Check the promises you like best. They are the ones nobody else is going to check for you.</p>
 
 The card is achieving 153 GB/s out of the 380 it demonstrably has,
-which is forty percent of a bus chapter 7 said should be saturated.
+which is forty percent of a bus chapter 4 said should be saturated.
 Somewhere inside every single token, four and a half milliseconds are
 going somewhere that is not the memory bus, on a workload we have spent
 two chapters calling memory-bound.
 
-## 11.1 Candidates and the Ratio
+## 12.1 Candidates and the Ratio
 
 There are two ways to explain a measurement that misses its floor, and
 they point in opposite directions: either the floor is wrong, or our
@@ -54,7 +54,7 @@ Either the floor is wrong, or our picture of what the machine is doing
 has somebody missing from it. Those are our two candidates, and the
 arithmetic can tell them apart without us guessing.
 
-## 11.2 The Axioms
+## 12.2 The Axioms
 
 To tell those apart we need to know what the machine is made of, and in
 particular we need one number that neither of the previous two chapters
@@ -69,7 +69,7 @@ card. The fifth is about something else entirely:
 | GPU operations per layer (attention, MLP, norms) | ~10 |
 | CPU cost to dispatch one operation, eager PyTorch | 5–20 µs |
 
-That last row is the one chapters 7 and 8 never mentioned, and notice
+That last row is the one chapters 4 and 5 never mentioned, and notice
 that it is not a GPU number at all.
 
 Every kernel that runs on that card was put there by the host. A Python
@@ -78,7 +78,7 @@ on a stream. The GPU does not read its own program and decide what to do
 next. Something on the CPU has to hand it each piece, one at a time, all
 day long.
 
-## 11.3 Doing the Division
+## 12.3 Doing the Division
 
 So let's count the handoffs in one token.
 
@@ -109,13 +109,13 @@ runs at full bandwidth. The problem was never inside any of them. The
 problem is the gaps between them.
 
 <div class="rule" id="floor-gap-is-cpu">
-<span class="rule-id">Rule 13 · A workload that misses its own roofline floor is not yet bound by what you think</span>
+<span class="rule-id">Rule 14 · A workload that misses its own roofline floor is not yet bound by what you think</span>
 When a memory-bound workload takes materially longer than
 bytes ÷ bandwidth, the extra time is on the host, not the bus. Count
 launches before optimizing kernels.
 </div>
 
-## 11.4 What This Rules Out
+## 12.4 What This Rules Out
 
 This rules out an entire category of fix, and it is the category
 everybody reaches for first.
@@ -157,7 +157,7 @@ precisely to the phase that needed it, which is a convenient accident
 rather than anybody's design.
 </div>
 
-## 11.5 The Pictorial
+## 12.5 The Pictorial
 
 One token, drawn as a timeline of who is doing the work:
 

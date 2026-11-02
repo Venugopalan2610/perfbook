@@ -11,23 +11,23 @@ It reads like a batch of sixteen.
 
 Now, everything checks out. Every slot is occupied. Memory is full. The
 scheduler reports 64 live sequences and nothing is queued. And we are
-getting a quarter of the tokens per second that chapter 7's arithmetic
+getting a quarter of the tokens per second that chapter 4's arithmetic
 promised for a batch that size.
 
-The 64 was not a guess, incidentally. It is chapter 8's number: on an
+The 64 was not a guess, incidentally. It is chapter 5's number: on an
 80 GB card the KV cache holds about that many, so we took it at its word
 and filled every slot it would give us.
 
 Nothing in the last two chapters explains a factor of four. So let's go
 find it.
 
-## 9.1 Candidates and the Ratio
+## 6.1 Candidates and the Ratio
 
 Two explanations fit what we are seeing, and it is worth separating them
 carefully, because one of them is a bug and the other is a decision we
 made on purpose without noticing.
 
-The first: chapter 8's budget was optimistic. Activations,
+The first: chapter 5's budget was optimistic. Activations,
 workspace and fragmentation ate more than the couple of gigabytes we
 waved at, so we are not really running 64 sequences. We are running
 sixteen and misreporting it.
@@ -41,9 +41,9 @@ measuring more carefully. The second is not a bug at all. It is a
 consequence of how we decided to schedule, and no amount of careful
 measurement will shift it by a single token.
 
-## 9.2 The Axioms
+## 6.2 The Axioms
 
-Here is the thing chapters 7 and 8 never priced: sequences do not
+Here is the thing chapters 4 and 5 never priced: sequences do not
 finish together.
 
 Two of them, sitting side by side in the same batch, can differ in
@@ -66,7 +66,7 @@ That is the obvious way to write the loop. It is how you would write it
 on a whiteboard, it is how every framework wrote it the first time, and
 there is nothing wrong with it except what it costs.
 
-## 9.3 Doing the Division
+## 6.3 Doing the Division
 
 Take eight requests with a spread any real service would call a quiet
 afternoon, and count the slot-steps we bought against the slot-steps we
@@ -108,13 +108,13 @@ The slots did not fail. They finished. And then they waited, because we
 never built them a way to leave.
 
 <div class="rule" id="iteration-scheduling">
-<span class="rule-id">Rule 11 · Release the slot when the sequence ends, not when the batch does</span>
+<span class="rule-id">Rule 8 · Release the slot when the sequence ends, not when the batch does</span>
 Schedule at the granularity of one forward pass, not one request. A
 finished sequence should leave the batch on the step it finishes, and a
 waiting one should take its place immediately.
 </div>
 
-## 9.4 What This Rules Out
+## 6.4 What This Rules Out
 
 This rules out the memory-accounting candidate, and it rules it out
 cleanly, because the arithmetic above never mentions bytes. Not once.
@@ -155,7 +155,7 @@ worth naming out loud. There, we stopped closing a batch on a fixed
 count and started closing it when the in-flight fsync returned. Here, we
 stop closing a batch on a fixed set of requests and start reconsidering
 it every forward pass. Both replace a schedule fixed in advance with one
-that reacts to what actually finished. Chapter 7 borrowed group commit's
+that reacts to what actually finished. Chapter 4 borrowed group commit's
 amortization. This chapter borrows its <em>timing</em>.
 </div>
 
@@ -165,7 +165,7 @@ inference serving. Not because it makes any kernel faster. Not one
 kernel changed. Because it stops us renting slots to sequences that
 finished their work and had nowhere to go.
 
-## 9.5 The Pictorial
+## 6.5 The Pictorial
 
 The mechanism fits in a loop short enough to read in one breath:
 
@@ -216,7 +216,7 @@ needed. See <a href="./experiments.md">Experiments</a>.
    occurs in practice.
 
 4. A request arrives while the batch is full. Iteration-level scheduling
-   says it waits for a slot. Chapter 8 says slots are bounded by KV
+   says it waits for a slot. Chapter 5 says slots are bounded by KV
    memory, not by a count. Design the admission rule that decides
    whether a newly arrived request can start, given that you do not know
    how long it will run. (Nothing above answers this; the next chapter

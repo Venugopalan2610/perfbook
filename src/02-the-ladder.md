@@ -26,7 +26,7 @@ reaching for it is how the afternoon gets wasted. Those are two
 different questions wearing the same costume, and the costume is the
 word "crash."
 
-## 2.1 Two Candidates and a Missing Number
+## 9.1 Two Candidates and a Missing Number
 
 The natural reflex is to treat this as a probability problem. `kill -9`
 failure is rare, power-loss failure is common, go collect more samples
@@ -52,7 +52,7 @@ So the real question underneath "why did these two tests disagree" is a
 different one entirely: **what does each failure actually destroy?**
 Answer that, and both results stop being surprising at all.
 
-## 2.2 The Axioms
+## 9.2 The Axioms
 
 There are four places a byte can live between `write()` and safe
 forever. Each one is owned by something different, and ownership is the
@@ -91,7 +91,7 @@ between them is a component you cannot query, on a part of the machine
 your code never touches. I find that a little frightening, and I think
 you should too.
 
-## 2.3 Doing the Division
+## 9.3 Doing the Division
 
 There is arithmetic here, and it is not the arithmetic the harness
 looked like it was doing.
@@ -139,12 +139,12 @@ significant figures about row one, while the data we were worried about
 lived three rows further down.
 
 <div class="rule" id="failure-fidelity">
-<span class="rule-id">Rule 4 · Test the failure you claim to survive</span>
+<span class="rule-id">Rule 11 · Test the failure you claim to survive</span>
 A crash test that cannot reach the layer your data lives in has proven
 nothing about that layer. Count rows before you count nines.
 </div>
 
-## 2.4 What This Rules Out
+## 9.4 What This Rules Out
 
 This retires a comfortable piece of folk wisdom: "we crash-test in CI,
 we're covered."
@@ -165,14 +165,14 @@ power-cycle, a managed PDU, a physical switch, somebody's foot.
 
 Nothing short of that reaches the rows where the real risk lives.
 
-## 2.5 The Pictorial
+## 9.5 The Pictorial
 
-The table in 2.2 has the same information, but a table hides the thing
+The table in 9.2 has the same information, but a table hides the thing
 that matters. Arrange it as a grid and the boundary jumps out: for each
 kind of failure there is one row where the crosses start, and that row
 is where your data stops being yours.
 
-<img class="chart" src="img/survival-grid-02-the-ladder.svg" alt="Grid of four storage layers (userspace buffer, page cache, drive write cache, flash/platter) against four failure modes (kill -9, kernel panic, power loss, power loss with PLP). Checkmarks and crosses show which layers survive which failures: the same data as the 2.2 table, arranged so the failure boundary for each column is visible at a glance.">
+<img class="chart" src="img/survival-grid-02-the-ladder.svg" alt="Grid of four storage layers (userspace buffer, page cache, drive write cache, flash/platter) against four failure modes (kill -9, kernel panic, power loss, power loss with PLP). Checkmarks and crosses show which layers survive which failures: the same data as the 9.2 table, arranged so the failure boundary for each column is visible at a glance.">
 
 <div class="aside">
 Read each column top to bottom. The first ✗ you hit is where that

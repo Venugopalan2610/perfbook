@@ -14,14 +14,14 @@ times the arithmetic of an ordinary decode step.
 
 It takes the same 7 milliseconds.
 
-Chapter 7 opened this book's second half with a complaint about exactly
+Chapter 4 opened this book's second half with a complaint about exactly
 the resource that just paid for those five tokens. Generating one token
 from a 7B model on an A100 spends 45 microseconds computing and 7
 milliseconds waiting, and the most expensive processor in the building
 sits 99.4% idle. Five chapters later we have moved an enormous amount of
 memory around and never once gone back for it.
 
-## 12.1 Candidates and the Ratio
+## 8.1 Candidates and the Ratio
 
 That should not be possible, so one of our assumptions is wrong. Either
 the work we just did was not the work we thought, or it was genuinely
@@ -42,9 +42,9 @@ It is the natural consequence of standing two orders of magnitude to
 the left of the ridge, and the only surprising thing is that it took
 the field until 2023 to go and spend the change.
 
-## 12.2 The Axioms
+## 8.2 The Axioms
 
-Everything we need is already on the table from chapter 7, which is a
+Everything we need is already on the table from chapter 4, which is a
 good sign for a final chapter.
 
 | Quantity | Value |
@@ -62,12 +62,12 @@ idea how many tokens are passing through them.
 
 <p class="quip">The weights have no idea how many tokens are passing through them, and knowing would not help them in the slightest.</p>
 
-Which is the same fact chapter 7 used to justify batching, applied
+Which is the same fact chapter 4 used to justify batching, applied
 along a different axis. Batching puts K *different sequences* through
 one weight read. This puts K *consecutive tokens of one sequence*
 through it.
 
-## 12.3 Doing the Division
+## 8.3 Doing the Division
 
 Then the comparison is two lines of arithmetic, and the second one is
 just the first with a bigger numerator. Same bytes read, five times the
@@ -96,20 +96,20 @@ millisecond wait. We went from 99.4% idle to 96.8% idle and the wall
 clock did not move, because at 5 FLOP/byte we are still thirty-one
 times short of the ridge.
 
-Chapter 7 told us extra compute below the ridge buys nothing. Read that
+Chapter 4 told us extra compute below the ridge buys nothing. Read that
 sentence the other way round and it says extra compute below the ridge
 *costs* nothing, and that is the whole chapter.
 
 <img class="chart" src="img/speculative-12-spending-the-idle.svg" alt="Roofline chart, log-log. The memory-bound diagonal rises to the compute-bound plateau at the ridge point near 156 FLOP per byte. Two points sit on the diagonal: batch-1 decode at 1 FLOP per byte and five-token verification at 5 FLOP per byte. Both are far left of the ridge, and an annotation marks that both take 7 milliseconds.">
 
 <div class="rule" id="spend-below-ridge">
-<span class="rule-id">Rule 14 · Below the ridge, spend compute on work that might be wasted</span>
+<span class="rule-id">Rule 10 · Below the ridge, spend compute on work that might be wasted</span>
 Idle compute does not accrue. If arithmetic intensity is far under the
 ridge point, speculative work is free even when most of it is thrown
 away.
 </div>
 
-## 12.4 What This Rules Out
+## 8.4 What This Rules Out
 
 That leaves candidate one, and it is the interesting one to set aside,
 because the mechanism that does it is genuinely surprising.
@@ -176,7 +176,7 @@ is a small number. Past K of about four to eight you are paying draft
 cost for tokens you will throw away, and eventually paying enough of it
 to matter even down here below the ridge.
 
-## 12.5 The Pictorial
+## 8.5 The Pictorial
 
 Where the proposals come from is almost an afterthought, which I take
 as the best evidence that this idea is really about the ridge and not
@@ -197,7 +197,7 @@ For code, for structured output, for anything that quotes its own
 prompt back, that costs nothing and hits often. A small draft model
 does better on prose and costs a fraction of a pass. Either way the
 expensive model runs once and returns several tokens, and the idle
-compute from chapter 7 is what pays for all of it.
+compute from chapter 4 is what pays for all of it.
 
 <div class="aside">
 <strong>Build it.</strong> Stage 17 of
@@ -219,7 +219,7 @@ approximately real.
    intensity you can compute. Work it out, compare it to the ridge, and
    say whether the two techniques are still free when used together.
 
-2. Derive the expected-tokens-per-pass formula in 12.4 from the
+2. Derive the expected-tokens-per-pass formula in 8.4 from the
    acceptance probability a, rather than taking it on trust. Then find
    the K that maximizes tokens per pass once you charge the draft model
    at 5% of a target pass per proposed token.
@@ -229,7 +229,7 @@ approximately real.
    terms of the target's output distribution, and say what that implies
    about advertising a single speedup number for this feature.
 
-4. Chapters 7 through 12 give four ways to move throughput: batch,
+4. Chapters 4 through 8 give four ways to move throughput: batch,
    page the cache, delete launch overhead, and speculate. A serving
    system has finite engineering time. Order them for a deployment
    whose requests average 30 output tokens and arrive 4 per second, and
@@ -243,7 +243,7 @@ approximately real.
 
 ## Design Note: The Idle Was the Budget
 
-Chapter 7 computed 99.4% idle and treated it as an indictment. It read
+Chapter 4 computed 99.4% idle and treated it as an indictment. It read
 like waste. Like something a better engineer would have prevented. The
 natural response was to go looking for the mistake that caused it, and
 I sent you looking, and there was no mistake.
@@ -261,8 +261,8 @@ scarce thing.
 Which is the argument the whole book has been making, arriving at last
 in a form specific enough to be uncomfortable. Every chapter here has
 been about finding the one quantity that is genuinely scarce and
-declining to optimize the others. In chapter 3 it was the fsync round
-trip and not the bytes. In chapter 8 it was memory capacity and not
+declining to optimize the others. In chapter 2 it was the fsync round
+trip and not the bytes. In chapter 5 it was memory capacity and not
 compute. Here it is bandwidth, and the correct response to a scarce
 resource is to spend the abundant ones freely, including on work you
 fully expect to discard.
@@ -272,7 +272,7 @@ feels like. Doing arithmetic you know will be thrown away, deliberately,
 at a ratio of five to three, offends an instinct most of us have been
 rewarded for having our entire careers. And that instinct is correct,
 whenever compute is scarce. It is precisely wrong here. Telling those
-two situations apart is what the ratio in chapter 7 was always for.
+two situations apart is what the ratio in chapter 4 was always for.
 
 That is where this book stops deriving and
 [the course](./course.md)

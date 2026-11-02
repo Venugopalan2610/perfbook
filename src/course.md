@@ -2,7 +2,7 @@
 
 > Twenty stages, and not one of them passes because the code ran.
 
-Chapter 12 ends by saying that this is where the book stops deriving and
+Chapter 8 ends by saying that this is where the book stops deriving and
 [vllm-from-scratch](https://github.com/Venugopalan2610/vllm-from-scratch)
 starts building. This page is that repository's map: what the twenty
 stages are, in what order, and which number each one will not let you

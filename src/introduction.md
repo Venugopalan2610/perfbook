@@ -113,7 +113,7 @@ up as a principle. What makes it a method is that the same four steps,
 applied to a GPU nobody had when the storage chapters' ideas were
 invented, produce the same kind of answer. Group commit and GPU batching
 turn out to be the same trick. The floor test catches a fraudulent
-benchmark in chapter 1 and an unmodelled CPU cost in chapter 11.
+benchmark in chapter 1 and an unmodelled CPU cost in chapter 12.
 PagedAttention turns out to be virtual memory from 1962.
 
 That is the actual claim of the book, and it is why the two halves sit

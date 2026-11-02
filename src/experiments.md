@@ -47,7 +47,7 @@ the result; the latency is just a number attached to it.
 
 ## Part IV has a course rather than a lab
 
-Chapters 9 through 12 derive an inference engine, and deriving it is as
+Chapters 6 through 8 derive an inference engine, and deriving it is as
 far as prose can honestly take you. Building it is too big to be a lab
 on this page, so it is twenty stages in a repository of its own, and
 [The Course](./course.md) is its map: the whole ladder, which chapter
@@ -84,7 +84,7 @@ moments, and counts what is left:
 Those counts are identical on every Linux machine. The third row is
 the instructive one: it passes and proves nothing the second did not.
 A test that cannot reach rung 3 tells you nothing about rung 3, which
-is Rule 4, and the lab is a worked example of the mistake that rule
+is Rule 11, and the lab is a worked example of the mistake that rule
 warns about.
 
 <div class="aside">
@@ -113,7 +113,7 @@ was fast on my laptop" and a result somebody can argue with.
 They are not supposed to. The axioms in these chapters are
 order-of-magnitude figures for a class of hardware, and your device is
 a specific one. On the machine these were developed on, a consumer NVMe
-drive on ext4, `fsync` costs closer to 700 µs than the 100 µs chapter 3
+drive on ext4, `fsync` costs closer to 700 µs than the 100 µs chapter 2
 quotes, because ext4 commits its journal on every sync and the drive
 has no power-loss capacitor to acknowledge from.
 
@@ -144,7 +144,7 @@ of that figure, the result is the instrument.
 
 ## The GPU labs, on a free Colab T4
 
-Chapters 7 and 8 turn on a ratio between a GPU's compute throughput and
+Chapters 4 and 5 turn on a ratio between a GPU's compute throughput and
 its memory bandwidth, so checking them needs a GPU. Colab's free tier
 has one, which puts these within reach of anyone.
 
@@ -182,12 +182,12 @@ which on a 12 GB laptop is a blunt lesson.
 
 ## What is deliberately missing
 
-Chapter 2 wants a power-loss test, and you cannot honestly run one from
+Chapter 9 wants a power-loss test, and you cannot honestly run one from
 inside the machine that is losing power. That is the chapter's whole
 argument, so faking it in software would be worse than leaving it out.
 It needs a managed PDU or an IPMI power cycle and a second machine to
 verify from.
 
-Nothing else, for now. Chapter 4's write-ahead argument is checked
-indirectly by chapters 2 and 3's labs, since it is built on their two
+Nothing else, for now. Chapter 10's write-ahead argument is checked
+indirectly by chapters 9 and 2's labs, since it is built on their two
 results rather than on a measurement of its own.

@@ -4,7 +4,7 @@
 
 <img class="chapter-illustration" src="img/illus-05-group-commit.png" alt="A small ferry pulling away from a jetty with one passenger aboard, while a crowd still waits on the jetty watching it go.">
 
-Say we have read chapter 3 and taken it seriously. Fsync-per-record was
+Say we have read chapter 2 and taken it seriously. Fsync-per-record was
 costing 25,000× what the bytes warranted, so we batch. Collect a
 thousand records, fsync once, acknowledge all of them together.
 
@@ -24,7 +24,7 @@ arriving at ten per second takes a hundred seconds to fill the batch.
 We did not introduce a defect. We hard-coded a load level, and then the
 load politely changed on us.
 
-## 5.1 Two Candidates and a Missing Number
+## 3.1 Two Candidates and a Missing Number
 
 So the constant was wrong. The interesting question is whether we should
 pick a better one or stop picking one, and those are genuinely different
@@ -61,9 +61,9 @@ could have gone out immediately. That trades a variable disaster for a
 constant tax, which is an improvement, but a disappointing one.
 </div>
 
-## 5.2 The Axioms
+## 3.2 The Axioms
 
-One fact, and chapter 3 already handed it to us: an `fsync` round trip
+One fact, and chapter 2 already handed it to us: an `fsync` round trip
 costs about the same whether it carries one record or a thousand.
 
 | Path | Cost per fsync |
@@ -82,7 +82,7 @@ wait for. It is how many records happen to arrive during a crossing we
 are *already paying for*. Those are completely different questions, and
 only one of them requires us to guess about the future.
 
-## 5.3 Doing the Division
+## 3.3 Doing the Division
 
 So let's not set N at all. Let's set a rule instead.
 
@@ -114,13 +114,13 @@ two cases. It is optimal at both ends, and it got there by refusing to
 answer a question it did not have to answer.
 
 <div class="rule" id="adaptive-batching">
-<span class="rule-id">Rule 7 · Let the barrier set its own batch size</span>
+<span class="rule-id">Rule 5 · Let the barrier set its own batch size</span>
 Close the batch when the in-flight fsync returns, not when a counter
 hits a constant. The batch size becomes a function of load instead of a
 guess about it.
 </div>
 
-## 5.4 What This Rules Out
+## 3.4 What This Rules Out
 
 This rules out fixed-count and fixed-window batching as general
 answers. Not because either is wrong exactly, but because each one
@@ -152,7 +152,7 @@ ago. Exactly the same trade. The difference is that here it is sized to
 be negligible instead of dominant, and I think that is worth saying out
 loud: the idea was never bad, it was just badly sized.
 
-## 5.5 The Pictorial
+## 3.5 The Pictorial
 
 The clearest way to see the difference is to put both policies on the
 same axis at two very different loads, and notice which one changes
@@ -162,7 +162,7 @@ shape when the traffic does:
 
 <div class="aside">
 This is the same amortization trick as batching writes before `fsync`
-in the first place, and (a small spoiler for chapter 7) the same trick
+in the first place, and (a small spoiler for chapter 4) the same trick
 that makes GPU batching worthwhile. Pay a fixed round-trip cost once,
 then spread it across whoever showed up while you were paying it. You
 will see this shape three more times before the book is done.
@@ -189,9 +189,9 @@ size change between them without anyone setting a number. See
 
 3. Two independent adaptive-batching writers share the same underlying
    log file. What has to be true about how they coordinate fsync calls
-   for the scheme in 5.3 to still be correct?
+   for the scheme in 3.3 to still be correct?
 
-4. Redraw the 5.1 arithmetic for a system with two tiers of durability
+4. Redraw the 3.1 arithmetic for a system with two tiers of durability
    need: some callers require the fsync ack, others are fine acking
    off the page cache. Does one adaptive batch still serve both, or do
    you need two?

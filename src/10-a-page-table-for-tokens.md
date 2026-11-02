@@ -19,12 +19,12 @@ It held 66 back when requests averaged 2048 tokens, and it holds 66 now
 that they average 350. The budget did not notice that the work got
 smaller, and I find that a genuinely strange thing for a budget to do.
 
-Those figures are chapter 8's: 512 KB per token, 1 GB per 2048-token
-sequence, and 66 GB of free memory holding about 66 of them. Chapter 9
+Those figures are chapter 5's: 512 KB per token, 1 GB per 2048-token
+sequence, and 66 GB of free memory holding about 66 of them. Chapter 6
 then taught those 66 slots to release themselves the moment they
 finish. Neither chapter ever priced a sequence that stops early.
 
-## 10.1 Candidates and the Ratio
+## 7.1 Candidates and the Ratio
 
 Either the number is right and our expectation was wrong, or the number
 is wrong and something is being wasted. Both are respectable positions
@@ -41,7 +41,7 @@ find out which one is true, and the two answers point at completely
 different purchases. One says buy memory. The other says stop wasting
 the memory you already have.
 
-## 10.2 The Axioms
+## 7.2 The Axioms
 
 The reason the budget cannot notice that requests got shorter is that
 it is committed before the first token is ever generated.
@@ -54,7 +54,7 @@ it is committed before the first token is ever generated.
 | Mean tokens actually generated | ~350 |
 | Actually used per sequence | 350 × 512 KB = **175 MB** |
 
-That middle row is the axiom, and like chapter 9's it is a choice
+That middle row is the axiom, and like chapter 6's it is a choice
 wearing the costume of a law. Let me take it apart, because three
 separate facts conspire here and none of them looks like a problem on
 its own.
@@ -71,7 +71,7 @@ Three reasonable facts. Put them together and the allocator's hand is
 forced: reserve the worst case, or risk running out mid-sequence with
 nowhere to grow.
 
-## 10.3 Doing the Division
+## 7.3 Doing the Division
 
 So put the reservation next to the reality. One line for what every
 sequence is charged at admission, one for what it turns out to need, and
@@ -125,13 +125,13 @@ number the model chose. That is the whole difference, and it is worth
 more than it sounds.
 
 <div class="rule" id="blocks-not-reservations">
-<span class="rule-id">Rule 12 · Page the cache; reserve for the token you have</span>
+<span class="rule-id">Rule 9 · Page the cache; reserve for the token you have</span>
 When a per-client allocation grows unpredictably toward a large
 ceiling, allocate it in fixed-size blocks with an indirection table.
 Waste falls from the gap between actual and maximum to under one block.
 </div>
 
-## 10.4 What This Rules Out
+## 7.4 What This Rules Out
 
 This rules out buying memory, on economics rather than principle.
 
@@ -176,7 +176,7 @@ for everything above. Writing that kernel is stage 08 of the course,
 and it is the hardest stage in it.
 </div>
 
-## 10.5 The Pictorial
+## 7.5 The Pictorial
 
 Two sequences, sixteen tokens to a block, sharing a system prompt they
 both begin with:
@@ -217,7 +217,7 @@ contiguous one does, on your own card, with your own model's numbers.
    what goes wrong at each end. One of the two failure modes is not
    about memory at all.
 
-2. Chapter 9's challenge 4 asked how to decide whether a newly arrived
+2. Chapter 6's challenge 4 asked how to decide whether a newly arrived
    request can be admitted. Paging changes the answer: a sequence now
    needs one block to start rather than 1 GB. Write the admission rule,
    and then find the failure it introduces, which is that a sequence

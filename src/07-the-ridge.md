@@ -27,7 +27,7 @@ It is not a mistake. And what I want to show you is how you can prove
 that with arithmetic you can do on a napkin, and how, once you see why
 the machine is idle, you also see precisely what to do about it.
 
-## 7.1 Two Candidates and a Missing Number
+## 4.1 Two Candidates and a Missing Number
 
 There are only two possibilities worth taking seriously here.
 
@@ -54,7 +54,7 @@ Fourteen billion operations. Fourteen billion bytes.
 That ratio has a name, arithmetic intensity, and it is the only number
 this chapter needs in order to compute everything else.
 
-## 7.2 The Axioms
+## 4.2 The Axioms
 
 One FLOP per byte is a fact about our workload. To know whether that is
 a lot or a little, we need the matching fact about the hardware, and
@@ -76,7 +76,7 @@ faster than the chip can chew through it, and the arithmetic units
 become the limit. It is a property of the hardware and nothing else. It
 does not know what you are running.
 
-## 7.3 Doing the Division
+## 4.3 Doing the Division
 
 Our workload sits at 1 FLOP/byte. The hardware's ridge is around 156.
 Let's line them up.
@@ -101,13 +101,13 @@ The chip finishes its 14 GFLOP in 45 microseconds and then waits 6.95
 milliseconds for the next byte of weight to show up.
 
 <div class="rule" id="ridge-before-flops">
-<span class="rule-id">Rule 9 · Check arithmetic intensity before adding FLOPs</span>
+<span class="rule-id">Rule 6 · Check arithmetic intensity before adding FLOPs</span>
 Below the ridge point, more compute buys nothing. The wait is on
 bytes, not operations. A faster chip with the same memory bandwidth
 generates the same token in the same amount of time.
 </div>
 
-## 7.4 What This Rules Out
+## 4.4 What This Rules Out
 
 This rules out the instinct to fix slow generation by buying a
 higher-TFLOPS card.
@@ -179,7 +179,7 @@ tokens' worth of compute we can pile up before the next byte has to
 move. Same trick. Different barrier. It will happen twice more.
 </div>
 
-## 7.5 The Pictorial
+## 4.5 The Pictorial
 
 <p class="quip">Every serving framework has this knob. Most of the people turning it are doing so by feel, which is a shame, because it is just a division.</p>
 
@@ -227,7 +227,7 @@ of peak you will get at batch 1, before you look. See
 4. Prefill (processing a whole prompt at once) replaces the
    matrix-*vector* multiply this chapter used with a matrix-*matrix*
    multiply, because many tokens' worth of activations move through the
-   weights together instead of one at a time. Redo the 7.1 arithmetic
+   weights together instead of one at a time. Redo the 4.1 arithmetic
    for a 2048-token prefill pass: does the FLOP count grow with prompt
    length, does the byte count, and where does arithmetic intensity
    land relative to the ridge? (Nothing above answers this; you'll
