@@ -307,6 +307,54 @@ so a local upgrade that skips this step will diverge from the deploy.
 5. Chapters are arguments delivered as talks. Digression is a
    teaching device and stays. Cut genuine false starts and corrections,
    keep the detours that illuminate.
+6. **The book sells a method, not a system.** Each chapter teaches one
+   general tool and shows it on a system. The tool comes first; the
+   system is its example. Every rule states the general tool first and
+   names the system as an example. Parts are named after what the
+   method finds, never after a technology (decided 2026-11-02).
+7. **Timeless: append, never update.** Every number in `src/` is one of:
+   derived on the page; a law of physics; a stable interface promise
+   (POSIX, a published standard, quoted with a source); a number on the
+   **reference machine** (below); or a dated observation ("in 2026, on
+   this machine"). No undated hardware, product or version numbers in
+   the argument. Every rule must survive the 10× test: still true if
+   every hardware number moves 10× either way. New hardware never
+   rewrites a page; it adds a dated field note.
+8. **The reader measures; the book never claims a measurement it did not
+   make.** Each anomaly is set up as something the reader runs on their
+   own machine: predict first, then run the lab, then compare. The
+   surprise has to happen on their hardware. Never present a derived
+   number as an observation ("it dies at 64" when nobody ran it). A
+   worked example on the reference machine is labelled as such.
+9. **No invented memories.** The author asked for engaging prose, not
+   fabricated history. Small conversational confessions are fine ("I
+   thought exactly that, the first time"). A specific invented anecdote
+   presented as a memory (a named event, a colleague, "years ago I
+   watched somebody...") is not. Retell it as a known pattern ("a
+   classic benchmark mistake goes like this") or cut it.
+
+### The reference machine
+
+Worked arithmetic runs on an openly imaginary machine with round
+numbers, the way Knuth's books run on MIX: because it is invented, it
+never goes out of date. The reader puts their own machine's numbers in
+by running the labs.
+
+| Quantity | Reference value |
+|---|---|
+| memory copy, one core | 10 GB/s |
+| copy into a cache-hot buffer | 40 GB/s |
+| NVMe sequential write | 2 GB/s |
+| spinning disk sequential | 150 MB/s |
+| fsync round trip (NVMe-class) | 100 µs |
+| function call | 1 ns |
+| empty system call | 0.1 µs |
+| GPU compute (fp16) | 300 TFLOP/s |
+| GPU memory bandwidth | 2 TB/s |
+| GPU memory capacity | 80 GB |
+
+Keep these consistent across chapters. If a chapter needs a new one,
+add it here first.
 
 ## Voice
 

@@ -43,7 +43,7 @@ at 100,000 events/sec:  1000 ÷ 100,000  =  10 ms  to fill    (fine)
 at      10 events/sec:  1000 ÷      10  = 100  s  to fill    (not fine)
 ```
 
-**Ten million times worse.** Same constant. Just a quieter night.
+**Ten thousand times worse.** Same constant. Just a quieter night.
 
 <p class="quip">The constant did not change. The world did, and the constant had no way of finding out.</p>
 

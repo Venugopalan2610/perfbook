@@ -87,8 +87,9 @@ waste  =  1 − 350/2048  =  83%
 Eighty-three percent of the most expensive memory in the building, held
 against tokens that were never generated and never will be.
 
-The vLLM paper measured this across real serving traces and put the
-figure between 60% and 80%, so our 83% is the high end of an entirely
+The vLLM paper measured this in the serving systems of its day and
+found only 20.4% to 38.2% of the reserved memory holding real tokens,[^vllm]
+which is 60% to 80% waste, so our 83% is the high end of an entirely
 ordinary range rather than some pathological case I constructed to make
 a point.
 
@@ -102,7 +103,7 @@ answer becomes visible. Because this is not a new problem.
 A resource that must appear contiguous to whoever is using it, whose
 final size is unknown when you allocate it, handed out to many
 processes at once. That is the problem operating systems solved in
-1961. And the answer then was to stop making physical contiguity a
+1962.[^atlas] And the answer then was to stop making physical contiguity a
 requirement at all.
 
 So: chop the KV cache into fixed-size blocks, sixteen tokens each. Give
@@ -269,3 +270,14 @@ by transformer vocabulary, that the thing in front of you has a shape
 you have seen somewhere before.
 
 </div>
+
+[^atlas]: T. Kilburn, D. B. G. Edwards, M. J. Lanigan and F. H. Sumner,
+    "One-Level Storage System," *IRE Transactions on Electronic
+    Computers*, April 1962. The paging design of the Atlas computer.
+    <https://doi.org/10.1109/TEC.1962.5219356>
+
+[^vllm]: W. Kwon et al., "Efficient Memory Management for Large Language
+    Model Serving with PagedAttention," *SOSP 2023*: "only 20.4% - 38.2%
+    of the KV cache memory is used to store the actual token states in
+    the existing systems." <https://doi.org/10.1145/3600006.3613165>,
+    also <https://arxiv.org/abs/2309.06180>.
