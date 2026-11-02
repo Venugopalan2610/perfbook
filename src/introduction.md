@@ -106,16 +106,20 @@ The parts of this book are not named after technologies. They are named
 after what the method keeps finding, because that is the thing worth
 carrying out of it.
 
-**Cost has a shape.** Most costs are a fixed price per trip plus a
-price per byte, and knowing which term dominates tells you what to do.
-**The scarce thing.** In every system one resource runs out first, and
-the others are worth spending freely to save it. **Believing your
-evidence.** Tests, checks and recoveries can only see what they can
-reach, and the method has to be turned on them too. **When the floor is
-wrong.** A measurement far from its floor means somebody is in the room
-that you did not count. **The old shape.** Strip a problem of its
-vocabulary and write what it costs in symbols, and more often than not
-it is a problem somebody has already solved.
+- **I. The Method.** Name the candidates, name the ratio between them,
+  do the division, and see what survives.
+- **II. Cost Has a Shape.** Most costs are a fixed price per trip plus
+  a price per byte, and knowing which term dominates tells you what to
+  do.
+- **III. The Scarce Thing.** In every system one resource runs out
+  first, and the others are worth spending freely to save it.
+- **IV. Believing Your Evidence.** Tests, checks and recoveries can only
+  see what they can reach, and the method has to be turned on them too.
+- **V. When the Floor Is Wrong.** A measurement far from its floor
+  means somebody is in the room that you did not count.
+- **VI. The Old Shape.** Strip a problem of its vocabulary and write
+  what it costs in symbols, and more often than not it is a problem
+  somebody has already solved.
 
 The examples come from storage in one chapter and from GPUs in the
 next, on purpose. If the method only worked on storage, it would be
