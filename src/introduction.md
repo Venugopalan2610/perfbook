@@ -113,14 +113,16 @@ the others are worth spending freely to save it. **Believing your
 evidence.** Tests, checks and recoveries can only see what they can
 reach, and the method has to be turned on them too. **When the floor is
 wrong.** A measurement far from its floor means somebody is in the room
-that you did not count.
+that you did not count. **The old shape.** Strip a problem of its
+vocabulary and write what it costs in symbols, and more often than not
+it is a problem somebody has already solved.
 
 The examples come from storage in one chapter and from GPUs in the
 next, on purpose. If the method only worked on storage, it would be
 storage trivia dressed up as a principle. What makes it a method is that
 the same four steps, applied to hardware nobody had when the storage
 ideas were invented, produce the same kind of answer. Group commit and
-GPU batching turn out to be the same trick. The floor test catches a
+GPU batching turn out to be the same equation. The floor test catches a
 fraudulent benchmark in chapter 1 and an unmodelled CPU cost in chapter
 12. Paged attention turns out to be virtual memory from 1962.
 
@@ -139,7 +141,7 @@ is not doing anything for you, and the test of whether you have learned
 one is not whether you agree with it but whether you can rebuild the
 derivation that produced it from the sentence alone.
 
-Fourteen of them, collected in the [Rules Index](./rules.md), which is
+Fifteen of them, collected in the [Rules Index](./rules.md), which is
 the page to open when you have forgotten everything else.
 
 ## The shape of a chapter
@@ -155,5 +157,5 @@ surprise happens on your machine rather than mine. Four challenges with
 no answers. And a design note, which is the part where I stop deriving
 and tell you what I actually think.
 
-Twelve times. Starting with a write that returns far too quickly to
+Thirteen times. Starting with a write that returns far too quickly to
 possibly have happened.

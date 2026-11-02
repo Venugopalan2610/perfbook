@@ -19,7 +19,7 @@ truth.
 
 One division. No profiler, no flame graph, no afternoon gone.
 
-This book is twelve of them. Nothing is looked up: each chapter opens
+This book is thirteen of them. Nothing is looked up: each chapter opens
 with a measurement that cannot be true, spends a couple of pages on long
 division, and ends with one sentence worth remembering.
 

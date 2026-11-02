@@ -214,7 +214,7 @@ would not have been clever enough to design that on purpose.
 
 ## Which chapter derives which stage
 
-Six of the twelve chapters have a stage that builds what they derived.
+Six of the thirteen chapters have a stage that builds what they derived.
 Those are the ones where reading and building are the same activity done
 twice, and doing both in that order is the intended path.
 

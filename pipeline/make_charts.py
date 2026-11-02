@@ -456,7 +456,53 @@ def speculative_roofline():
     save(fig, "speculative-12-spending-the-idle.svg")
 
 
+# --- One equation, three fields: chapter 13 ---------------------------
+def same_equation():
+    # Throughput as a fraction of its ceiling, for a fixed trip F shared by
+    # b items that each cost c. Knee b* = F/c. Two forms: the costs take
+    # turns (F + b*c, a round corner) or overlap (max(F, b*c), a sharp one).
+    def turns(x):
+        return x / (1.0 + x)
+
+    def overlap(x):
+        return np.minimum(x, 1.0)
+
+    fig, (left, right) = plt.subplots(1, 2, figsize=(7.6, 3.3), sharey=True)
+    b = np.logspace(0, 4, 400)
+    for knee, form, label, colour in ((50, turns, "log on a disk, knee 50", SIGNAL),
+                                      (156, overlap, "GPU decode, knee 156", FLAG)):
+        left.semilogx(b, form(b / knee), color=colour, linewidth=2.0, label=label)
+        left.axvline(knee, color=GRATICULE, linewidth=1.0, zorder=0)
+    left.set_xlabel("batch size", fontsize=10)
+    left.set_ylabel("fraction of best throughput", fontsize=10)
+    left.legend(loc="lower right", frameon=False, fontsize=9)
+    left.set_title("in their own units", fontsize=10.5, color=INK)
+
+    x = np.logspace(-2, 2, 400)
+    right.semilogx(x, turns(x), color=SIGNAL, linewidth=2.0,
+                   label="take turns: disk")
+    right.semilogx(x, overlap(x), color=FLAG, linewidth=2.0,
+                   label="overlap: GPU, network")
+    right.axvline(1.0, color=MUTED, linestyle="--", linewidth=1.1)
+    right.annotate("batch = F/c", (1.0, 0.30), xytext=(5, 0),
+                   textcoords="offset points", fontsize=9.5, color=MUTED, ha="left")
+    right.set_xlabel("batch size \u00f7 (F/c)", fontsize=10)
+    right.legend(loc="lower right", frameon=False, fontsize=9)
+    right.set_title("divided by their own knee", fontsize=10.5, color=INK)
+
+    for ax in (left, right):
+        ax.set_ylim(0, 1.08)
+        ax.set_facecolor(PAPER)
+        ax.grid(True, which="major", color=GRATICULE, linewidth=0.7)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+    fig.patch.set_facecolor(PAPER)
+    fig.tight_layout()
+    save(fig, "same-equation-13-the-same-equation.svg")
+
+
 occupancy_timelines()
 kv_waste_bars()
 launch_overhead_bars()
 speculative_roofline()
+same_equation()

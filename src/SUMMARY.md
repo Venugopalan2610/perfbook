@@ -33,6 +33,10 @@
 
 - [Below the Floor](./11-below-the-floor.md)
 
+# VI. The Old Shape
+
+- [The Same Equation](./13-the-same-equation.md)
+
 # Building It Yourself
 
 - [The Course](./course.md)

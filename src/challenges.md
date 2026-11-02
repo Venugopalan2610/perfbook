@@ -142,3 +142,14 @@ retrieval, not rereading.
 4. Graph replay reuses one output buffer. Describe the bug that causes
    under concurrency, and how you would detect it given that it produces
    plausible text rather than a crash.
+
+## 13 · The Same Equation
+
+1. Fit F and c to all five batch sizes of the snippet instead of two.
+   How far does the knee move, and which estimate do you trust?
+2. Write chapter 12's kernel launches in this chapter's symbols: the
+   trip, the item, and the knee.
+3. Find F/b + c outside computing, estimate its knee, and say whether
+   that field already batches near it.
+4. Name an assumption of the group commit answer that a network window
+   does not share, and what breaks if you transfer the answer anyway.

@@ -76,3 +76,12 @@ the rule alone, you're done; if not, follow the link.
   whether the answer is a believable price for something.
   *Example: kernel launches; and decisions repeated identically can be
   recorded once and replayed.*
+
+## VI. The Old Shape
+
+- **[15 · Describe the problem in its own terms before its vocabulary](./13-the-same-equation.md#same-equation)**:
+  strip out the field's names and write what one unit of work costs, in
+  symbols. If they match a problem you have solved, the old answer
+  transfers, with its old assumptions; check each one.
+  *Example: group commit, the ridge point and the bandwidth-delay
+  product are one fraction, a fixed trip over a per-item price.*

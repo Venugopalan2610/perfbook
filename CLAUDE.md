@@ -82,6 +82,10 @@ before every build, so adding a chapter updates it automatically.
 - **Voice conversion is complete.** All twelve chapters are in the
   Feynman voice described below. `pipeline/voicecheck.py` exits zero;
   run it before committing prose.
+- `src/13-the-same-equation.md` (Part VI, Rule 15, added 2026-11-02):
+  the general tool, describe the problem in its own terms. Its ocean
+  round trip (100 ms for 10,000 km) is derived from light in glass, not a
+  reference-machine row.
 - `src/index.md` is the landing page, `src/preface.md` is about the book
   (origin, the no-lookups rule, how to revise, what it is not) and
   `src/introduction.md` is about the subject (the method itself). They
@@ -352,6 +356,8 @@ by running the labs.
 | GPU compute (fp16) | 312 TFLOP/s (so the ridge is 156 FLOP/byte; the charts use it) |
 | GPU memory bandwidth | 2 TB/s |
 | GPU memory capacity | 80 GB |
+| network link | 10 Gb/s (1.25 GB/s) |
+| network round trip, one building | 100 µs |
 
 Keep these consistent across chapters. If a chapter needs a new one,
 add it here first.

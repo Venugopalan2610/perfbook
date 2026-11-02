@@ -16,7 +16,7 @@ you already half remember. Most of the questions I had been treating as
 research questions turned out to be arithmetic questions wearing a
 disguise, and the arithmetic took ten seconds.
 
-That is the whole book. Twelve chapters of it.
+That is the whole book. Thirteen chapters of it.
 
 ## Nothing is looked up
 
@@ -71,7 +71,7 @@ one, or from outside the book entirely. Those are the good ones.
 ## What it is not
 
 Not a tuning manual: there is no list of flags to set. Not
-comprehensive: twelve chapters cannot cover storage, let alone storage
+comprehensive: thirteen chapters cannot cover storage, let alone storage
 and accelerators, and I chose depth on a few numbers over coverage of
 many. Not benchmarks: every experiment checks a *ratio* or an
 *invariant* rather than an absolute latency, because latencies belong to
