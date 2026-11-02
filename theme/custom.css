@@ -474,9 +474,14 @@ a:focus-visible, button:focus-visible {
    its right is only half the container's surplus:
 
        room to the right of main = (C - 700) / 2
-       the note needs            = 32 gutter + 220 width = 252
-       so                          (C - 700) / 2 >= 252
-       therefore                   C >= 1204 px
+       the note needs            = 56 gutter + 220 width = 276
+       so                          (C - 700) / 2 >= 276
+       therefore                   C >= 1252 px
+
+   The gutter was 32 until the scroll (see THE SCROLL below) put 30px
+   of sheet to the right of the text. A 32px gutter then left the note
+   2px off the sheet's edge, looking tucked under it. 56 = 30 of sheet
+   + 26 of clear desk.
 
    I first wrote 990px here, by adding 700 + 32 + 220 + slack and
    forgetting the centring halves the surplus. That would have clipped by
@@ -492,13 +497,13 @@ a:focus-visible, button:focus-visible {
    content-box origin, not where the element would have sat in flow.
    A float has no such special case. It aligns with the content that
    follows it, which is the entire point of a margin note. */
-@container (min-width: 124rem) {
+@container (min-width: 125.2rem) {
   .quip {
     float: right;
     clear: right;
     width: 22rem;             /* 220px */
-    margin: 0.4rem 0 1.2rem 3.2rem;
-    margin-right: -25.2rem;   /* -(220 width + 32 gutter), out into the margin */
+    margin: 0.4rem 0 1.2rem 5.6rem;
+    margin-right: -27.6rem;   /* -(220 width + 56 gutter), out past the sheet */
     border-left: none;
     padding-left: 0;
   }
