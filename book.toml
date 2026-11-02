@@ -29,3 +29,7 @@ boost-hierarchy = 2
 
 [output.html.print]
 enable = true
+
+# Chapter 1 was renamed on 2026-11-02. Keep the old URL working.
+[output.html.redirect]
+"/01-twenty-five-microseconds.html" = "01-success-too-soon.html"

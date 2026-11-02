@@ -101,7 +101,7 @@ def ruler(name, points, xlim, caption, figwidth=7.2, figheight=1.7):
 
 
 ruler(
-    "ruler-01-twenty-five-microseconds.svg",
+    "ruler-01-success-too-soon.svg",
     points=[
         (0.1e-6, "0.1 µs", "system call", False),
         (5e-6, "4–15 µs", "laptop, 2026", True),

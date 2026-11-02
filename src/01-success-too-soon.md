@@ -161,7 +161,7 @@ inside the kernel      one system call            ≥   0.1 µs
 
 Now put your number next to them.
 
-<img class="ruler-chart" src="img/ruler-01-twenty-five-microseconds.svg" alt="Log-scale ruler: a measured 4 KB write of 4 to 15 microseconds, against floors of 0.1 microseconds for a system call, 20 microseconds for a round trip to the drive, and 100 microseconds for a durable write. The measurement lands far to the left of the durable floor.">
+<img class="ruler-chart" src="img/ruler-01-success-too-soon.svg" alt="Log-scale ruler: a measured 4 KB write of 4 to 15 microseconds, against floors of 0.1 microseconds for a system call, 20 microseconds for a round trip to the drive, and 100 microseconds for a durable write. The measurement lands far to the left of the durable floor.">
 
 Look at where it lands. A few microseconds, against a floor of a
 hundred for the thing you were probably hoping for. A durable write cannot be

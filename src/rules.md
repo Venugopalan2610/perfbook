@@ -7,13 +7,13 @@ the rule alone, you're done; if not, follow the link.
 
 ## I. The Method
 
-- **[1 · Ratio triage](./01-twenty-five-microseconds.md#ratio-triage)**:
+- **[1 · Ratio triage](./01-success-too-soon.md#ratio-triage)**:
   sort your next questions by the spread between their possible
   answers. More than 10× apart: ask it now. Less than 2×: it's a detail.
-- **[2 · The floor test](./01-twenty-five-microseconds.md#floor-test)**:
+- **[2 · The floor test](./01-success-too-soon.md#floor-test)**:
   when a measurement beats your theoretical floor, the system is not
   fast. The work did not happen.
-- **[3 · Match the instrument to the ratio](./01-twenty-five-microseconds.md#instrument-precision)**:
+- **[3 · Match the instrument to the ratio](./01-success-too-soon.md#instrument-precision)**:
   1000× apart, a wall clock. 20× apart, a wall clock used carefully.
   1.5× apart, counters and statistics.
 

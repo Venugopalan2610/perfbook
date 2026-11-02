@@ -26,7 +26,7 @@ division, and ends with one sentence worth remembering.
 
 <div class="start">
 
-[Start here: Success, Too Soon](./01-twenty-five-microseconds.md)<br>
+[Start here: Success, Too Soon](./01-success-too-soon.md)<br>
 Where those four kilobytes actually went.
 
 </div>

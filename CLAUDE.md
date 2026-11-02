@@ -76,7 +76,7 @@ before every build, so adding a chapter updates it automatically.
 
 ## Status
 
-- `src/01-five-microseconds.md` through `src/12-spending-the-idle.md` —
+- `src/01-success-too-soon.md` through `src/12-spending-the-idle.md` —
   all **written**. Chapter 1 is the reference implementation of both
   format and voice; match it.
 - **Voice conversion is complete.** All twelve chapters are in the
