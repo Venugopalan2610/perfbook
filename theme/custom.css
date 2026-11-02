@@ -15,12 +15,22 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap");
 
 :root {
-  --paper:     #f7f8fa;
-  --ink:       #14181f;
-  --graticule: #dde2ea;
+  /* Parchment. The book is set on a scroll: --paper is the desk-side
+     edge of the sheet, --sheet the writing surface, --card a fresher
+     patch for boxed things. --signal and --flag are unchanged because
+     the matplotlib charts bake those two colours in. */
+  --paper:     #e9d8b0;
+  --sheet:     #f4e8c8;
+  --card:      #f8efd6;
+  --code-bg:   #ecdcb6;
+  --ink:       #2b2014;
+  --graticule: #d4be92;
   --signal:    #0b6e75;
   --flag:      #a81e4d;
-  --muted:     #5c6675;
+  --muted:     #6b5843;
+  --wood-dark: #5a3a1c;
+  --wood:      #9a6a3a;
+  --wood-lite: #c99a62;
 
   --display: "IBM Plex Sans Condensed", ui-sans-serif, sans-serif;
   --body:    "IBM Plex Serif", Georgia, serif;
@@ -49,7 +59,7 @@ html.light,
 html:not(.js) {
   --bg: var(--paper);
   --fg: var(--ink);
-  --sidebar-bg: #eef0f4;
+  --sidebar-bg: #e3cfa2;
   --sidebar-fg: var(--ink);
   --sidebar-non-existant: var(--muted);
   --sidebar-active: var(--flag);
@@ -61,17 +71,17 @@ html:not(.js) {
   --inline-code-color: var(--flag);
   --theme-popup-bg: var(--paper);
   --theme-popup-border: var(--graticule);
-  --quote-bg: #eef1f5;
+  --quote-bg: #efe0bd;
   --quote-border: var(--signal);
   --table-border-color: var(--graticule);
-  --table-header-bg: #eef0f4;
-  --table-alternate-bg: #f2f4f7;
+  --table-header-bg: #ead8b0;
+  --table-alternate-bg: #f0e3c2;
   --searchbar-border-color: var(--graticule);
-  --searchbar-bg: #fff;
+  --searchbar-bg: var(--card);
   --searchbar-fg: var(--ink);
   --searchresults-header-fg: var(--muted);
   --searchresults-border-color: var(--graticule);
-  --search-mark-bg: #ffe08a;
+  --search-mark-bg: #e6c35c;
 }
 
 /* --- Type --------------------------------------------------- */
@@ -109,7 +119,7 @@ html:not(.js) {
 .content pre code { font-family: var(--meter); font-size: 0.86em; }
 
 .content pre {
-  background: #eef1f5;
+  background: var(--code-bg);
   border: 1px solid var(--graticule);
   border-left: 3px solid var(--signal);
   border-radius: 0;
@@ -133,7 +143,7 @@ html:not(.js) {
    element's position in the tree is always there. */
 .content :not(pre) > code,
 .content pre > code {
-  background: #eef1f5;
+  background: var(--code-bg);
 }
 .content pre > code { color: var(--ink); }
 
@@ -187,7 +197,7 @@ html:not(.js) {
   line-height: 1.4;
   margin: 2.8rem 0;
   padding: 1.5rem 1.7rem;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--ink);
   border-left: 5px solid var(--flag);
   scroll-margin-top: 4rem;
@@ -271,7 +281,7 @@ html:not(.js) {
                                        the label on the rule */
   line-height: 2.4rem;
   padding-left: 0.8rem;
-  background: var(--paper);         /* knocks the rule out behind it */
+  background: var(--sheet);         /* knocks the rule out behind it */
   font-size: 1.7rem;                /* 17px */
   text-transform: uppercase;
   letter-spacing: 0.1rem;
@@ -512,7 +522,7 @@ a:focus-visible, button:focus-visible {
 .content .start {
   margin: 3.4rem 0;
   padding: 1.6rem 1.9rem;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--graticule);
   border-left: 5px solid var(--flag);
 }
@@ -577,4 +587,82 @@ a:focus-visible, button:focus-visible {
 @media (max-width: 700px) {
   .stage-meta { grid-template-columns: 1fr; gap: 0.2rem; }
   .stage-meta .k { padding-top: 0.6rem; }
+}
+
+/* ============================================================
+   THE SCROLL
+   Every page is written on a parchment sheet with a wooden roller
+   above and below it. CSS only: gradients, no image files.
+   NOTE the project-wide gotcha: 1rem = 10px here (root is 62.5%).
+   ============================================================ */
+
+/* The desk around the sheet: the paper colour, darkening toward the
+   edges of the window like old paper does. */
+.page-wrapper {
+  background:
+    radial-gradient(ellipse at 50% 30%, transparent 55%, rgb(110 70 25 / 0.16) 100%),
+    var(--paper);
+}
+
+/* The sheet. `main` stays exactly 700px of TEXT. It is content-box, so
+   the 3rem side padding lands OUTSIDE max-width on its own: do not add
+   it to max-width as well (that was tried, and measured 760px of text).
+   The .quip threshold stays true without touching it: the room right of
+   the text is still (C - 700) / 2, and the 30px of sheet on the right is
+   room the float may use. */
+.content main {
+  padding: 0 3rem;
+  background:
+    linear-gradient(to right, rgb(120 80 30 / 0.10), transparent 3rem,
+                    transparent calc(100% - 3rem), rgb(120 80 30 / 0.10)),
+    var(--sheet);
+  box-shadow:
+    0 0 0 1px rgb(120 80 30 / 0.18),
+    0 6px 24px rgb(80 50 15 / 0.18);
+}
+
+/* The rollers: wooden bars wider than the sheet, at its top and its
+   bottom. `main` is a flex column, so these two pseudo-elements are
+   flex items: one before the chapter body, one after the footer. */
+.content main::before,
+.content main::after {
+  content: "";
+  display: block;
+  flex: none;
+  height: 2.2rem;                     /* 22px */
+  margin: 0 -4.4rem;                  /* 14px past each side of the sheet */
+  border-radius: 1.1rem;
+  background:
+    linear-gradient(to bottom, var(--wood-dark), var(--wood-lite) 35%,
+                    var(--wood) 60%, var(--wood-dark));
+  box-shadow: 0 2px 4px rgb(60 35 10 / 0.35);
+}
+.content main::before { margin-bottom: 3.2rem; }
+.content main::after  { margin-top: 0; }
+
+/* The footer used to end the column; now the bottom roller does, and
+   the footer's own bottom margin would leave a gap of bare sheet. */
+.content main > .book-footer { margin-bottom: 3.2rem; }
+
+/* Drawings and charts were made on near-white. Multiply blends them
+   into the sheet: white becomes parchment, ink stays ink. But the
+   drawings' paper is not quite white (about 243-247 per channel), and
+   multiply turns "not quite white" into a grey box. brightness(1.05)
+   lifts 243 to 255 first, so the box disappears and the lines stay. */
+.content .chapter-illustration,
+.content img.chart,
+.content img.ruler-chart {
+  mix-blend-mode: multiply;
+}
+.content .chapter-illustration { filter: brightness(1.05); }
+/* The charts' background is the old --paper, #f7f8fa, baked in by
+   pipeline/make_charts.py. 247 x 1.035 = 255.6, so this clears it
+   and leaves the chart colours within 3.5% of what make_charts set. */
+.content img.chart,
+.content img.ruler-chart { filter: brightness(1.035); }
+
+@media (max-width: 700px) {
+  .content main { padding: 0 1.6rem; }
+  .content main::before,
+  .content main::after { margin: 0 -2.2rem; height: 1.6rem; }
 }
