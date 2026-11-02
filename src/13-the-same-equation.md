@@ -2,6 +2,8 @@
 
 > Three fields, three names, one fraction.
 
+<img class="chapter-illustration" src="img/illus-13-the-same-equation.png" alt="A Victorian gentleman in a top hat and a hooded medieval monk kneeling on either side of a still pond, each reaching out with the same gesture, each reflected in the water.">
+
 Here are two machines that have nothing to do with each other. One is a
 database writing its log to a disk, a problem people were solving
 before most of us were born. The other is a GPU generating words from a
