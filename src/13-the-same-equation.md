@@ -95,7 +95,7 @@ rather the point.
 | Reference machine | Value | Where it came from |
 |---|---|---|
 | `fsync` round trip | 100 µs | chapter 2 |
-| NVMe sequential write | 2 GB/s | chapter 1 |
+| NVMe sequential write | 2 GB/s | chapter 2 |
 | GPU compute | 312 TFLOP/s | chapter 4 |
 | GPU memory bandwidth | 2 TB/s | chapter 4 |
 | 7B model weights, fp16 | 14 GB | chapter 4 |
@@ -265,7 +265,9 @@ under ext4, three runs of the snippet above printed knees of 55, 107
 and 117. The trip is an `fsync`, and `fsync` times are noisy from run to
 run, so the knee moves by 2×. The bend did not move out of that range,
 and the cost per record still fell from about 1.5 ms at batch 1 to
-about 20 µs at batch 256.
+about 20 µs at batch 256. Those runs were in power-saving mode. Set for
+performance, the same laptop cut both F and c by about half, and the
+knee stayed between 88 and 113.
 </div>
 
 <div class="challenges">

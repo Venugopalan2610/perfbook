@@ -90,8 +90,8 @@ paying for? For that we need some numbers.
 
 <div class="aside">
 This is chapter 1's floor test run in the opposite direction. There, a
-measurement came in <em>under</em> every floor and proved work had been
-skipped. Here it comes in wildly <em>over</em> the bandwidth floor and
+measurement came in <em>under</em> the floor for a durable write and
+proved that durability had been skipped. Here it comes in wildly <em>over</em> the bandwidth floor and
 proves the cost is not the thing we assumed we were buying. Same
 instrument. You are just reading it from the other end.
 </div>
@@ -159,7 +159,7 @@ kernel launch, a database query and a trip to the shops, and the
 question is always the same: are you paying for the trip or for the
 cargo?
 
-<img class="ruler-chart" src="img/ruler-03-the-barrier.svg" alt="Log-scale ruler: 4 nanosecond bandwidth floor versus 100 microsecond measured fsync, 1-3 millisecond SATA, and 5-10 millisecond spinning disk. The floor sits six orders of magnitude to the left.">
+<img class="ruler-chart" src="img/ruler-03-the-barrier.svg" alt="Log-scale ruler: 4 nanosecond bandwidth floor versus the reference machine's 100 microsecond fsync, 1-3 millisecond SATA, and 5-10 millisecond spinning disk. The floor sits six orders of magnitude to the left.">
 
 And that reframing immediately changes what we should do about it.
 Paying the barrier once for a batch of a thousand records, and paying it

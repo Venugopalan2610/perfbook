@@ -195,9 +195,9 @@ loss without a capacitor puts its ✗ two rows deeper than most test
 suites ever bother to look.
 </div>
 
-<p class="quip">Chapter 1 got you to row one in twenty-five microseconds. The other three rows are where the bill arrives.</p>
+<p class="quip">Chapter 1 got you to row two in a few microseconds. The other two rows are where the bill arrives.</p>
 
-Twenty-five microseconds put you on row one, back in chapter 1, and
+A few microseconds put you on row two, back in chapter 1, and
 chapter 2 priced the walk down to row four. What this part of the book
 is about is the other half: not fooling yourself into thinking you are
 already standing there.

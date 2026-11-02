@@ -1,56 +1,61 @@
-# Twenty-Five Microseconds
+# Success, Too Soon
 
 > Any sufficiently advanced measurement is indistinguishable from a lie.
 
 <img class="chapter-illustration" src="img/illus-01-five-microseconds.png" alt="A postman cheerfully posting a letter into the front of a pillar box while a cascade of mail spills out of a crack in its side onto the pavement behind him. He is not looking.">
 
 I want to start with something you can do right now, without leaving
-this page. Write a megabyte to a file. Time the call. See what comes
+this page. Write four kilobytes to a file. Time the call. See what comes
 back.
 
 Here it is in Python, so there is nothing to set up. Paste it into a
-file and run it.
+file and run it from a directory on your real disk.
 
 ```python
-import statistics, time
+import os, statistics, time
 
-data = b"x" * 1_000_000          # one megabyte
+block = b"x" * 4096               # four kilobytes
+fd = os.open("success.log", os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
 times = []
 
-for _ in range(100):
-    with open("megabyte.bin", "wb", buffering=2_000_000) as f:
-        start = time.perf_counter()
-        f.write(data)
-        times.append(time.perf_counter() - start)
+for _ in range(1000):
+    start = time.perf_counter()
+    os.write(fd, block)
+    times.append(time.perf_counter() - start)
 
-print(f"median of 100: {statistics.median(times) * 1e6:.0f} µs")
+os.close(fd)
+print(f"median of 1000: {statistics.median(times) * 1e6:.1f} µs")
 ```
 
-It writes the same megabyte a hundred times and reports the middle one.
-That is not fussiness. Run it once, by itself, and the first write is
-slow for a reason that has nothing to do with this chapter: the program
-is still asking the kernel for the memory its buffer will live in. Keep
-an eye on that `buffering=2_000_000`, too. It is going to matter.
+`os.write` is not Python being clever. It is the operating system's own
+`write()` call with a thin wrapper around it, no buffer of Python's in
+between, which is exactly why I picked it. The loop appends four
+kilobytes a thousand times, the way a log grows, and reports the middle
+one, so that one slow call cannot fool you.
 
-Write your number down. On an ordinary machine, on an ordinary day, it
-comes back in a few tens of microseconds. On the book's reference
-machine, which I will introduce properly in a moment, it takes
-twenty-five. That is the number this chapter is named after, and I will
-use it from here on. If yours says fifty, or fifteen, nothing below
-changes, and by the end you will know why.
+Write your number down. Then answer one more question before you read
+on, and write that down too: **when `write()` said success, were your
+four kilobytes on the disk?**
 
-<p class="quip">Twenty-five microseconds is about how long it takes light to run seven and a half kilometres. Your megabyte did not go anywhere near that far.</p>
+On a laptop in 2026 this printed between 4 and 15 µs, and most of that
+spread was the power setting: about 4 plugged in and set for
+performance, 10 to 15 in power-saving mode. Yours will be in the same
+neighbourhood, a few microseconds or a few tens of them, and nothing
+below depends on which.
+
+<p class="quip">In five microseconds light covers a kilometre and a half. Your four kilobytes did not get as far as the drive.</p>
 
 Now, once you have seen a number like that a few times, it stops
-registering. It's small, the write worked, the test passed, and there's a whole
-afternoon of other work waiting. I have done exactly this and thought
-nothing of it. But twenty-five microseconds is the loudest thing that will
-happen to you all week, and this chapter is about learning to actually
-hear it.
+registering. It's small, the write worked, the test passed, and there's a
+whole afternoon of other work waiting. I have done exactly this and
+thought nothing of it. But that little number is the loudest thing that
+will happen to you all week, and this chapter is about learning to
+actually hear it.
 
 We are not going to look anything up. By the end you will know exactly
-where that megabyte is sitting, and we will have gotten there with four
-numbers and some long division, which is honestly all this ever takes.
+where those four kilobytes are sitting, and we will have gotten there
+with a handful of numbers and some long division, which is honestly all
+this ever takes.
 
 ## 1.1 Two Candidates and a Missing Number
 
@@ -62,7 +67,7 @@ right yet. We are trying to bound the space cheaply enough that being
 wrong costs us nothing.
 </div>
 
-Either it's still in memory, or it's out on the disk. That's a
+Either it's on the disk, or it's still in memory somewhere. That's a
 reasonable first cut. And the reflex that follows, the one I have had a
 hundred times, is to say *disk is slower than memory* and feel like
 some progress has been made.
@@ -94,9 +99,10 @@ derive. Not because we aren't clever enough, but because there is
 nothing underneath it to derive *from*.
 
 A cache line on an x86 processor is 64 bytes because somebody, once,
-in a meeting, chose 64. DRAM latency is whatever physics and market economics happened to
-settle on between them. There is no first-principles path to either
-number. You just have to know it, the way you know a stop sign is red.
+in a meeting, chose 64. What a drive charges to answer a request is
+whatever physics and market economics happened to settle on between
+them. There is no first-principles path to either number. You just
+have to know it, the way you know a stop sign is red.
 
 So let's take them as given. There is no shame in being handed a
 constant. The only real shame is needing to be handed the conclusion
@@ -108,57 +114,66 @@ reference machine with round numbers, the way Donald Knuth's books run
 on an imaginary computer called MIX, and for the same reason: an
 invented machine never goes out of date. Every real one does.
 
-| Path | Reference machine |
+| What it costs | Reference machine |
 |---|---|
+| a plain function call | 1 ns |
+| an empty system call | 0.1 µs |
 | memory copy, one core | 10 GB/s |
-| NVMe SSD | 2 GB/s |
-| spinning disk | 150 MB/s |
+| a round trip to the drive and back | 20 µs |
+| a durable write: the trip, plus the drive's flush | 100 µs |
 
 They are round on purpose, and about the right size for the machines
 of the 2020s, because every question in this chapter is about factors
-of four and ten, not about ten percent. Your machine is faster than the
+of ten, not about ten percent. Your machine is faster than the
 reference machine at some of these and slower at others. The labs
 measure exactly how, so wherever one of my numbers appears, you can put
-yours in its place and watch whether the conclusion moves. It almost
-never does, and that is the point.
+yours in its place and watch whether the conclusion moves.
+
+The last two rows are the ones that matter today, and the difference
+between them is worth a sentence. A drive is a small computer of its
+own at the far end of a bus. Any request to it, however small, costs a
+trip there and back. A request to make data *durable* costs that trip
+plus whatever the drive must do to make the data survive a power cut,
+which is the slow part.
 
 <p class="quip">A dozen constants is fewer than most people carry for their own family's birthdays, and considerably more useful at two in the morning.</p>
 
-A dozen numbers roughly like these make up most of the toolkit. Twelve
-numbers. That's it. What we do with them is the entire skill.
+A dozen numbers roughly like these make up most of the toolkit. That's
+it. What we do with them is the entire skill.
 
 ## 1.3 Doing the Division
 
-One megabyte, three plausible paths home.
+Four kilobytes, and three places they could be when `write()` returns.
 
-Before you read on, write down what you think the answer is. I mean it,
-actually write it down. Not because the arithmetic is hard, but because
-committing to a value you might be wrong about is the whole exercise,
-and reading past this sentence without doing it is how you get the
-comfortable feeling of learning without any of the learning.
+Before you read on, look again at the answer you wrote down. I mean it.
+Not because the arithmetic is hard, but because committing to a value
+you might be wrong about is the whole exercise, and reading past this
+sentence without doing it is how you get the comfortable feeling of
+learning without any of the learning.
+
+Each place has a floor: the least it could possibly cost to get there.
 
 ```
-1 MB ÷  10 GB/s  =  100 µs     memory copy
-1 MB ÷   2 GB/s  =  500 µs     NVMe
-1 MB ÷ 150 MB/s  =  6.7 ms     spinning disk
+durable on the drive   one trip, plus the flush   ≥ 100   µs
+anywhere on the drive  one trip there and back    ≥  20   µs
+inside the kernel      one system call            ≥   0.1 µs
 ```
 
-Now let's put those next to the thing we actually measured.
+Now put your number next to them.
 
-<img class="ruler-chart" src="img/ruler-01-twenty-five-microseconds.svg" alt="Log-scale ruler: 25 microseconds measured, versus 100 microsecond memcpy, 500 microsecond NVMe write, and 6.7 millisecond disk write floors. The measurement lands to the left of every candidate.">
+<img class="ruler-chart" src="img/ruler-01-twenty-five-microseconds.svg" alt="Log-scale ruler: a measured 4 KB write of 4 to 15 microseconds, against floors of 0.1 microseconds for a system call, 20 microseconds for a round trip to the drive, and 100 microseconds for a durable write. The measurement lands far to the left of the durable floor.">
 
-Sit with that a moment, because it is not the outcome anybody was set
-up to expect.
+Look at where it lands. A few microseconds, against a floor of a
+hundred for the thing you were probably hoping for. A durable write cannot be
+done in less than a hundred microseconds on the reference machine, any
+more than
+you can post a letter faster than the postman can walk to the box. And
+your drive, as chapter 2 will let you measure, is very likely slower
+than the reference machine's, which only widens the gap.
 
-Twenty-five microseconds beats every option on the list. Every one. Including
-the option that never touches storage at all. So the conclusion is not
-"it must be in memory." The conclusion is much better than that:
-**our list of candidates was wrong.**
-
-The ratio test did not just rank our candidates against each other. It
-caught that the question itself was malformed. Nobody told us we were
-buying that when we started dividing, and it is the most useful thing
-in the chapter.
+So the honest reading of "success" is not "your data is safe." It is
+something smaller, and we are about to find out exactly how much
+smaller.
 
 <div class="rule" id="floor-test">
 <span class="rule-id">Rule 2 · The floor test</span>
@@ -177,7 +192,7 @@ the compiler notices and deletes the entire computation, and the
 benchmark is faithfully timing an empty program. The number is real.
 The measurement is honest. The work simply did not occur. It happened
 while this chapter's own lab was being written: one missing line, and
-the compiler deleted a memory copy and reported a megabyte moved in no
+the compiler deleted a memory copy and reported memory moved in no
 time at all. The lab now carries a comment about it.
 
 <p class="quip">The graph was beautiful. Somebody had put the four hundred in bold.</p>
@@ -185,22 +200,26 @@ time at all. The lab now carries a comment about it.
 That is the same rule as the one in the box, wearing different clothes,
 and it is why I trust it more than almost anything else in this book. A
 result that is too good does not mean you won. It means you should go
-looking for the step that got skipped. Nobody moved a megabyte anywhere
-in twenty-five microseconds, and now we get to find out what got skipped.
+looking for the step that got skipped. Our write skipped durability.
+The question now is what it did instead.
 
 ## 1.4 Turning It On Our Own Answer
 
-The textbook reflex here is *page cache*. The kernel took the bytes,
-parked them in its own memory, and returned without ever touching the
-device. Deferred write-back. It is clever, it is well documented, and
-it feels like an answer the instant you say it out loud.
+There is an answer almost everybody likes at this point, and I liked it
+too. Drives are fast now. Drives have caches of their own. The write
+went to the drive's cache, the drive said thank you, and that is why it
+was quick.
 
 So let's turn the floor test on it, exactly the way we would turn it on
 somebody else's claim.
 
-Copying into page cache is still a memory copy. It is still a megabyte
-moving through a single core at ten gigabytes a second. That is 100 µs,
-a number we derived four paragraphs ago and now get to reuse for free.
+The drive's cache is *in the drive*. To put anything in it, the request
+has to cross the bus, the drive has to take it, and the answer has to
+cross back. That is the round trip in the table, 20 µs on the reference
+machine, and no amount of cache at the far end makes the trip shorter.
+On the reference machine our write costs about half a microsecond, one
+system call and a four-kilobyte copy at 10 GB/s, and the trip to the
+drive's cache is forty times longer than that.
 
 <div class="aside">
 This is the move that separates knowing the vocabulary from being able
@@ -209,102 +228,51 @@ other people's claims. It applies to your own favourite answer, and it
 should be aimed there first.
 </div>
 
-Page cache is **four times too slow** to explain what we saw.
+Now I have to be honest about your machine, because on a real one this
+gap is much narrower than forty, and the lab will show you. The lab's
+`O_DIRECT` row skips the kernel's memory and sends the four kilobytes
+across the bus to the drive's cache, for real. On that 2026 laptop the
+trip took 15 to 35 µs, and a plain `write()` took 4 to 13 µs. Three or
+four times apart, in every power setting I tried.
 
-And you do not have to take my word for that, because you can make the
-page cache happen. Delete `, buffering=2_000_000` from the snippet, so
-that Python uses its default buffer, and run it again. Watch the median
-jump by several times. That is a real copy into the kernel's memory,
-and it lands above the 100 µs floor, exactly where the floor says it
-must. In 2026, Python's default buffer was typically 128
-kilobytes,[^python] too small to hold a megabyte, so the write goes
-straight through to the kernel.
+And notice what the power setting did. It moved every one of those
+numbers by two or three times, all in the same direction, and it barely
+moved the ratio between them. Hold on to that, because the whole book
+leans on it: your machine's numbers are yours, and its ratios belong to
+the world.
 
-It does not survive contact with our own arithmetic. Not because we
-read something that contradicted it, not because an expert corrected
-us, but because numbers we already had in hand would not let it stand.
-That is a lovely way to be wrong. It costs nothing and it happens in
-ten seconds.
+Three or four times apart is not a gap you settle with one run of a
+stopwatch, though, and the next section is about exactly that.
 
-So the kernel never copied our data either. Which leaves something
-stranger and more interesting. Maybe nothing copied it at all.
+What survives is the kernel. Its floor is one system call, 0.1 µs, and
+our write lands comfortably above it. The rest of the cost is not
+mysterious either: a copy of four kilobytes, plus the filesystem keeping
+its books on a file that just grew. On Linux you can watch the books go
+away by pointing the snippet at a file in `/dev/shm`, which is memory
+pretending to be a disk. The number drops by several times, and nothing
+else changed.
 
-## 1.5 Reading the Band
+So the data is in the kernel's memory: the **page cache**. `write()`
+copied your four kilobytes into it and returned. Nothing has asked the
+drive for anything yet.
 
-We have a floor. Now let's get a ceiling, coming at it from the other
-direction.
-
-```
-plain function call, off the stack  ~1 ns
-null syscall                        ~0.1 µs
-1 MB memcpy                         ~100 µs
-```
-
-Those are reference-machine numbers too, and `experiments/01_constants.c`
-prints all three for yours. Twenty-five
-microseconds is tens of thousands of times too slow for a bare function
-call, and four times too fast for a full DRAM-bandwidth copy. It is
-wedged between two floors, and the gap is narrow enough to mean
-something specific.
-
-**Twenty to fifty microseconds is the signature of a `memcpy` into a
-buffer that is already hot in the CPU cache.** On the reference
-machine that copy runs at 40 GB/s, four times the 10 GB/s you get when
-the destination lives in main memory, and the same lab measures your
-own ratio. The bytes never left your process. No syscall
-happened at all.
-
-That is what buffered file APIs are for: `fwrite` in C, `BufWriter` in
-Rust, `BufferedOutputStream` in Java, `open` in Python. They keep your
-bytes in the process's own memory and defer the syscall until there is
-enough to make the trip worthwhile. But only if the bytes fit. Their
-default buffers are small, 8 KB in Rust[^rust] and typically 128 KB in
-Python[^python] as of 2026, and a write bigger than the buffer does not squeeze
-through it. Java's documentation says so in one sentence: if the
-requested length is at least as large as the buffer, the bytes go
-directly to the underlying stream.[^java] That is why the snippet asks
-for a two-megabyte buffer, and why taking it away sent the number up
-past the floor. With the buffer in place, the floor test does not reject the
-copy: 1 MB in 25 µs is roughly 40 GB/s, comfortably inside what the
-cache can do.
-
-So the explanation here is simpler than it first looked. The data
-was copied, but only into a cache-hot userspace buffer sitting in
-the CPU's own backyard. No kernel crossing, no device, no page cache.
-Just a fast, local `memcpy` that the DRAM-bandwidth floor fails to
-catch because the destination was never in DRAM.
-
-<div class="aside">
-That is three times in one chapter that the same 100 µs has been used
-to set something aside, and twice that it has taken an answer we liked.
-Reusing one derived floor against every new candidate, especially your
-own, is most of the method. You are not accumulating facts. You are
-accumulating one number and pointing it at things.
-</div>
-
-What survives is the buffered copy: a `memcpy` into a cache-hot
-userspace buffer that never crossed into the kernel.
-
-And here is a detail I find genuinely delightful. Buffering explains
-plenty of fast returns, just smaller ones. Ask for four kilobytes
-instead of a megabyte and the copy costs well under a microsecond, and
-buffering becomes the likeliest answer in the room. The mechanism we
-land on depends on the size we asked about. Which is why the megabyte
-was in the question at all, and why "how fast is a write" is not a
-question that has an answer.
-
-## 1.6 Resisting `strace`
+## 1.5 Resisting `strace`
 
 Here is where most of us reach for a tool. I want you to resist for one
 more second, and ask what the tool would actually buy.
 
-We are separating a copy that stayed in your process, about twenty-five
-microseconds, from a copy that crossed into the kernel, well over a
-hundred. Four times apart, at least. That is a gap a stopwatch can
-settle, as long as you use it carefully, and the snippet already does:
-it takes the median of a hundred runs, so one slow run cannot fool it.
-Scheduler jitter and thermal drift do not close a factor of four. **The stopwatch
-already answered it.**
+We asked two questions, and they have very different ratios. The first
+was *durable or not*, and its candidates sit ten to a hundred times
+apart. A stopwatch settled that one the moment the snippet printed. No
+scheduler jitter or thermal drift closes a factor of ten.
+
+The second was *the page cache or the drive's cache*, and on a real
+machine those sit only a few times apart. That needs care: the median of
+many runs, the lab's `O_DIRECT` row next to your `write()` row, the
+power setting held still while you compare them. Or a different kind
+of instrument altogether, one that does not measure time at all: the
+manual page, which simply tells you, and which we will read in a
+moment.
 
 <div class="rule" id="instrument-precision">
 <span class="rule-id">Rule 3 · Match the instrument to the ratio</span>
@@ -320,7 +288,7 @@ For the day you genuinely need them: `strace -c` counts syscalls,
 `perf trace` times them. They are excellent tools and you should need
 them far less often than you think.
 
-## 1.7 So Where Is It
+## 1.6 So Where Is It
 
 Four layers, in the order they would survive:
 
@@ -329,7 +297,7 @@ Four layers, in the order they would survive:
  ┌──────────────────┐
  │ userspace buffer │  gone if your process crashes
  └──────────────────┘
-          │  write()        ~100 µs per MB
+          │  write()        a few µs per 4 KB
           ▼
    THE KERNEL
  ┌──────────────────┐
@@ -348,27 +316,36 @@ Four layers, in the order they would survive:
  └──────────────────┘
 ```
 
-At twenty-five microseconds, you are at level one. Not two. Not four.
+At a few microseconds, you are at level two. Not three. Not four.
+
+Level one is worth a word, because `os.write` skipped it on purpose.
+Most file APIs do not: `fwrite` in C, `BufWriter` in Rust, `open` in
+Python all keep small writes in your own process and make the system
+call later, when there is enough to be worth the trip. Their default
+buffers are small, 8 KiB in Rust[^rust] and typically 128 KB in
+Python,[^python] but four kilobytes fits in either, and a write that
+fits never even reaches the kernel.
 
 Now, the names in that diagram are worth complaining about for a
 moment. `write()` is the syscall that *leaves* userspace, which the
 name rather undersells. Your data lands in page cache, and the manual
 page is blunt about what that buys you: "A successful return from
 write() does not make any guarantee that data has been committed to
-disk."[^write] And `fsync()` is not "send it to the kernel," because it
-is already there. `fsync` is what pushes it *out* of the kernel, toward
-the media, and its manual page promises the part `write()` would not:
-the data "can be retrieved even if the system crashes or is
-rebooted."[^fsync]
+disk."[^write] That is the instrument from the last section, and it
+answers the second question outright. And `fsync()` is not "send it to
+the kernel," because it is already there. `fsync` is what pushes it
+*out* of the kernel, toward the media, and its manual page promises the
+part `write()` would not: the data "can be retrieved even if the system
+crashes or is rebooted."[^fsync]
 
 <p class="quip"><code>write()</code> does not write and <code>fsync()</code> does not send. Both names are older than I am and neither is going to be fixed now.</p>
 
 Most people know about `fsync`. What catches people off guard is
 subtler, and it is the thing I would tattoo on a wall if I could: the
-default path in nearly every file API stops one level short of durable,
-and you have to opt into that last step on purpose. Closing a file
-flushes userspace into the kernel. It does not sync. The manual page
-for `close()` says so in as many words: "A successful close does not
+default path in nearly every file API stops short of durable, and you
+have to opt into that last step on purpose. Closing a file flushes
+userspace into the kernel. It does not sync. The manual page for
+`close()` says so in as many words: "A successful close does not
 guarantee that the data has been successfully saved to disk."[^close]
 
 Which sets up everything in Part II. That last arrow turns out to be
@@ -377,9 +354,12 @@ other than to avoid taking it more often than they must.
 
 <div class="aside">
 <strong>Run it.</strong> <code>experiments/01_write_latency.c</code> writes
-a megabyte four ways and prints each one against the floors above, and
-<code>experiments/01_constants.c</code> measures this chapter's band on your
-machine. Commit to your numbers before you run either. See <a href="./experiments.md">Experiments</a>.
+four kilobytes four ways, into your process, into the kernel, to the
+drive's cache with <code>O_DIRECT</code>, and durably with
+<code>fsync</code>, and prints each one against the floors above.
+<code>experiments/01_constants.c</code> measures the function call, the
+system call and the copy on your machine. Commit to your numbers before
+you run either. See <a href="./experiments.md">Experiments</a>.
 </div>
 
 <div class="challenges">
@@ -389,21 +369,25 @@ machine. Commit to your numbers before you run either. See <a href="./experiment
 No answers here, on purpose. Re-deriving is the point. If you wanted to
 re-read, you would have the chat log.
 
-1. You measure a 4 KB write at 900 ns. Which layer is it at, and what
-   floor did you use to decide?
+1. Replace `os.write` with Python's own `open()` and `f.write()`, and
+   predict the median before you run it. Then explain why a stopwatch
+   cannot tell you whether that call reached the kernel, and name an
+   instrument that can.
 
 2. Your service acks a client immediately after `write()` returns.
    Name the exact failure that loses acknowledged data, and the one
    that doesn't.
 
-3. A colleague says an optimization made the write path "three times
-   faster." Using Rule 3, what's the first thing you'd ask, and what
-   would make you reach for `perf` instead of a stopwatch?
+3. Some server drives carry capacitors that let them finish writing
+   their cache after the power goes, so they can answer a durable write
+   in tens of microseconds. Redo this chapter's division for such a
+   drive. Which of the two questions can a stopwatch still settle, and
+   what does "durable" now mean at level three?
 
-4. `fsync` on NVMe costs ~100 µs. A small `write()` costs a few
-   microseconds. Derive the maximum sustainable durable-write rate for
-   a system that syncs once per request, and explain why real databases
-   beat that number anyway.
+4. A durable write costs ~100 µs on the reference machine. A small
+   `write()` costs a few microseconds. Derive the maximum sustainable
+   rate for a system that makes every request durable on its own, and
+   explain why real databases beat that number anyway.
 
 </div>
 
@@ -450,12 +434,6 @@ right.
     new BufWriter<W> with a default buffer capacity. The default is
     currently 8 KiB, but may change in the future."
     <https://doc.rust-lang.org/std/io/struct.BufWriter.html>
-
-[^java]: Java SE 21 API, `java.io.BufferedOutputStream.write(byte[],
-    int, int)`: "If the requested length is at least as large as this
-    stream's buffer, however, then this method will flush the buffer and
-    write the bytes directly to the underlying output stream."
-    <https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/BufferedOutputStream.html>
 
 [^write]: Linux manual page `write(2)`, NOTES.
     <https://man7.org/linux/man-pages/man2/write.2.html>. Also `man 2 write`.

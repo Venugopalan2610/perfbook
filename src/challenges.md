@@ -3,13 +3,14 @@
 Every question in the book, stripped of context and answers. Revision by
 retrieval, not rereading.
 
-## 1 · Twenty-Five Microseconds
+## 1 · Success, Too Soon
 
-1. A 4 KB write measures 900 ns. Which layer, and which floor decided it?
+1. Swap `os.write` for Python's `f.write()`. Predict the median, then say
+   why a stopwatch cannot tell whether it reached the kernel.
 2. A service acks after `write()` returns. Which failure loses acked data,
    and which doesn't?
-3. Someone claims a 3× speedup. First question, and what would make you
-   reach for `perf`?
+3. A drive with capacitors answers a durable write in tens of µs. Which
+   question can a stopwatch still settle, and what is "durable" now?
 4. Derive the max durable-write rate for one `fsync` per request, then
    explain why real databases beat it.
 

@@ -8,7 +8,7 @@
 
 # I. The Method
 
-- [Twenty-Five Microseconds](./01-twenty-five-microseconds.md)
+- [Success, Too Soon](./01-twenty-five-microseconds.md)
 
 # II. Cost Has a Shape
 

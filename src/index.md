@@ -8,14 +8,14 @@ Not measured again. Checked: worked out what the number should have
 been, then looked to see whether the one on your screen was anywhere
 near it. Hardly anyone does, and it takes about ten seconds.
 
-Here is what those ten seconds buy. Write a megabyte to a file, time the
-call, and it comes back in twenty-five microseconds. But a megabyte
-cannot cross a memory bus that quickly. At ten gigabytes a second it
-takes a hundred microseconds to move, and that is the floor for the
-fastest thing that could possibly have happened. Twenty-five is under
-the floor. So the work did not happen. Something you have done a
-thousand times just reported success, and it was not telling you the
-truth.
+Here is what those ten seconds buy. Write four kilobytes to a file,
+time the call, and it says success in a few microseconds. But a drive
+is a small computer at the far end of a bus, and making data survive a
+power cut takes it far longer than that: on the book's reference
+machine, a hundred microseconds at the very least. Your write came back
+long before the fastest durable write could have finished. So it was
+not durable. Something you do a thousand times a day just reported success,
+and the success was smaller than it sounded.
 
 One division. No profiler, no flame graph, no afternoon gone.
 
@@ -26,8 +26,8 @@ division, and ends with one sentence worth remembering.
 
 <div class="start">
 
-[Start here: Twenty-Five Microseconds](./01-twenty-five-microseconds.md)<br>
-Where that megabyte actually went.
+[Start here: Success, Too Soon](./01-twenty-five-microseconds.md)<br>
+Where those four kilobytes actually went.
 
 </div>
 

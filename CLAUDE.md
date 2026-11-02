@@ -347,9 +347,9 @@ by running the labs.
 | Quantity | Reference value |
 |---|---|
 | memory copy, one core | 10 GB/s |
-| copy into a cache-hot buffer | 40 GB/s |
 | NVMe sequential write | 2 GB/s |
 | spinning disk sequential | 150 MB/s |
+| round trip to the drive, no flush | 20 µs |
 | fsync round trip (NVMe-class) | 100 µs |
 | function call | 1 ns |
 | empty system call | 0.1 µs |

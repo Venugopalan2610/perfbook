@@ -64,7 +64,7 @@ measuring itself. Survival is cruder and correct.
 | `03_fsync_cost` | The Barrier | 3, all ratios |
 | `06_crc_zero_seed` | Where the Truth Stops | 6, all exact, including a CRC-32 known-answer test |
 | `05_group_commit` | Group Commit | 4, ratios, at two arrival rates |
-| `01_write_latency` | Five Microseconds | timing survey, no pass/fail yet |
+| `01_write_latency` | Success, Too Soon | timing survey, no pass/fail yet |
 
 `06` proves its own CRC against the IEEE 802.3 vector for `123456789`
 before it claims anything, so the zero-seed finding cannot be blamed

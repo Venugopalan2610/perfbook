@@ -103,20 +103,20 @@ def ruler(name, points, xlim, caption, figwidth=7.2, figheight=1.7):
 ruler(
     "ruler-01-twenty-five-microseconds.svg",
     points=[
-        (25e-6, "25 µs", "measured", True),
-        (100e-6, "100 µs", "memcpy", False),
-        (500e-6, "500 µs", "NVMe", False),
-        (6.7e-3, "6.7 ms", "disk", False),
+        (0.1e-6, "0.1 µs", "system call", False),
+        (5e-6, "4–15 µs", "laptop, 2026", True),
+        (20e-6, "20 µs", "drive", False),
+        (100e-6, "100 µs", "durable", False),
     ],
-    xlim=(2e-6, 2e-2),
-    caption="Log scale. The measurement doesn't land between the candidates. It lands to the left of all of them.",
+    xlim=(3e-8, 1e-3),
+    caption="Log scale. Above the floor for entering the kernel, and well under the floor for a durable write.",
 )
 
 ruler(
     "ruler-03-the-barrier.svg",
     points=[
         (4e-9, "4 ns", "floor", False),
-        (100e-6, "100 µs", "measured", True),
+        (100e-6, "100 µs", "fsync, reference", True),
         (1.7e-3, "1–3 ms", "SATA", False),
         (7.1e-3, "5–10 ms", "disk", False),
     ],
