@@ -205,7 +205,9 @@ Adding the padding to `max-width` as well was tried once and measured
 760px of text instead of 700. Measure `.chapter-body`'s width after any
 change to the sheet.
 
-The social card (`src/img/social-card.png`) still uses the old palette.
+The social card (`src/img/social-card.png`) follows the scroll too: wooden
+rollers top and bottom, the drawing multiplied onto `--sheet`. Rerun
+`pipeline/make_social_card.py` if the palette or the chapter count changes.
 
 ### ⚠ `theme/index.hbs` is a fork
 
