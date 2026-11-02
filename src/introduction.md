@@ -123,7 +123,7 @@ storage trivia dressed up as a principle. What makes it a method is that
 the same four steps, applied to hardware nobody had when the storage
 ideas were invented, produce the same kind of answer. Group commit and
 GPU batching turn out to be the same equation. The floor test catches a
-fraudulent benchmark in chapter 1 and an unmodelled CPU cost in chapter
+write that never reached the disk in chapter 1 and an unmodelled CPU cost in chapter
 12. Paged attention turns out to be virtual memory from 1962.
 
 The technologies in the examples will age. The tools will not, and every

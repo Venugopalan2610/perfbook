@@ -41,19 +41,20 @@ MAXLEN = 155
 # produce a useful snippet from their own prose.
 OVERRIDE = {
     "index.md": "Performance engineering derived from a dozen constants and "
-                "long division. Twelve chapters, each opening with a "
-                "measurement that does not fit.",
-    "preface.md": "Why this book exists, the rule that nothing is looked up, "
+                "long division. Thirteen chapters, each opening with a "
+                "number that does not fit.",
+    "preface.md": "Why this book exists, the rule that nothing is taken on "
+                  "authority, "
                   "and how to revise from it by retrieval rather than by "
                   "rereading it.",
     "introduction.md": "The method itself: name the candidates, name the "
                        "ratio between them, do the division, and see which "
                        "ones survive it.",
-    "rules.md": "All fourteen rules of Deriving Systems on one page, each "
+    "rules.md": "All fifteen rules of Deriving Systems on one page, each "
                 "linking back to the derivation that earned it. The page to "
                 "open at eleven at night.",
     "challenges.md": "Every question in Deriving Systems, stripped of context "
-                     "and answers. Forty-eight challenges, for revision by "
+                     "and answers. Fifty-two challenges, for revision by "
                      "retrieval rather than rereading.",
 }
 

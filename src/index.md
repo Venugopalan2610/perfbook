@@ -19,8 +19,9 @@ truth.
 
 One division. No profiler, no flame graph, no afternoon gone.
 
-This book is thirteen of them. Nothing is looked up: each chapter opens
-with a measurement that cannot be true, spends a couple of pages on long
+This book is thirteen of them. Nothing is taken on authority: each
+chapter opens with a number that does not fit, usually one you predict
+and then measure on your own machine, spends a couple of pages on long
 division, and ends with one sentence worth remembering.
 
 <div class="start">

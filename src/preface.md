@@ -1,31 +1,35 @@
 # Preface
 
-This book began as an argument I was losing.
+This book is about an argument most of us lose.
 
-Somebody asked me why an `fsync` was slow, and I gave the answer
-everyone gives, which is that it goes to the disk and disks are slow.
-Then they asked how slow, and I did not know. I knew the shape of the
-answer. I did not know the number, and it turned out that not knowing
-the number meant I did not really know anything at all, because the
-number was four orders of magnitude away from where my intuition had
-quietly parked it.
+Ask an engineer why an `fsync` is slow, and you get the answer everyone
+gives, which is that it goes to the disk and disks are slow. Then ask
+how slow. Almost nobody knows. We know the shape of the answer and not
+the number, and not knowing the number means we do not really know
+anything at all, because the number is very often orders of magnitude
+away from where intuition has quietly parked it. I know, because mine
+was parked there too.
 
-So I started dividing. Not measuring: dividing. And what surprised me
-was how far you can get on a page of long division and a dozen constants
+So the book divides. Not measuring: dividing. And what is surprising
+is how far you can get on a page of long division and a dozen constants
 you already half remember. Most of the questions I had been treating as
 research questions turned out to be arithmetic questions wearing a
 disguise, and the arithmetic took ten seconds.
 
 That is the whole book. Thirteen chapters of it.
 
-## Nothing is looked up
+## Nothing is taken on authority
 
 Where a number genuinely cannot be derived, and there are plenty of
 those, it arrives in a table labelled **The Axioms**, handed over
-explicitly. A cache line is 64 bytes because somebody once chose 64.
+explicitly. A cache line on most x86 processors is 64 bytes because
+somebody once chose 64.
 There is no first-principles path to that, and pretending otherwise
 would be a lie in a book whose whole premise is not lying about where
-knowledge comes from.
+knowledge comes from. For the same reason, where an argument leans on an
+interface's promise or on somebody else's published result, the page
+says so and gives you the source, so that you can check it instead of
+trusting me.
 
 Everything else is derived in front of you, including the parts where
 the derivation sets aside an answer I liked. I got things wrong writing
@@ -56,7 +60,7 @@ technical book feels productive and teaches almost nothing, because
 recognition is not recall and your brain is extremely willing to confuse
 the two.
 
-Open the [Rules Index](./rules.md) instead. Fourteen sentences, one per
+Open the [Rules Index](./rules.md) instead. Fifteen sentences, one per
 rule, each linking back to the derivation that earned it. Pick one and
 try to rebuild the argument from the sentence alone. If you can, you
 have just proved it to yourself in a way no amount of rereading would.
@@ -80,5 +84,5 @@ your hardware and ratios belong to the world.
 When you want to stop reading and run something, the
 [Experiments](./experiments.md) check the book's own claims on your
 machine, and [The Course](./course.md) is twenty stages that build the
-inference engine Part III derives. Commit to your number before you run
-either. That is the entire exercise, and it stings a little every time.
+inference engine that Parts II, III and V derive. Commit to your number
+before you run either. That is the entire exercise, and it stings a little every time.
