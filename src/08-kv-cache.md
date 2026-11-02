@@ -177,7 +177,7 @@ in that diagram to the right, which from the outside looks identical.
 <div class="aside">
 <strong>Run it.</strong> <code>experiments-gpu/08_kv_cache.py</code> allocates a
 real KV cache and asks CUDA what it cost, instead of trusting the 512 KB
-multiplication, and measures the exact factor GQA saves. A free Colab T4 is
+multiplication, and measures the exact factor GQA saves. A free Colab GPU is
 enough. See <a href="./experiments.md">Experiments</a>.
 </div>
 
