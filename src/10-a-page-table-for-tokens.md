@@ -4,12 +4,15 @@
 
 <img class="chapter-illustration" src="img/illus-10-a-page-table-for-tokens.png" alt="A librarian standing before an enormous wall of card catalogue drawers, holding a single card.">
 
-Go and measure what a real service actually produces. The mean request
-runs to about 350 tokens. Not 2048. Three hundred and fifty.
+Look back over your own conversations with a chat model and count how
+long the answers are. Most are a few paragraphs. Suppose a service
+measures its traffic and finds the mean answer runs to about 350
+tokens. Not 2048. Three hundred and fifty.
 
-That is a sixth of the length the last two chapters budgeted for, so the
-card ought to hold something in the neighbourhood of four hundred
-sequences.
+That is a sixth of the length the last two chapters budgeted for. So
+before you read on, predict: how many sequences should the card hold
+now? Write it down. The arithmetic says something in the neighbourhood
+of four hundred.
 
 It holds 66.
 
@@ -125,10 +128,11 @@ number the model chose. That is the whole difference, and it is worth
 more than it sounds.
 
 <div class="rule" id="blocks-not-reservations">
-<span class="rule-id">Rule 9 · Page the cache; reserve for the token you have</span>
-When a per-client allocation grows unpredictably toward a large
-ceiling, allocate it in fixed-size blocks with an indirection table.
-Waste falls from the gap between actual and maximum to under one block.
+<span class="rule-id">Rule 9 · You cannot buy your way out of a waste fraction</span>
+When a resource is mostly reserved and barely used, more of it buys the
+same waste. Allocate what grows unpredictably in fixed blocks through an
+indirection, and waste falls from the gap between actual and maximum to
+under one block. For the KV cache: page it.
 </div>
 
 ## 7.4 What This Rules Out
@@ -253,9 +257,9 @@ There is something in that worth more than the specific trick.
 The KV cache problem arrived looking like a machine learning problem,
 and it was wearing all the machine learning clothes: attention, tokens,
 transformers, hardware nobody had five years earlier. Solve it as a
-machine learning problem and you get machine learning answers, and the
-field did try those first. Smaller caches. Shorter contexts. Cleverer
-padding. All reasonable. All small.
+machine learning problem and you get machine learning answers.
+Smaller caches. Shorter contexts. Cleverer padding. All reasonable. All
+small.
 
 But describe it in its own terms and it is a memory allocator with
 unpredictable per-client growth against a hard ceiling. That

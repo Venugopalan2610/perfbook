@@ -4,22 +4,28 @@
 
 <img class="chapter-illustration" src="img/illus-12-spending-the-idle.png" alt="One worker at a single bench, with a vast and otherwise empty factory hall stretching away behind him.">
 
-Here is a measurement that ought to be impossible.
+Here is a prediction that ought to be impossible.
 
 Take five candidate tokens, produced by something cheap. Hand all five
 to the 7B model and ask it to check them in a single forward pass. Five
-times the arithmetic of an ordinary decode step.
+times the arithmetic of an ordinary decode step. Before you read on,
+guess how much longer that pass takes than an ordinary one.
 
 <p class="quip">Five times the work at the same price. This is the one place in the book where that sentence is not a warning.</p>
 
-It takes the same 7 milliseconds.
+The same 7 milliseconds.
 
-Chapter 4 opened this book's second half with a complaint about exactly
-the resource that just paid for those five tokens. Generating one token
-from a 7B model on an A100 spends 45 microseconds computing and 7
-milliseconds waiting, and the most expensive processor in the building
-sits 99.4% idle. Five chapters later we have moved an enormous amount of
-memory around and never once gone back for it.
+If that sounds wrong, you have already seen it with your own eyes.
+Go back to what `experiments-gpu/07_roofline.py` printed in chapter 4:
+the time per pass, in the last column, barely moved from batch 1 to
+batch 8, while the work grew eightfold.
+
+Chapter 4 opened with a complaint about exactly the resource that just
+paid for those five tokens. Generating one token from a 7B model on the
+reference GPU spends 45 microseconds computing and 7 milliseconds
+waiting, and the most expensive processor in the building sits 99.4%
+idle. Four chapters later we have moved an enormous amount of memory
+around and never once gone back for it.
 
 ## 8.1 Candidates and the Ratio
 
@@ -37,10 +43,9 @@ The second: the arithmetic was free, because we had already paid for
 it and were not using it.
 
 The ratio worth naming is 156 to 1, and we computed it back in chapter
-7. If the second is right, then this is not a clever trick at all.
+4. If the second is right, then this is not a clever trick at all.
 It is the natural consequence of standing two orders of magnitude to
-the left of the ridge, and the only surprising thing is that it took
-the field until 2023 to go and spend the change.
+the left of the ridge.
 
 ## 8.2 The Axioms
 
@@ -51,7 +56,7 @@ good sign for a final chapter.
 |---|---|
 | Weight bytes read per forward pass | 14 GB, **independent of token count** |
 | FLOPs per token of work | ~14 GFLOP |
-| A100 ridge point | ~156 FLOP/byte |
+| Reference GPU ridge point | ~156 FLOP/byte |
 | Memory time for one pass | ~7 ms |
 | Compute time per token of work | ~45 µs |
 
@@ -89,7 +94,7 @@ compute time, generate 1  :  14 GFLOP ÷ 312 TFLOP/s  =   45 µs
 compute time, verify 5    :  70 GFLOP ÷ 312 TFLOP/s  =  225 µs
 ```
 
-<p class="quip">Doing five times the arithmetic for free is the closest thing to a free lunch in this book, and it took the field until 2023 to order it.</p>
+<p class="quip">Doing five times the arithmetic for free is the closest thing to a free lunch in this book.</p>
 
 The compute grew by a hundred and eighty microseconds, against a seven
 millisecond wait. We went from 99.4% idle to 96.8% idle and the wall
@@ -103,10 +108,10 @@ sentence the other way round and it says extra compute below the ridge
 <img class="chart" src="img/speculative-12-spending-the-idle.svg" alt="Roofline chart, log-log. The memory-bound diagonal rises to the compute-bound plateau at the ridge point near 156 FLOP per byte. Two points sit on the diagonal: batch-1 decode at 1 FLOP per byte and five-token verification at 5 FLOP per byte. Both are far left of the ridge, and an annotation marks that both take 7 milliseconds.">
 
 <div class="rule" id="spend-below-ridge">
-<span class="rule-id">Rule 10 · Below the ridge, spend compute on work that might be wasted</span>
-Idle compute does not accrue. If arithmetic intensity is far under the
-ridge point, speculative work is free even when most of it is thrown
-away.
+<span class="rule-id">Rule 10 · An idle resource is a budget</span>
+Idle capacity does not accrue. When one resource is scarce and another
+sits idle, spend the idle one freely, even on work you expect to throw
+away. For decoding below the ridge: speculate.
 </div>
 
 ## 8.4 What This Rules Out
@@ -122,7 +127,7 @@ not the same thing as "drawn from the model's distribution," and a
 system that quietly sharpens its own sampling is precisely the
 quality-for-speed trade we were trying to avoid.
 
-Modified rejection sampling repairs it, and here is the whole of it.
+Modified rejection sampling repairs it,[^spec] and here is the whole of it.
 
 Let q be the cheap proposer's distribution and p the real model's. For
 each proposed token t, accept it with probability min(1, p(t) ÷ q(t)).
@@ -229,8 +234,8 @@ approximately real.
    terms of the target's output distribution, and say what that implies
    about advertising a single speedup number for this feature.
 
-4. Chapters 4 through 8 give four ways to move throughput: batch,
-   page the cache, delete launch overhead, and speculate. A serving
+4. Chapters 4 to 8 and chapter 12 give four ways to move throughput:
+   batch, page the cache, delete launch overhead, and speculate. A serving
    system has finite engineering time. Order them for a deployment
    whose requests average 30 output tokens and arrive 4 per second, and
    justify the order with arithmetic rather than preference. (Nothing
@@ -248,7 +253,7 @@ like waste. Like something a better engineer would have prevented. The
 natural response was to go looking for the mistake that caused it, and
 I sent you looking, and there was no mistake.
 
-Six chapters later the same number is a budget.
+Four chapters later the same number is a budget.
 
 The GPU is idle because arithmetic intensity is far below the ridge,
 and that is not a defect waiting to be repaired. It is a resource
@@ -274,9 +279,9 @@ rewarded for having our entire careers. And that instinct is correct,
 whenever compute is scarce. It is precisely wrong here. Telling those
 two situations apart is what the ratio in chapter 4 was always for.
 
-That is where this book stops deriving and
+If you want to build it rather than derive it,
 [the course](./course.md)
-starts building. Twenty stages, each gated on a measurement rather than
+at the end of the book does exactly that. Twenty stages, each gated on a measurement rather than
 on your code merely running: the naive loop, the KV cache, the roofline
 you just read about, static and then continuous batching, the block
 allocator, paged attention in PyTorch and then in Triton, prefix
@@ -287,3 +292,14 @@ The chapters tell you which number matters and why. The stages will not
 let you past until your version of it moves.
 
 </div>
+
+[^spec]: Y. Leviathan, M. Kalman and Y. Matias, "Fast Inference from
+    Transformers via Speculative Decoding," arXiv:2211.17192, November
+    2022; and C. Chen, S. Borgeaud, G. Irving et al.,
+    "Accelerating Large Language Model Decoding with Speculative
+    Sampling," arXiv:2302.01318, February 2023. An earlier, greedy-only
+    form of the idea is M. Stern, N. Shazeer and J. Uszkoreit,
+    "Blockwise Parallel Decoding for Deep Autoregressive Models,"
+    arXiv:1811.03115, 2018.
+    <https://arxiv.org/abs/2211.17192>, <https://arxiv.org/abs/2302.01318>,
+    <https://arxiv.org/abs/1811.03115>
