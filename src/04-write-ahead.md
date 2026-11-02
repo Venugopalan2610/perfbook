@@ -19,8 +19,8 @@ The bytes it just claimed to have persisted were never written, and
 they never will be. The kernel is not lying to you. It is telling you
 the honest truth about the only attempt it still has any record of.
 
-This was a real bug, found in PostgreSQL in 2018, and once you see why
-it happened, it changes what the phrase "handle the error" is even
+This was a real bug, found by the PostgreSQL developers in 2018,[^lwn]
+and once you see why it happened, it changes what the phrase "handle the error" is even
 permitted to mean.
 
 ## 10.1 Two Candidates and a Missing Number
@@ -55,40 +55,51 @@ So the second call returns success. Honestly. From where it is
 standing, there is genuinely nothing left to do.
 
 <div class="aside">
-The fix that shipped in Linux 4.13 (<code>errseq_t</code>) made sure
-every open file description sees the error at least once, instead of the
-first caller silently consuming it on everyone else's behalf. It did not
-change the deeper fact underneath: the page is still discarded after one
-failed writeback. Retry-until-success was broken before that fix, and it
-is broken after it. The fix made the error easier to see. It did not
-make the data come back.
+Linux changed how these errors are reported, starting with version 4.13
+and again in later versions, so that the error is harder to lose. It did
+not change the deeper fact underneath. The PostgreSQL project's own
+record of the episode puts it plainly for the newer kernels: "you still
+only get the error once (so retrying fsync() is not OK)", and the failed
+pages are "still thrown away".[^pgwiki] The fix made the error easier to
+see. It did not make the data come back.
 </div>
 
 ## 10.2 The Axioms
 
-There is no arithmetic to do here, which is unusual for this book. What
-we need instead are three facts about kernel behaviour, none of which
+The division in this chapter is not about time. It is about copies.
+At every step, count how many independent copies of the data exist
+that could still bring it back. A recovery plan is only as good as that
+count at its worst moment.
+
+To count them we need three facts about kernel behaviour, none of which
 you can reason your way to from first principles, and all three of which
-have to be true at once for the bug above to happen.
+have to be true at once for the bug above to happen. They are stable
+facts about an interface, not about hardware, and the sources are
+below.
 
 | Fact | What it means for us |
 |---|---|
 | A writeback failure marks the page clean and evicts it | The failed bytes are gone from the page cache, not "still pending" |
-| The error surfaces to `fsync` **at most once per file description** (post-4.13) | A second caller, or a second call, can see success on a page that never made it to disk |
+| The error is reported **once**, not on every later call | A second call can see success on a page that never made it to disk |
 | The kernel has no concept of "our" data, only dirty pages | It cannot retry on our behalf; it does not know what the bytes were for |
 
-<p class="quip">A backup on the same disk is not a backup. Everybody agrees with this, and roughly half of us keep one anyway.</p>
+<p class="quip">A backup on the same disk is not a backup. Everybody agrees with this, and plenty of us keep one anyway.</p>
 
-Put those together and you get something that sounds almost harsh: an
+Now count. Before the failure there was one copy of the new bytes: the
+dirty page in the page cache. The failed writeback threw it away. The
+count is zero, and there is nothing a retry can retry *with*.
+
+So you get something that sounds almost harsh: an
 `fsync` failure is not a transient fault to be retried. It is a
 terminal event. The only sound response is to treat that data as lost
 and rebuild it from somewhere the kernel did not just erase.
 
 <div class="rule" id="fsync-terminal">
-<span class="rule-id">Rule 12 · fsync failure is not retryable</span>
-Once `fsync` reports an error, the page behind it is already gone.
-Retrying the same call can't recover it; only replaying from an
-independent, already-durable source can.
+<span class="rule-id">Rule 12 · Retrying is not recovery when the failure took the copy</span>
+Count the independent copies at every step. When a failure destroys the
+thing you would retry with, retrying succeeds at nothing; only an
+independent copy made earlier can bring the data back. For `fsync`: an
+error is final, so make the log durable before you promise anything.
 </div>
 
 ## 10.3 Doing the Division
@@ -121,6 +132,12 @@ why it is the one thing that gets the expensive, synchronous, ordered
 barrier we bought in chapter 2.
 
 <p class="quip">The data pages are allowed to be wrong. It takes a while to be comfortable writing that sentence down.</p>
+
+Count the copies again. From the moment step 2 returns, there is one
+durable copy of the fact on the device, and the acknowledgement in step
+3 is never sent before that count reaches one. Every later failure,
+including a failed `fsync` on a data page, leaves the count at one or
+more. That is the whole design, said as a number.
 
 One barrier. On the one irreplaceable thing.
 
@@ -210,7 +227,7 @@ simply take its time.
    it?
 
 4. `full_page_writes` doubles WAL volume right after every checkpoint.
-   Using Rule 4 from the previous chapter, propose a way to reduce that
+   Using Rule 4 from chapter 2, propose a way to reduce that
    cost without weakening the torn-page guarantee.
 
 </div>
@@ -245,3 +262,16 @@ what "design for the failure you cannot retry" looks like once somebody
 draws it out on paper.
 
 </div>
+
+[^lwn]: J. Corbet, "PostgreSQL's fsync() surprise," *LWN.net*, 18 April
+    2018: "When a buffered I/O write fails due to a hardware-level error,
+    filesystems will respond differently, but that behavior usually
+    includes discarding the data in the affected pages and marking them
+    as being clean." <https://lwn.net/Articles/752063/>
+
+[^pgwiki]: PostgreSQL wiki, "Fsync Errors" (last edited 5 July 2023).
+    For Linux before 4.13: "buffers are marked clean after errors, so
+    retrying fsync() can falsely report success." For 4.14 and 4.16 and
+    later: "you still only get the error once (so retrying fsync() is
+    not OK)" and "buffers are still thrown away."
+    <https://wiki.postgresql.org/wiki/Fsync_Errors>

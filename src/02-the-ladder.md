@@ -4,8 +4,9 @@
 
 <img class="chapter-illustration" src="img/illus-02-the-ladder.png" alt="A small figure leaning over the rim of a deep round stone well, with a very long ladder descending into it.">
 
-Let me tell you about a test that passed ten thousand times and proved
-nothing at all.
+This part of the book turns the method on our own evidence. Here is a
+test that passes ten thousand times and proves nothing at all. It is
+worth imagining in detail, because the shape of it is common.
 
 We build a crash-test harness for a write path we care about. It sends
 `kill -9` to the process mid-write, at a random byte offset, ten
@@ -70,7 +71,7 @@ thing that determines what can kill it.
 That third row is the one nobody's intuition gets for free, and it is
 worth a digression, because it is where the money is.
 
-<p class="quip">The capacitor costs about forty cents. It is the difference between a drive that keeps its promises and one that merely makes them.</p>
+<p class="quip">The capacitor is a small part. It is the difference between a drive that keeps its promises and one that merely makes them.</p>
 
 Consumer SSDs and spinning disks both carry a small volatile write
 cache *on the device itself*. Not in your process. Not in the kernel.
@@ -96,14 +97,25 @@ you should too.
 There is arithmetic here, and it is not the arithmetic the harness
 looked like it was doing.
 
-Ten thousand clean runs is a real statistical result. When you see zero
-failures in n trials, the ninety-five percent upper bound on the true
-failure rate is about 3/n. So the harness bought us a genuinely precise
+Ten thousand clean runs is a real statistical result, and we can derive
+exactly how much it is worth. Suppose the true failure rate is p. The
+chance of n clean runs in a row is (1 − p)ⁿ. Ask how large p could be
+before seeing n clean runs becomes a five-percent fluke:
+
+```
+(1 − p)ⁿ  =  0.05
+n × p    ≈  ln 20  ≈  3        (for small p)
+p        ≈  3 / n
+```
+
+Zero failures in n trials puts the ninety-five percent upper bound on
+the failure rate at about 3/n. Statisticians call it the rule of three,
+and it fits on a napkin. So the harness bought us a genuinely precise
 number:
 
 ```
-     10,000 runs, 0 failures  ->  failure rate below 1 in 3,339
-  1,000,000 runs, 0 failures  ->  failure rate below 1 in 333,809
+     10,000 runs, 0 failures  ->  failure rate below 1 in 3,338
+  1,000,000 runs, 0 failures  ->  failure rate below 1 in 333,808
 ```
 
 That is defensible and it was not free. Somebody's machine ran for
@@ -119,7 +131,7 @@ added:
   trials that reached row 1        10,000
   trials that reached row 3             0
 
-  95% bound, row 1 data loss   1 in 3,339
+  95% bound, row 1 data loss   1 in 3,338
   95% bound, row 3 data loss          100%
 ```
 
@@ -139,9 +151,11 @@ significant figures about row one, while the data we were worried about
 lived three rows further down.
 
 <div class="rule" id="failure-fidelity">
-<span class="rule-id">Rule 11 · Test the failure you claim to survive</span>
-A crash test that cannot reach the layer your data lives in has proven
-nothing about that layer. Count rows before you count nines.
+<span class="rule-id">Rule 11 · A test proves nothing about a layer it cannot reach</span>
+Before you count runs, count the layers the test can actually touch.
+Zero failures in n runs bounds the failure rate at about 3/n, but only
+for the layers the test reached. For crash tests: test the failure you
+claim to survive.
 </div>
 
 ## 9.4 What This Rules Out
@@ -159,7 +173,7 @@ The kernel is fine. It watched your process die with total equanimity.
 
 The claim that needed testing was different: *does an acknowledged
 write survive losing the wall socket?* Answering that requires reaching
-row three or four. Which needs `fsync()`, which is the next chapter,
+row three or four. Which needs `fsync()`, the barrier from chapter 2,
 and a fault injector that removes power rather than signals: an IPMI
 power-cycle, a managed PDU, a physical switch, somebody's foot.
 
@@ -181,12 +195,20 @@ loss without a capacitor puts its ✗ two rows deeper than most test
 suites ever bother to look.
 </div>
 
-<p class="quip">Chapter 1 got you to row one in twenty-five microseconds. The other three rows take the rest of the book.</p>
+<p class="quip">Chapter 1 got you to row one in twenty-five microseconds. The other three rows are where the bill arrives.</p>
 
-Twenty-five microseconds put you on row one, back in chapter 1. The rest of
-this book is about what it costs, in time and in engineering, to walk
-down to row four on purpose. And about not fooling yourself into
-thinking you are already standing there.
+Twenty-five microseconds put you on row one, back in chapter 1, and
+chapter 2 priced the walk down to row four. What this part of the book
+is about is the other half: not fooling yourself into thinking you are
+already standing there.
+
+<div class="aside">
+<strong>Run it.</strong> <code>experiments/02_ladder_survival.c</code> kills a
+writer with <code>SIGKILL</code> at three different moments and counts how many
+bytes outlived it. Predict all three counts first. It is deterministic, so
+if your prediction is wrong, the ladder in your head is wrong, not the
+machine. See <a href="./experiments.md">Experiments</a>.
+</div>
 
 <div class="challenges">
 

@@ -57,7 +57,7 @@ is the whole of section 11.4.
 
 | Property | Value |
 |---|---|
-| CRC-32 catches | all 1-bit and 2-bit errors, all odd-count bit errors, all burst errors ≤ 32 bits |
+| CRC-32 catches | every single-bit error, and every burst of 32 bits or fewer |
 | CRC-32 misses (random corruption, non-adversarial) | ~1 in 2³² ≈ 4.3 billion |
 | Computation | remainder of polynomial long division, in GF(2): XOR instead of subtract, no carries |
 
@@ -115,10 +115,11 @@ used to live on that block, months ago, by a process that had never
 heard of us.
 
 <div class="rule" id="checksum-the-edge">
-<span class="rule-id">Rule 13 · Checksum every record; seed the register nonzero</span>
-Torn writes don't fail structural checks; they pass them by accident.
-Only an arithmetic check, computed over the content, reliably finds
-where the truth stops.
+<span class="rule-id">Rule 13 · A check made in the same act as the data fails with it</span>
+Framing written alongside the data tears alongside it, and passes by
+accident. Verify with arithmetic over the content, and ask what every
+check does on its worst input, not a typical one. For logs: checksum
+every record, and seed the register nonzero.
 </div>
 
 ## 11.4 What This Rules Out
@@ -155,11 +156,34 @@ mechanism we built specifically to catch it. We did not fail to check.
 We checked, carefully, with real arithmetic, and the arithmetic said
 yes.
 
+You do not have to take my word for this one either. Here is the
+textbook CRC-32 loop with its register started at zero, next to the
+standard one that ships with Python:
+
+```python
+import zlib
+
+def crc32_zero_seed(data):
+    reg = 0                                   # the mistake
+    for byte in data:
+        reg ^= byte
+        for _ in range(8):
+            reg = (reg >> 1) ^ (0xEDB88320 if reg & 1 else 0)
+    return reg
+
+zeros = bytes(200)                            # a torn record: all zeros
+print(crc32_zero_seed(zeros))                 # 0, and the trailer says 0
+print(zlib.crc32(zeros))                      # not 0
+```
+
+Predict both lines before you run it. The first prints 0, so a zeroed
+record carrying a zeroed trailer passes. The second does not.
+
 The fix is one line. Seed the register with a nonzero value before you
-start. CRC-32's standard does exactly this, with `0xFFFFFFFF`. An
-all-zero message no longer produces an all-zero result, the degenerate
-case that used to sail through now perturbs the register, and it gets
-caught like anything else.
+start. The standard CRC-32 does exactly this, with `0xFFFFFFFF`, which
+is why `zlib` gets it right. An all-zero message no longer produces an
+all-zero result, the degenerate case that used to sail through now
+perturbs the register, and it gets caught like anything else.
 
 <p class="quip">Thirty-two bits of careful mathematics, defeated by a block of nothing at all, and fixed by starting somewhere other than nothing.</p>
 
