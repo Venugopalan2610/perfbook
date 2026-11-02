@@ -4,9 +4,11 @@
 
 <img class="chapter-illustration" src="img/illus-11-below-the-floor.png" alt="A clerk stamping a towering stack of forms one at a time, while a large machine stands idle beside him.">
 
-A 0.6B model in bf16. 1.19 GB of weights, on a card whose streaming
-bandwidth measures 380 GB/s. Every number small enough to hold in your
-head, which is the only reason to use a model this size.
+This chapter starts from a real measurement, made in 2026 on a laptop
+GPU with stage 03 of the course at the end of this book. A 0.6B model in
+bf16. 1.19 GB of weights, on a card whose streaming bandwidth measures
+380 GB/s. Every number small enough to hold in your head, which is the
+only reason to use a model this size.
 
 ```
 roofline floor  =  1.19 GB ÷ 380 GB/s  =  3.13 ms/token
@@ -26,8 +28,12 @@ check them, especially the ones you like.
 The card is achieving 153 GB/s out of the 380 it demonstrably has,
 which is forty percent of a bus chapter 4 said should be saturated.
 Somewhere inside every single token, four and a half milliseconds are
-going somewhere that is not the memory bus, on a workload we have spent
-two chapters calling memory-bound.
+going somewhere that is not the memory bus, on a workload that chapters
+4 and 5 called memory-bound.
+
+Before you read on, guess where those four and a half milliseconds go.
+Write the guess down, because the arithmetic below will either agree
+with you or embarrass you, and both are worth having.
 
 ## 12.1 Candidates and the Ratio
 
@@ -57,9 +63,9 @@ arithmetic can tell them apart without us guessing.
 ## 12.2 The Axioms
 
 To tell those apart we need to know what the machine is made of, and in
-particular we need one number that neither of the previous two chapters
-ever asked for. The first four rows below are about the model and the
-card. The fifth is about something else entirely:
+particular we need one number that chapters 4 and 5 never asked for.
+The rows below are about the model and the card, and one of them is
+about something else entirely:
 
 | Quantity | Value |
 |---|---|
@@ -67,10 +73,9 @@ card. The fifth is about something else entirely:
 | Measured streaming bandwidth | 380 GB/s |
 | Transformer layers | 28 |
 | GPU operations per layer (attention, MLP, norms) | ~10 |
-| CPU cost to dispatch one operation, eager PyTorch | 5–20 µs |
 
 That last row is the one chapters 4 and 5 never mentioned, and notice
-that it is not a GPU number at all.
+that it is not really a GPU number at all. It is a count of handoffs.
 
 Every kernel that runs on that card was put there by the host. A Python
 call, a dispatch through the framework, a driver call that enqueues work
@@ -91,8 +96,14 @@ per launch            =  4.67 ms ÷ 280        =  ~17 µs
 
 <p class="quip">Two hundred and eighty times per token, a CPU says go, and a GPU that could have started already waits to be told.</p>
 
-Seventeen microseconds per operation, which sits comfortably inside the
-5 to 20 µs the axiom table gives for eager dispatch.
+Seventeen microseconds per operation. We did not look that number up.
+We solved for it: the gap, divided by the count. Now check whether it is
+plausible, with a constant from chapter 1. A plain function call costs
+about a nanosecond, so 17 µs is the price of some seventeen thousand of
+them, which is about what you would expect from a Python call that goes
+through a framework, then a driver, then a queue on the device. Not a
+suspicious number. A believable one, and your own card's stage 03 will
+print yours.
 
 The gap is not some mystery quantity we have to attribute on faith. It
 is 280 individual acts of a CPU telling a GPU what to do next, each one
@@ -109,10 +120,11 @@ runs at full bandwidth. The problem was never inside any of them. The
 problem is the gaps between them.
 
 <div class="rule" id="floor-gap-is-cpu">
-<span class="rule-id">Rule 14 · A workload that misses its own roofline floor is not yet bound by what you think</span>
-When a memory-bound workload takes materially longer than
-bytes ÷ bandwidth, the extra time is on the host, not the bus. Count
-launches before optimizing kernels.
+<span class="rule-id">Rule 14 · Well above the floor means a participant you did not model</span>
+When a measurement misses its floor by a wide margin, do not optimize
+the parts you already know. Find the unmodelled step: divide the gap by
+a count, and see whether the answer is a believable price for
+something. For GPUs: count kernel launches before optimizing kernels.
 </div>
 
 ## 12.4 What This Rules Out
@@ -138,7 +150,10 @@ shapes. Same buffers. We are paying a CPU to make an identical set of
 decisions several hundred times a second, and it makes them correctly
 every time, and none of them were ever in doubt.
 
-That is a recording problem.
+That is a recording problem. And it is a general one: whenever a system
+makes the same decisions, in the same order, again and again, those
+decisions can be made once, recorded, and replayed. A database that
+prepares a query plan once and reuses it is doing the same thing.
 
 <p class="quip">Several hundred times a second, a computer carefully re-derives a conclusion it has never once got wrong.</p>
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """07_roofline - measure the ridge, then watch a batch size walk toward it.
 
-Chapter 7 claims that generating one token from a 7B model at batch 1
+The chapter "The Ridge" claims that generating one token from a 7B model at batch 1
 has an arithmetic intensity of about 1 FLOP per byte, that an A100's
 ridge point is around 156, and that the gap is why the GPU sits idle.
 
@@ -116,7 +116,7 @@ def main():
         f"{b1['ai']:.2f} vs ridge {ridge:.0f}", "at least 10x below",
         b1["ai"] * 10 < ridge)
 
-    # 3. And the consequence chapter 7 cares about: the compute units
+    # 3. And the consequence the chapter "The Ridge" cares about: the compute units
     #    are idle. This is the "99.4% idle" claim, as a ratio.
     pct = 100 * b1["tflops"] / peak
     gpulab.check(

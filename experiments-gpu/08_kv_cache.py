@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""08_kv_cache - the wall chapter 8 runs into, measured in real bytes.
+"""08_kv_cache - the wall the chapter "The Cache That Ate the Batch" runs into, measured in real bytes.
 
-Chapter 8 claims a 7B-class model spends about 512 KB of KV cache per
+The chapter "The Cache That Ate the Batch" claims a 7B-class model spends about 512 KB of KV cache per
 token, that a 2048-token sequence therefore costs about 1 GB, and that
 this, not padding, is what caps the batch size.
 
@@ -118,7 +118,7 @@ def main():
         f"{a100_fits} sequences", "between 55 and 70",
         55 <= a100_fits <= 70)
 
-    # 4. And that ceiling is below what chapter 7's ridge asked for.
+    # 4. And that ceiling is below what the ridge in the chapter "The Ridge" asked for.
     gpulab.check(
         "memory-caps-below-the-ridge",
         "the memory ceiling binds before the compute-optimal batch does",

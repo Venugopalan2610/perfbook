@@ -101,7 +101,7 @@ fast on my laptop" and a result someone else can argue with.
 - **A hypervisor.** `fsync` on a cloud VM often returns when the host
   cache has it, not the media. Recorded in every lab object.
 - **A volatile drive write cache.** Consumer SSDs acknowledge flushes
-  early. That is chapter 2's point, and it is why an `fsync` latency
+  early. That is the point of the chapter "The Ladder", and it is why an `fsync` latency
   alone never proves durability.
 - **Filesystem journalling.** `ext4` with `data=ordered` commits its
   journal on `fsync`, so you are timing two writes. The mount options
@@ -139,7 +139,7 @@ normal outcome and the reason to do it.
 - **Rungs 3 and 4** need a real power cut: a managed PDU or an IPMI
   power cycle, and a second machine to verify from. It cannot be done
   honestly from inside the machine losing power, which is the whole
-  argument of chapter 2.
-- **Chapters 7 and 8** need a GPU, and now have labs for it in
+  argument of the chapter "The Ladder".
+- **The chapters "The Ridge" and "The Cache That Ate the Batch"** need a GPU, and now have labs for it in
   [`../experiments-gpu`](../experiments-gpu), runnable on a free
   Colab T4.

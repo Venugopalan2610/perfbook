@@ -1,6 +1,6 @@
 /* 03_fsync_cost - "fsync is not a save button. It is a purchase."
  *
- * Chapter 3 claims fsync's cost is dominated by the round trip to the
+ * The chapter "The Barrier" claims fsync's cost is dominated by the round trip to the
  * barrier, not by the bytes behind it. That is a falsifiable claim,
  * and this is the falsification test: sync payloads from 8 bytes to
  * 8 MB and see whether the cost tracks the size.

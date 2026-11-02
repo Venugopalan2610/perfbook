@@ -43,7 +43,9 @@ Two things, and neither is a tool.
 roughly. What an `fsync` costs. What a syscall costs. Cache line size.
 The bandwidth and peak compute of whatever accelerator you own. Rough is
 fine. Being within a factor of two is plenty when the candidates are a
-thousand apart, and that is most of the time.
+thousand apart, and that is most of the time. This book does its
+arithmetic on an imaginary reference machine with round values for all
+of them, so that it never goes out of date, and the labs measure yours.
 
 **The willingness to commit to a number before you check.** This is the
 part people skip, and skipping it is why measurement so often teaches
@@ -98,26 +100,33 @@ the real work.
 
 It is the real work. The rest is division.
 
-## Why storage, and then GPUs
+## Why the parts are named the way they are
 
-The book is in four parts. Parts II and III look like they belong to
-different fields: one is about `fsync` and torn writes and crash
-recovery, the other is about arithmetic intensity and KV caches and
-tokens per second. Different decade, different hardware, different
-vocabulary, different conferences.
+The parts of this book are not named after technologies. They are named
+after what the method keeps finding, because that is the thing worth
+carrying out of it.
 
-They are here together on purpose.
+**Cost has a shape.** Most costs are a fixed price per trip plus a
+price per byte, and knowing which term dominates tells you what to do.
+**The scarce thing.** In every system one resource runs out first, and
+the others are worth spending freely to save it. **Believing your
+evidence.** Tests, checks and recoveries can only see what they can
+reach, and the method has to be turned on them too. **When the floor is
+wrong.** A measurement far from its floor means somebody is in the room
+that you did not count.
 
-If the method only worked on storage, it would be storage trivia dressed
-up as a principle. What makes it a method is that the same four steps,
-applied to a GPU nobody had when the storage chapters' ideas were
-invented, produce the same kind of answer. Group commit and GPU batching
-turn out to be the same trick. The floor test catches a fraudulent
-benchmark in chapter 1 and an unmodelled CPU cost in chapter 12.
-PagedAttention turns out to be virtual memory from 1962.
+The examples come from storage in one chapter and from GPUs in the
+next, on purpose. If the method only worked on storage, it would be
+storage trivia dressed up as a principle. What makes it a method is that
+the same four steps, applied to hardware nobody had when the storage
+ideas were invented, produce the same kind of answer. Group commit and
+GPU batching turn out to be the same trick. The floor test catches a
+fraudulent benchmark in chapter 1 and an unmodelled CPU cost in chapter
+12. Paged attention turns out to be virtual memory from 1962.
 
-That is the actual claim of the book, and it is why the two halves sit
-next to each other rather than in two books.
+The technologies in the examples will age. The tools will not, and every
+rule in the book is stated so that it would still be true if every
+hardware number in it moved ten times in either direction.
 
 ## What a rule is
 
@@ -135,12 +144,16 @@ the page to open when you have forgotten everything else.
 
 ## The shape of a chapter
 
-So you can navigate: an anomaly, a measurement that does not fit. Two
-candidates and the ratio between them. A table of axioms, the numbers
-handed over because they cannot be derived. The division. What that
-rules out, including at least one answer we liked. A picture. A rule.
-Four challenges with no answers. And a design note, which is the part
-where I stop deriving and tell you what I actually think.
+So you can navigate: an anomaly, a number that does not fit, and in most
+chapters a prediction you are asked to write down before you read on.
+Two candidates and the ratio between them. A table of axioms, the
+numbers handed over because they cannot be derived, on the reference
+machine. The division. What that rules out, including at least one
+answer we liked. A picture. A rule, which states a general tool first
+and names the system as its example. A lab, where one exists, so the
+surprise happens on your machine rather than mine. Four challenges with
+no answers. And a design note, which is the part where I stop deriving
+and tell you what I actually think.
 
 Twelve times. Starting with a write that returns far too quickly to
 possibly have happened.

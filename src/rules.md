@@ -1,57 +1,78 @@
 # Rules Index
 
-The page to open at 11pm. Each rule links back to the derivation that
-earned it. If you can rebuild the argument from the rule alone, you're
-done; if not, follow the link.
+The page to open at 11pm. Each rule states a general tool first and
+names the system it was derived on as its example, and each links back
+to the derivation that earned it. If you can rebuild the argument from
+the rule alone, you're done; if not, follow the link.
 
 ## I. The Method
 
-- **[Ratio triage](./01-twenty-five-microseconds.md#ratio-triage)**: sort next
-  questions by the spread between their possible answers. >10×: ask now.
-  <2×: it's a detail.
-- **[The floor test](./01-twenty-five-microseconds.md#floor-test)**: when a
-  measurement beats your theoretical floor, the work didn't happen.
-- **[Match the instrument to the ratio](./01-twenty-five-microseconds.md#instrument-precision)**:
-  1000× apart, wall clock. 1.5× apart, counters.
+- **[1 · Ratio triage](./01-twenty-five-microseconds.md#ratio-triage)**:
+  sort your next questions by the spread between their possible
+  answers. More than 10× apart: ask it now. Less than 2×: it's a detail.
+- **[2 · The floor test](./01-twenty-five-microseconds.md#floor-test)**:
+  when a measurement beats your theoretical floor, the system is not
+  fast. The work did not happen.
+- **[3 · Match the instrument to the ratio](./01-twenty-five-microseconds.md#instrument-precision)**:
+  1000× apart, a wall clock. 20× apart, a wall clock used carefully.
+  1.5× apart, counters and statistics.
 
-## II. Durability
+## II. Cost Has a Shape
 
-- **[Test the failure you claim to survive](./02-the-ladder.md#failure-fidelity)**:
-  a crash test that can't reach the layer your data lives in has
-  proven nothing about that layer.
-- **[Buy durability at boundaries, not by the record](./03-the-barrier.md#boundary-not-spray)**:
-  fsync cost is dominated by the round trip, not the bytes. Pay it
-  once per boundary, never once per write.
-- **[fsync failure is not retryable](./04-write-ahead.md#fsync-terminal)**:
-  once fsync errors, the page behind it is already gone. Recover from
-  an independent durable source, don't retry the same call.
-- **[Let the barrier set its own batch size](./05-group-commit.md#adaptive-batching)**:
-  close the batch when the in-flight fsync returns, not when a counter
-  hits a constant.
-- **[Checksum every record; seed the register nonzero](./06-where-the-truth-stops.md#checksum-the-edge)**:
-  torn writes pass structural checks by accident. Only arithmetic
-  over the content finds where the truth stops.
+- **[4 · A cost that ignores the payload is charged per event](./03-the-barrier.md#boundary-not-spray)**:
+  write the cost as a fixed price per trip plus a price per byte. When
+  the trip dominates, pay it once per batch, never once per item.
+  *Example: `fsync`, once per boundary you need to defend.*
+- **[5 · Let something you can observe close the batch, not a constant](./05-group-commit.md#adaptive-batching)**:
+  a constant is a guess about load; an observation adapts to it.
+  *Example: group commit closes the batch when the in-flight `fsync`
+  returns.*
+- **[6 · Work per byte decides which resource limits you](./07-the-ridge.md#ridge-before-flops)**:
+  compare the work's operations per byte with the machine's compute
+  over bandwidth. Below that ridge, more compute buys nothing.
+  *Example: a GPU decoding one token at a time.*
 
-## III. Accelerators
+## III. The Scarce Thing
 
-- **[Check arithmetic intensity before adding FLOPs](./07-the-ridge.md#ridge-before-flops)**:
-  below the ridge point, more compute buys nothing. The wait is on
-  bytes, not operations.
-- **[Size your batch from the KV budget, not a guess](./08-kv-cache.md#kv-budget-not-guess)**:
-  before blaming scheduling for a batch ceiling, check bytes-per-token
-  × context length × concurrency against free memory.
+- **[7 · Every resource has a ceiling; the lowest one binds](./08-kv-cache.md#kv-budget-not-guess)**:
+  before you call a limit a scheduling problem, compute the budget for
+  every resource and see which runs out first. When a budget is full
+  there are three moves: smaller items, shared items, less held space.
+  *Example: the KV cache caps the batch before compute does.*
+- **[8 · Release a resource when its work ends, not when its group ends](./09-the-slot-that-waited.md#iteration-scheduling)**:
+  measure occupancy, what you used over what you bought, and schedule at
+  the granularity at which work actually finishes.
+  *Example: continuous batching evicts a sequence on the step it ends.*
+- **[9 · You cannot buy your way out of a waste fraction](./10-a-page-table-for-tokens.md#blocks-not-reservations)**:
+  when a resource is mostly reserved and barely used, more of it buys
+  the same waste. Allocate what grows unpredictably in fixed blocks
+  behind an indirection.
+  *Example: paged attention, which is virtual memory from 1962.*
+- **[10 · An idle resource is a budget](./12-spending-the-idle.md#spend-below-ridge)**:
+  idle capacity does not accrue. Spend the abundant resource freely to
+  save the scarce one, even on work you expect to throw away.
+  *Example: speculative decoding below the ridge.*
 
-## IV. Building the Answer
+## IV. Believing Your Evidence
 
-- **[Release the slot when the sequence ends, not when the batch does](./09-the-slot-that-waited.md#iteration-scheduling)**:
-  schedule per forward pass, not per request. A finished sequence leaves
-  on the step it finishes; a waiting one takes its place.
-- **[Page the cache; reserve for the token you have](./10-a-page-table-for-tokens.md#blocks-not-reservations)**:
-  when a per-client allocation grows unpredictably toward a large
-  ceiling, allocate fixed-size blocks behind an indirection table.
-- **[A workload that misses its own roofline floor is not yet bound by what you think](./11-below-the-floor.md#floor-gap-is-cpu)**:
-  when a memory-bound workload takes longer than bytes ÷ bandwidth, the
-  extra time is on the host. Count launches before optimizing kernels.
-- **[Below the ridge, spend compute on work that might be wasted](./12-spending-the-idle.md#spend-below-ridge)**:
-  idle compute does not accrue. Far under the ridge point, speculative
-  work is free even when most of it is discarded.
+- **[11 · A test proves nothing about a layer it cannot reach](./02-the-ladder.md#failure-fidelity)**:
+  count the layers a test can touch before you count its runs. Zero
+  failures in n runs bounds the failure rate at about 3/n, and only for
+  those layers.
+  *Example: `kill -9` can never reach the drive's cache.*
+- **[12 · Retrying is not recovery when the failure took the copy](./04-write-ahead.md#fsync-terminal)**:
+  count the independent copies at every step. When a failure destroys
+  what you would retry with, only an earlier, independent copy helps.
+  *Example: a failed `fsync` is final; write-ahead logging.*
+- **[13 · A check made in the same act as the data fails with it](./06-where-the-truth-stops.md#checksum-the-edge)**:
+  verify with arithmetic over the content, and ask what every check does
+  on its worst input.
+  *Example: checksum every log record, and seed the register nonzero.*
+
+## V. When the Floor Is Wrong
+
+- **[14 · Well above the floor means a participant you did not model](./11-below-the-floor.md#floor-gap-is-cpu)**:
+  don't optimize the parts you know. Divide the gap by a count and see
+  whether the answer is a believable price for something.
+  *Example: kernel launches; and decisions repeated identically can be
+  recorded once and replayed.*

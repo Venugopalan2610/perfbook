@@ -60,7 +60,7 @@ and again in later versions, so that the error is harder to lose. It did
 not change the deeper fact underneath. The PostgreSQL project's own
 record of the episode puts it plainly for the newer kernels: "you still
 only get the error once (so retrying fsync() is not OK)", and the failed
-pages are "still thrown away".[^pgwiki] The fix made the error easier to
+pages are "still thrown away". The fix made the error easier to
 see. It did not make the data come back.
 </div>
 
@@ -75,7 +75,7 @@ To count them we need three facts about kernel behaviour, none of which
 you can reason your way to from first principles, and all three of which
 have to be true at once for the bug above to happen. They are stable
 facts about an interface, not about hardware, and the sources are
-below.
+below.[^pgwiki]
 
 | Fact | What it means for us |
 |---|---|

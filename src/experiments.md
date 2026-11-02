@@ -45,9 +45,9 @@ detected a hypervisor before it prints a single measurement. If that
 block does not say what you expected, stop there. The environment is
 the result; the latency is just a number attached to it.
 
-## Part IV has a course rather than a lab
+## Part III has a course rather than a lab
 
-Chapters 6 through 8 derive an inference engine, and deriving it is as
+Chapters 6, 7, 8 and 12 derive an inference engine, and deriving it is as
 far as prose can honestly take you. Building it is too big to be a lab
 on this page, so it is twenty stages in a repository of its own, and
 [The Course](./course.md) is its map: the whole ladder, which chapter
@@ -112,8 +112,8 @@ was fast on my laptop" and a result somebody can argue with.
 
 They are not supposed to. The axioms in these chapters are
 order-of-magnitude figures for a class of hardware, and your device is
-a specific one. On the machine these were developed on, a consumer NVMe
-drive on ext4, `fsync` costs closer to 700 µs than the 100 µs chapter 2
+a specific one. On the machine these were developed on, in 2026, a consumer
+NVMe drive on ext4, `fsync` costs closer to 700 µs than the 100 µs chapter 2
 quotes, because ext4 commits its journal on every sync and the drive
 has no power-loss capacitor to acknowledge from.
 

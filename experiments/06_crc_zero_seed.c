@@ -1,4 +1,4 @@
-/* 06_crc_zero_seed - the trap chapter 6 sets for the checksum itself.
+/* 06_crc_zero_seed - the trap the chapter "Where the Truth Stops" sets for the checksum itself.
  *
  * A zero-seeded CRC register produces an all-zero remainder for an
  * all-zero payload. Zeroed blocks are one of the most common shapes a

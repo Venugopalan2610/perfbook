@@ -80,5 +80,5 @@ your hardware and ratios belong to the world.
 When you want to stop reading and run something, the
 [Experiments](./experiments.md) check the book's own claims on your
 machine, and [The Course](./course.md) is twenty stages that build the
-inference engine Part IV derives. Commit to your number before you run
+inference engine Part III derives. Commit to your number before you run
 either. That is the entire exercise, and it stings a little every time.

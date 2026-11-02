@@ -5,7 +5,7 @@ A benchmark prints a number. A lab states a claim and checks it.
 The claims here are ratios and structural facts, never absolute
 TFLOPS, because a T4, an A100 and a laptop 4080 will disagree wildly
 on absolute numbers while agreeing exactly on the shape of the curve.
-That shape is what chapters 7 and 8 are actually about.
+That shape is what the chapters "The Ridge" and "The Cache That Ate the Batch" are actually about.
 
 Nothing in here is specific to one GPU. If it only worked on the card
 I happened to have, it would not be a lab.

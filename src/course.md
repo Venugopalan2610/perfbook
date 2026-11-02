@@ -2,9 +2,9 @@
 
 > Twenty stages, and not one of them passes because the code ran.
 
-Chapter 8 ends by saying that this is where the book stops deriving and
+Part III of the book derives an inference engine, and
 [vllm-from-scratch](https://github.com/Venugopalan2610/vllm-from-scratch)
-starts building. This page is that repository's map: what the twenty
+builds one. This page is that repository's map: what the twenty
 stages are, in what order, and which number each one will not let you
 past until it moves.
 

@@ -1,7 +1,7 @@
 /* 02_ladder_survival - pinpoint where the bytes are, by killing the
  * process that wrote them.
  *
- * Chapter 2 says a byte lives on one of four rungs, and that what
+ * The chapter "The Ladder" says a byte lives on one of four rungs, and that what
  * kills it depends entirely on which rung it is on. That is testable
  * for the first two rungs without any special hardware:
  *
@@ -15,7 +15,7 @@
  *
  * This lab is deterministic. The byte counts below are the same on
  * every Linux machine, which is what makes it a check rather than an
- * anecdote. Rungs 3 and 4 need the power cut that chapter 2 is about,
+ * anecdote. Rungs 3 and 4 need the power cut that the chapter "The Ladder" is about,
  * and we deliberately do not fake it.
  */
 #include "lab.h"

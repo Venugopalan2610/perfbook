@@ -1,6 +1,6 @@
 # GPU labs
 
-Chapters 7 and 8 turn on a ratio between a GPU's compute throughput
+The chapters "The Ridge" and "The Cache That Ate the Batch" turn on a ratio between a GPU's compute throughput
 and its memory bandwidth. Checking them needs a GPU, and Colab's free
 T4 is enough.
 
@@ -51,7 +51,7 @@ be much lower and the five claims will still hold.
 
 ## 08_kv_cache
 
-Chapter 8's 512 KB per token is a multiplication, so this checks it
+The 512 KB per token in the chapter "The Cache That Ate the Batch" is a multiplication, so this checks it
 with an allocator: build a real KV cache and ask CUDA what it cost.
 
 | id | claim |

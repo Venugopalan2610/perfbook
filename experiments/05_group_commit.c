@@ -1,6 +1,6 @@
 /* 05_group_commit - a fixed batch size is a bet on a load level.
  *
- * Chapter 5 claims a fixed-count batch collapses at low load, because
+ * The chapter "Group Commit" claims a fixed-count batch collapses at low load, because
  * the ack waits for the counter rather than for the disk, and that
  * closing the batch when the in-flight fsync returns fixes it without
  * anyone naming a number.
