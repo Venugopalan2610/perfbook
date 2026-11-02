@@ -509,13 +509,13 @@ def write_ladder():
     # machine does not model filesystem bookkeeping, so its first two
     # rungs would cost almost the same.
     rows = [
-        ("userspace buffer", "process memory", "fwrite()", 49e-9,
+        ("userspace buffer", "owner: your process", "fwrite()", 49e-9,
          "lost if your process dies"),
-        ("page cache", "kernel memory", "write()", 3.9e-6,
+        ("page cache", "owner: the kernel", "write()", 3.9e-6,
          "lost if the kernel crashes\nor the power fails"),
-        ("drive cache", "drive controller", "O_DIRECT", 15.8e-6,
+        ("drive cache", "owner: the drive controller", "O_DIRECT", 15.8e-6,
          "lost if the power fails,\nunless the drive has capacitors"),
-        ("flash / platter", "the drive", "fsync()", 572e-6,
+        ("flash / platter", "owner: the drive", "fsync()", 572e-6,
          "survives"),
     ]
     fig, ax = plt.subplots(figsize=(7.6, 3.4))

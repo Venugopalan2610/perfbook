@@ -297,7 +297,7 @@ labels say who owns each layer, and the right-hand column says what
 takes it away from you, which is the same thing: a layer is lost when
 its owner dies.
 
-<img class="chart" src="img/ladder-01-success-too-soon.svg" alt="A ladder of four layers, top to bottom, with a bar for the time one 4 KB write took to reach each on a laptop in 2026, on a log scale. Userspace buffer, in process memory, reached by fwrite in 49 nanoseconds, lost if your process dies. Page cache, in kernel memory, reached by write in 3.9 microseconds, lost if the kernel crashes or the power fails, highlighted as where your write stops. Drive cache, owned by the drive controller, reached with O_DIRECT in 15.8 microseconds, lost if the power fails unless the drive has capacitors. Flash or platter, reached by write plus fsync in 572 microseconds, survives.">
+<img class="chart" src="img/ladder-01-success-too-soon.svg" alt="A ladder of four layers, top to bottom, with a bar for the time one 4 KB write took to reach each on a laptop in 2026, on a log scale. Userspace buffer, owned by your process, reached by fwrite in 49 nanoseconds, lost if your process dies. Page cache, owned by the kernel, reached by write in 3.9 microseconds, lost if the kernel crashes or the power fails, highlighted as where your write stops. Drive cache, owned by the drive controller, reached with O_DIRECT in 15.8 microseconds, lost if the power fails unless the drive has capacitors. Flash or platter, owned by the drive, reached by write plus fsync in 572 microseconds, survives.">
 
 At a few microseconds, you are at level two. Not three. Not four.
 
