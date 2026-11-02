@@ -13,7 +13,7 @@ CC     ?= cc
 CFLAGS ?= -O2 -g -Wall -Wextra -std=c11
 LDLIBS ?= -lpthread
 
-BINS = 01_write_latency 02_ladder_survival 03_fsync_cost 05_group_commit 06_crc_zero_seed
+BINS = 01_write_latency 01_constants 02_ladder_survival 03_fsync_cost 05_group_commit 06_crc_zero_seed
 
 .PHONY: all run predict clean
 
