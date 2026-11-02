@@ -48,15 +48,6 @@
 <meta name="twitter:title" content="Twenty-Five Microseconds · Deriving Systems">
 <meta name="twitter:description" content="Any sufficiently advanced measurement is indistinguishable from a lie. I want to start with something you can do right now, without leaving this page...">
 {{/if}}
-{{#if (eq path "02-the-ladder.md")}}
-<link rel="canonical" href="https://derivingsystems.com/02-the-ladder.html">
-<meta name="description" content="Your test suite has never once lost power. Let me tell you about a test that passed ten thousand times and proved nothing at all.">
-<meta property="og:url" content="https://derivingsystems.com/02-the-ladder.html">
-<meta property="og:title" content="The Ladder · Deriving Systems">
-<meta property="og:description" content="Your test suite has never once lost power. Let me tell you about a test that passed ten thousand times and proved nothing at all.">
-<meta name="twitter:title" content="The Ladder · Deriving Systems">
-<meta name="twitter:description" content="Your test suite has never once lost power. Let me tell you about a test that passed ten thousand times and proved nothing at all.">
-{{/if}}
 {{#if (eq path "03-the-barrier.md")}}
 <link rel="canonical" href="https://derivingsystems.com/03-the-barrier.html">
 <meta name="description" content="fsync is not a save button. It is a purchase. Here is a loop you can write in about a minute. Take an 8-byte counter. Append it to a file. Do that over...">
@@ -65,6 +56,69 @@
 <meta property="og:description" content="fsync is not a save button. It is a purchase. Here is a loop you can write in about a minute. Take an 8-byte counter. Append it to a file. Do that over...">
 <meta name="twitter:title" content="The Barrier · Deriving Systems">
 <meta name="twitter:description" content="fsync is not a save button. It is a purchase. Here is a loop you can write in about a minute. Take an 8-byte counter. Append it to a file. Do that over...">
+{{/if}}
+{{#if (eq path "05-group-commit.md")}}
+<link rel="canonical" href="https://derivingsystems.com/05-group-commit.html">
+<meta name="description" content="A constant that works at one load level is a bug waiting for load to change. Say we have read chapter 2 and taken it seriously. Fsync-per-record was...">
+<meta property="og:url" content="https://derivingsystems.com/05-group-commit.html">
+<meta property="og:title" content="Group Commit · Deriving Systems">
+<meta property="og:description" content="A constant that works at one load level is a bug waiting for load to change. Say we have read chapter 2 and taken it seriously. Fsync-per-record was...">
+<meta name="twitter:title" content="Group Commit · Deriving Systems">
+<meta name="twitter:description" content="A constant that works at one load level is a bug waiting for load to change. Say we have read chapter 2 and taken it seriously. Fsync-per-record was...">
+{{/if}}
+{{#if (eq path "07-the-ridge.md")}}
+<link rel="canonical" href="https://derivingsystems.com/07-the-ridge.html">
+<meta name="description" content="Arithmetic intensity, and the 99% idle GPU. I want to show you the most expensive processor in the building spending nearly all of its life doing...">
+<meta property="og:url" content="https://derivingsystems.com/07-the-ridge.html">
+<meta property="og:title" content="The Ridge · Deriving Systems">
+<meta property="og:description" content="Arithmetic intensity, and the 99% idle GPU. I want to show you the most expensive processor in the building spending nearly all of its life doing...">
+<meta name="twitter:title" content="The Ridge · Deriving Systems">
+<meta name="twitter:description" content="Arithmetic intensity, and the 99% idle GPU. I want to show you the most expensive processor in the building spending nearly all of its life doing...">
+{{/if}}
+{{#if (eq path "08-kv-cache.md")}}
+<link rel="canonical" href="https://derivingsystems.com/08-kv-cache.html">
+<meta name="description" content="512 KB per token, and why the field went where it went. Chapter 4 ended with an instruction that felt like a victory: batch 156 sequences together and...">
+<meta property="og:url" content="https://derivingsystems.com/08-kv-cache.html">
+<meta property="og:title" content="The Cache That Ate the Batch · Deriving Systems">
+<meta property="og:description" content="512 KB per token, and why the field went where it went. Chapter 4 ended with an instruction that felt like a victory: batch 156 sequences together and...">
+<meta name="twitter:title" content="The Cache That Ate the Batch · Deriving Systems">
+<meta name="twitter:description" content="512 KB per token, and why the field went where it went. Chapter 4 ended with an instruction that felt like a victory: batch 156 sequences together and...">
+{{/if}}
+{{#if (eq path "09-the-slot-that-waited.md")}}
+<link rel="canonical" href="https://derivingsystems.com/09-the-slot-that-waited.html">
+<meta name="description" content="Eight sequences in flight, and one of them doing all the work. Size the batch at 66, fill every slot, and go and look at the throughput counter with...">
+<meta property="og:url" content="https://derivingsystems.com/09-the-slot-that-waited.html">
+<meta property="og:title" content="The Slot That Waited · Deriving Systems">
+<meta property="og:description" content="Eight sequences in flight, and one of them doing all the work. Size the batch at 66, fill every slot, and go and look at the throughput counter with...">
+<meta name="twitter:title" content="The Slot That Waited · Deriving Systems">
+<meta name="twitter:description" content="Eight sequences in flight, and one of them doing all the work. Size the batch at 66, fill every slot, and go and look at the throughput counter with...">
+{{/if}}
+{{#if (eq path "10-a-page-table-for-tokens.md")}}
+<link rel="canonical" href="https://derivingsystems.com/10-a-page-table-for-tokens.html">
+<meta name="description" content="The KV cache we paid for, and the KV cache we used. Look back over your own conversations with a chat model and count how long the answers are. Most...">
+<meta property="og:url" content="https://derivingsystems.com/10-a-page-table-for-tokens.html">
+<meta property="og:title" content="A Page Table for Tokens · Deriving Systems">
+<meta property="og:description" content="The KV cache we paid for, and the KV cache we used. Look back over your own conversations with a chat model and count how long the answers are. Most...">
+<meta name="twitter:title" content="A Page Table for Tokens · Deriving Systems">
+<meta name="twitter:description" content="The KV cache we paid for, and the KV cache we used. Look back over your own conversations with a chat model and count how long the answers are. Most...">
+{{/if}}
+{{#if (eq path "12-spending-the-idle.md")}}
+<link rel="canonical" href="https://derivingsystems.com/12-spending-the-idle.html">
+<meta name="description" content="Five tokens for the price of one, and no asterisk. Here is a prediction that ought to be impossible.">
+<meta property="og:url" content="https://derivingsystems.com/12-spending-the-idle.html">
+<meta property="og:title" content="Spending the Idle · Deriving Systems">
+<meta property="og:description" content="Five tokens for the price of one, and no asterisk. Here is a prediction that ought to be impossible.">
+<meta name="twitter:title" content="Spending the Idle · Deriving Systems">
+<meta name="twitter:description" content="Five tokens for the price of one, and no asterisk. Here is a prediction that ought to be impossible.">
+{{/if}}
+{{#if (eq path "02-the-ladder.md")}}
+<link rel="canonical" href="https://derivingsystems.com/02-the-ladder.html">
+<meta name="description" content="Your test suite has never once lost power. This part of the book turns the method on our own evidence. Here is a test that passes ten thousand times...">
+<meta property="og:url" content="https://derivingsystems.com/02-the-ladder.html">
+<meta property="og:title" content="The Ladder · Deriving Systems">
+<meta property="og:description" content="Your test suite has never once lost power. This part of the book turns the method on our own evidence. Here is a test that passes ten thousand times...">
+<meta name="twitter:title" content="The Ladder · Deriving Systems">
+<meta name="twitter:description" content="Your test suite has never once lost power. This part of the book turns the method on our own evidence. Here is a test that passes ten thousand times...">
 {{/if}}
 {{#if (eq path "04-write-ahead.md")}}
 <link rel="canonical" href="https://derivingsystems.com/04-write-ahead.html">
@@ -75,15 +129,6 @@
 <meta name="twitter:title" content="Write-Ahead · Deriving Systems">
 <meta name="twitter:description" content="Never make a promise you cannot reconstruct. I want to show you a bug that is worse than a lie, because everybody involved was telling the truth.">
 {{/if}}
-{{#if (eq path "05-group-commit.md")}}
-<link rel="canonical" href="https://derivingsystems.com/05-group-commit.html">
-<meta name="description" content="A constant that works at one load level is a bug waiting for load to change. Say we have read chapter 3 and taken it seriously. Fsync-per-record was...">
-<meta property="og:url" content="https://derivingsystems.com/05-group-commit.html">
-<meta property="og:title" content="Group Commit · Deriving Systems">
-<meta property="og:description" content="A constant that works at one load level is a bug waiting for load to change. Say we have read chapter 3 and taken it seriously. Fsync-per-record was...">
-<meta name="twitter:title" content="Group Commit · Deriving Systems">
-<meta name="twitter:description" content="A constant that works at one load level is a bug waiting for load to change. Say we have read chapter 3 and taken it seriously. Fsync-per-record was...">
-{{/if}}
 {{#if (eq path "06-where-the-truth-stops.md")}}
 <link rel="canonical" href="https://derivingsystems.com/06-where-the-truth-stops.html">
 <meta name="description" content="Torn writes, CRC, and finding the edge of what survived. Picture recovery scanning a log forward from the last checkpoint. It reaches the final record...">
@@ -93,68 +138,23 @@
 <meta name="twitter:title" content="Where the Truth Stops · Deriving Systems">
 <meta name="twitter:description" content="Torn writes, CRC, and finding the edge of what survived. Picture recovery scanning a log forward from the last checkpoint. It reaches the final record...">
 {{/if}}
-{{#if (eq path "07-the-ridge.md")}}
-<link rel="canonical" href="https://derivingsystems.com/07-the-ridge.html">
-<meta name="description" content="Arithmetic intensity, and the 99% idle GPU. I want to show you a machine that costs thirty thousand dollars and spends nearly all of its life doing...">
-<meta property="og:url" content="https://derivingsystems.com/07-the-ridge.html">
-<meta property="og:title" content="The Ridge · Deriving Systems">
-<meta property="og:description" content="Arithmetic intensity, and the 99% idle GPU. I want to show you a machine that costs thirty thousand dollars and spends nearly all of its life doing...">
-<meta name="twitter:title" content="The Ridge · Deriving Systems">
-<meta name="twitter:description" content="Arithmetic intensity, and the 99% idle GPU. I want to show you a machine that costs thirty thousand dollars and spends nearly all of its life doing...">
-{{/if}}
-{{#if (eq path "08-kv-cache.md")}}
-<link rel="canonical" href="https://derivingsystems.com/08-kv-cache.html">
-<meta name="description" content="512 KB per token, and why the field went where it went. Put a 7B model on an 80 GB card and ask it to run 156 sequences at once.">
-<meta property="og:url" content="https://derivingsystems.com/08-kv-cache.html">
-<meta property="og:title" content="The Cache That Ate the Batch · Deriving Systems">
-<meta property="og:description" content="512 KB per token, and why the field went where it went. Put a 7B model on an 80 GB card and ask it to run 156 sequences at once.">
-<meta name="twitter:title" content="The Cache That Ate the Batch · Deriving Systems">
-<meta name="twitter:description" content="512 KB per token, and why the field went where it went. Put a 7B model on an 80 GB card and ask it to run 156 sequences at once.">
-{{/if}}
-{{#if (eq path "09-the-slot-that-waited.md")}}
-<link rel="canonical" href="https://derivingsystems.com/09-the-slot-that-waited.html">
-<meta name="description" content="Eight sequences in flight, and one of them doing all the work. Size the batch at 64, fill every slot, and go and look at the throughput counter with...">
-<meta property="og:url" content="https://derivingsystems.com/09-the-slot-that-waited.html">
-<meta property="og:title" content="The Slot That Waited · Deriving Systems">
-<meta property="og:description" content="Eight sequences in flight, and one of them doing all the work. Size the batch at 64, fill every slot, and go and look at the throughput counter with...">
-<meta name="twitter:title" content="The Slot That Waited · Deriving Systems">
-<meta name="twitter:description" content="Eight sequences in flight, and one of them doing all the work. Size the batch at 64, fill every slot, and go and look at the throughput counter with...">
-{{/if}}
-{{#if (eq path "10-a-page-table-for-tokens.md")}}
-<link rel="canonical" href="https://derivingsystems.com/10-a-page-table-for-tokens.html">
-<meta name="description" content="The KV cache we paid for, and the KV cache we used. Go and measure what a real service actually produces. The mean request runs to about 350 tokens...">
-<meta property="og:url" content="https://derivingsystems.com/10-a-page-table-for-tokens.html">
-<meta property="og:title" content="A Page Table for Tokens · Deriving Systems">
-<meta property="og:description" content="The KV cache we paid for, and the KV cache we used. Go and measure what a real service actually produces. The mean request runs to about 350 tokens...">
-<meta name="twitter:title" content="A Page Table for Tokens · Deriving Systems">
-<meta name="twitter:description" content="The KV cache we paid for, and the KV cache we used. Go and measure what a real service actually produces. The mean request runs to about 350 tokens...">
-{{/if}}
 {{#if (eq path "11-below-the-floor.md")}}
 <link rel="canonical" href="https://derivingsystems.com/11-below-the-floor.html">
-<meta name="description" content="Two hundred and eighty launches, and the bus waiting through all of them. A 0.6B model in bf16. 1.19 GB of weights, on a card whose streaming bandwidth...">
+<meta name="description" content="Two hundred and eighty launches, and the bus waiting through all of them. This chapter starts from a real measurement, made in 2026 on a laptop GPU...">
 <meta property="og:url" content="https://derivingsystems.com/11-below-the-floor.html">
 <meta property="og:title" content="Below the Floor · Deriving Systems">
-<meta property="og:description" content="Two hundred and eighty launches, and the bus waiting through all of them. A 0.6B model in bf16. 1.19 GB of weights, on a card whose streaming bandwidth...">
+<meta property="og:description" content="Two hundred and eighty launches, and the bus waiting through all of them. This chapter starts from a real measurement, made in 2026 on a laptop GPU...">
 <meta name="twitter:title" content="Below the Floor · Deriving Systems">
-<meta name="twitter:description" content="Two hundred and eighty launches, and the bus waiting through all of them. A 0.6B model in bf16. 1.19 GB of weights, on a card whose streaming bandwidth...">
-{{/if}}
-{{#if (eq path "12-spending-the-idle.md")}}
-<link rel="canonical" href="https://derivingsystems.com/12-spending-the-idle.html">
-<meta name="description" content="Five tokens for the price of one, and no asterisk. Here is a measurement that ought to be impossible.">
-<meta property="og:url" content="https://derivingsystems.com/12-spending-the-idle.html">
-<meta property="og:title" content="Spending the Idle · Deriving Systems">
-<meta property="og:description" content="Five tokens for the price of one, and no asterisk. Here is a measurement that ought to be impossible.">
-<meta name="twitter:title" content="Spending the Idle · Deriving Systems">
-<meta name="twitter:description" content="Five tokens for the price of one, and no asterisk. Here is a measurement that ought to be impossible.">
+<meta name="twitter:description" content="Two hundred and eighty launches, and the bus waiting through all of them. This chapter starts from a real measurement, made in 2026 on a laptop GPU...">
 {{/if}}
 {{#if (eq path "course.md")}}
 <link rel="canonical" href="https://derivingsystems.com/course.html">
-<meta name="description" content="Twenty stages, and not one of them passes because the code ran. Chapter 12 ends by saying that this is where the book stops deriving and...">
+<meta name="description" content="Twenty stages, and not one of them passes because the code ran. Part III of the book derives an inference engine, and...">
 <meta property="og:url" content="https://derivingsystems.com/course.html">
 <meta property="og:title" content="The Course · Deriving Systems">
-<meta property="og:description" content="Twenty stages, and not one of them passes because the code ran. Chapter 12 ends by saying that this is where the book stops deriving and...">
+<meta property="og:description" content="Twenty stages, and not one of them passes because the code ran. Part III of the book derives an inference engine, and...">
 <meta name="twitter:title" content="The Course · Deriving Systems">
-<meta name="twitter:description" content="Twenty stages, and not one of them passes because the code ran. Chapter 12 ends by saying that this is where the book stops deriving and...">
+<meta name="twitter:description" content="Twenty stages, and not one of them passes because the code ran. Part III of the book derives an inference engine, and...">
 {{/if}}
 {{#if (eq path "rules.md")}}
 <link rel="canonical" href="https://derivingsystems.com/rules.html">
