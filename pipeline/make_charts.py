@@ -509,13 +509,13 @@ def write_ladder():
     # machine does not model filesystem bookkeeping, so its first two
     # rungs would cost almost the same.
     rows = [
-        ("userspace buffer", "YOUR PROCESS", "fwrite()", 49e-9,
+        ("userspace buffer", "process memory", "fwrite()", 49e-9,
          "lost if your process dies"),
-        ("page cache (RAM)", "THE KERNEL", "write()", 3.9e-6,
-         "lost if the power fails"),
-        ("drive cache", "THE DEVICE", "O_DIRECT", 15.8e-6,
+        ("page cache", "kernel memory", "write()", 3.9e-6,
+         "lost if the kernel crashes\nor the power fails"),
+        ("drive cache", "drive controller", "O_DIRECT", 15.8e-6,
          "lost if the power fails,\nunless the drive has capacitors"),
-        ("flash / platter", "THE DEVICE", "fsync()", 572e-6,
+        ("flash / platter", "the drive", "fsync()", 572e-6,
          "survives"),
     ]
     fig, ax = plt.subplots(figsize=(7.6, 3.4))
@@ -536,7 +536,7 @@ def write_ladder():
                         fontsize=9, color=FLAG, va="center", ha="left",
                         style="italic")
     ax.set_yticks(range(len(rows)))
-    ax.set_yticklabels([f"{r[0]}\n{r[1].lower()}" for r in rows], fontsize=9.5)
+    ax.set_yticklabels([f"{r[0]}\n{r[1]}" for r in rows], fontsize=9.5)
     ax.invert_yaxis()
     ax.set_xscale("log")
     ax.set_xlim(start, 0.1)
