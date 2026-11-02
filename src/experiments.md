@@ -49,7 +49,7 @@ the result; the latency is just a number attached to it.
 
 Chapters 6, 7, 8 and 12 derive an inference engine, and deriving it is as
 far as prose can honestly take you. Building it is too big to be a lab
-on this page, so it is twenty stages in a repository of its own, and
+on this page, so it is thirty-five stages in a repository of its own, and
 [The Course](./course.md) is its map: the whole ladder, which chapter
 derives which stage, and a notebook that runs the thing on a free GPU
 without your installing anything.

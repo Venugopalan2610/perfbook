@@ -196,7 +196,7 @@ and you are back at eighteen percent.
 <div class="aside">
 <strong>Build it.</strong> This is where the book hands off to
 <a href="https://github.com/Venugopalan2610/vllm-from-scratch">vllm-from-scratch</a>,
-a twenty-stage course that constructs the engine these last chapters
+a thirty-five-stage course that constructs the engine these last chapters
 derive. Stage 04 makes you build the static batch and measure its own
 padding waste; stage 05 makes you build this loop and will not let you
 past until it uses under 60% of the forward passes the static version

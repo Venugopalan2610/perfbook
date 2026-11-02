@@ -281,7 +281,7 @@ two situations apart is what the ratio in chapter 4 was always for.
 
 If you want to build it rather than derive it,
 [the course](./course.md)
-at the end of the book does exactly that. Twenty stages, each gated on a measurement rather than
+at the end of the book does exactly that. Thirty-five stages, each gated on a measurement rather than
 on your code merely running: the naive loop, the KV cache, the roofline
 you just read about, static and then continuous batching, the block
 allocator, paged attention in PyTorch and then in Triton, prefix
