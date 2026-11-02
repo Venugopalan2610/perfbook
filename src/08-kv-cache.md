@@ -4,21 +4,23 @@
 
 <img class="chapter-illustration" src="img/illus-08-kv-cache.png" alt="An enormously fat and rather smug cat filling an entire small room, bookshelves pressed against the walls behind it.">
 
-Put a 7B model on an 80 GB card and ask it to run 156 sequences at once.
+Chapter 4 ended with an instruction that felt like a victory: batch
+156 sequences together and the reference GPU reaches its ridge point.
+The chip stops idling, compute finally becomes the limit, everybody
+goes home happy.
 
-It dies at **64**.
+So put a 7B model on the reference GPU's 80 GB and ask it to run 156
+sequences at once, each with room for a 2048-token conversation. Before
+you read on, make a prediction. Does it fit? If not, how many do you
+think it holds? Write the number down.
 
-Not 156. Sixty-four. Less than half, and it is not close. We did not
-tune a knob and miss by ten percent. The process died with an
-out-of-memory error, two and a half times short of the target.
+It does not fit. It holds about **66**.
 
-That target was chapter 4's parting instruction, and it felt like a
-victory at the time. Batch 156 sequences together and we reach the
-A100's ridge point: the GPU stops idling, compute finally becomes the
-limit, everybody goes home happy. So we tried it, on the same model and
-the same card, and the card declined.
+Not 156. Sixty-six. Less than half, and it is not close. This is not a
+knob tuned ten percent wrong. Try it on a real card and the process dies
+with an out-of-memory error, well short of the target.
 
-<p class="quip">Sixty-four is not a tuning failure. It is an arithmetic result that nobody had got around to computing.</p>
+<p class="quip">Sixty-six is not a tuning failure. It is an arithmetic result that nobody had got around to computing.</p>
 
 Something is spending memory that chapter 4 assumed was free.
 
@@ -58,7 +60,7 @@ For a 7B-class model (32 layers, 4096-dim hidden state, fp16):
 |---|---|
 | KV cache per token | 2 × 32 layers × 4096 dim × 2 bytes = **512 KB** |
 | KV cache per 2048-token sequence | 512 KB × 2048 = **1 GB** |
-| A100 total memory | 80 GB |
+| Reference GPU memory | 80 GB |
 | Model weights (fp16, 7B) | 14 GB |
 
 The factor of 2 is Key *and* Value: one tensor each, per layer, per
@@ -90,22 +92,24 @@ memory budget for KV cache = 80 GB − 14 GB (weights) = 66 GB
 sequences that fit          = 66 GB ÷ 1 GB/sequence  ≈ 66
 ```
 
-Sixty-six. Before we account for activation memory, the CUDA context,
-and the other fixed overhead that eats a couple more gigabytes off the
-top, which is exactly how we land at the observed 64.
+Sixty-six, and a few fewer on a real card, once activation memory and
+the runtime take their share off the top. `experiments-gpu/08_kv_cache.py`
+allocates a real KV cache on your GPU and asks the driver what it cost,
+so you can check the 512 KB with your own eyes.
 
 <p class="quip">Somewhere there is a very tidy padding fix, thoroughly reviewed and merged with compliments, that bought absolutely nobody anything.</p>
 
-**The KV cache arithmetic alone explains the shortfall.** All of it.
+**The KV cache arithmetic alone explains why 156 cannot fit.** All of it.
 There is nothing left over for padding to be responsible for, and if we
 had gone hunting for padding bugs we would have found some, fixed them
 carefully, and moved the number by almost nothing.
 
 <div class="rule" id="kv-budget-not-guess">
-<span class="rule-id">Rule 7 · Size your batch from the KV budget, not a guess</span>
-Before assuming a batch ceiling is a scheduling inefficiency, compute
-bytes-per-token × context length × desired concurrency, and check it
-against free memory. The wall is usually arithmetic, not a bug.
+<span class="rule-id">Rule 7 · Every resource has a ceiling; the lowest one binds</span>
+Before you call a limit a scheduling problem, compute the budget for
+every resource the work needs, and check which one runs out first. The
+wall is usually arithmetic, not a bug. For LLM serving: bytes per token
+× context length × concurrency, against free memory.
 </div>
 
 ## 5.4 What This Rules Out
@@ -115,7 +119,7 @@ batching harder.
 
 The ridge told us the compute-optimal batch size. This chapter shows
 the memory-optimal batch size is a *harder* ceiling sitting underneath
-it. We hit the KV wall at 64 before we got anywhere near the 156 the
+it. We hit the KV wall at 66 before we got anywhere near the 156 the
 ridge wanted, and no amount of scheduling cleverness moves that. It is
 set by architecture and context length, and that is the end of it.
 
@@ -126,11 +130,12 @@ time it is in flight*, not once.
 
 <p class="quip">A gigabyte per conversation, for as long as the conversation lasts. Thinking out loud turns out to be an expensive habit.</p>
 
-So the field's answer was not bigger GPUs. It was making the 512 KB
-number itself smaller. And if you have ever wondered why half the
-acronyms in this corner of the field exist, this is where they come
-from: every one of them is an attack on that constant. Three moves, and
-you will meet all three.
+So the answer was never going to be bigger GPUs. And here is the tool,
+which has nothing to do with GPUs: when a fixed budget is full, there
+are only three moves. Make each item smaller. Let items share. Stop
+holding space that nobody is using. Every capacity problem you will
+ever meet is attacked with some mix of those three, and in this corner
+of the field, in the early 2020s, each one got an acronym.
 
 - **Multi- and Grouped-Query Attention (MQA/GQA)**: share Key and Value
   projections across several attention heads instead of computing a
@@ -157,11 +162,10 @@ Two bars, one card. The top one is what we can actually run. The bottom
 one is what chapter 4 told us to run, drawn to the same scale so you can
 see exactly how far past the edge of the card it goes:
 
-<img class="chart" src="img/kv-budget-08-kv-cache.svg" alt="Bar chart comparing an 80 GB A100's memory budget. Top bar: 14 GB weights plus 64 GB KV cache fits under the 80 GB card line. Bottom bar: what the ridge point wants, 14 GB weights plus 156 GB KV cache for 156 sequences, extends well past the 80 GB card line and doesn't fit.">
+<img class="chart" src="img/kv-budget-08-kv-cache.svg" alt="Bar chart comparing an 80 GB card's memory budget. Top bar: 14 GB weights plus 66 GB KV cache fits under the 80 GB card line. Bottom bar: what the ridge point wants, 14 GB weights plus 156 GB KV cache for 156 sequences, extends well past the 80 GB card line and doesn't fit.">
 
-(Activation memory and other fixed overhead, a couple more gigabytes,
-are not shown. They are what pushes the real ceiling from 66 down to
-the observed 64.)
+(Activation memory and other fixed overhead, a few gigabytes, are not
+shown. On a real card they take the ceiling a little below 66.)
 
 <div class="aside">
 This is why GQA and KV quantization get discussed in the same breath as

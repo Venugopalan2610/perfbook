@@ -4,22 +4,21 @@
 
 <img class="chapter-illustration" src="img/illus-09-the-slot-that-waited.png" alt="One person sitting alone in a vast auditorium, rows of empty seats sweeping away on both sides.">
 
-Size the batch at 64, fill every slot, and go and look at the throughput
-counter with some optimism.
+Size the batch at 66, fill every slot, and go and look at the throughput
+counter with some optimism. The 66 is not a guess: it is chapter 5's
+number, what the reference GPU's memory holds, so we take it at its word
+and fill every slot it will give us.
 
-It reads like a batch of sixteen.
+Suppose the counter reads like a batch of about a dozen.
 
-Now, everything checks out. Every slot is occupied. Memory is full. The
-scheduler reports 64 live sequences and nothing is queued. And we are
-getting a quarter of the tokens per second that chapter 4's arithmetic
-promised for a batch that size.
+Everything checks out. Every slot is occupied. Memory is full. The
+scheduler reports 66 live sequences and nothing is queued. And we are
+getting about a fifth of the tokens per second that chapter 4's
+arithmetic promised for a batch that size.
 
-The 64 was not a guess, incidentally. It is chapter 5's number: on an
-80 GB card the KV cache holds about that many, so we took it at its word
-and filled every slot it would give us.
-
-Nothing in the last two chapters explains a factor of four. So let's go
-find it.
+By the end of this chapter you will be able to predict that dozen from
+nothing but the lengths of the answers the model gave. Nothing in the
+last two chapters explains a factor of five. So let's go find it.
 
 ## 6.1 Candidates and the Ratio
 
@@ -29,10 +28,10 @@ made on purpose without noticing.
 
 The first: chapter 5's budget was optimistic. Activations,
 workspace and fragmentation ate more than the couple of gigabytes we
-waved at, so we are not really running 64 sequences. We are running
-sixteen and misreporting it.
+waved at, so we are not really running 66 sequences. We are running
+a dozen and misreporting it.
 
-The second: all 64 slots really are occupied, and most of them are
+The second: all 66 slots really are occupied, and most of them are
 occupied by sequences that finished a while ago.
 
 It is worth separating those carefully, because they have opposite
@@ -49,7 +48,7 @@ finish together.
 Two of them, sitting side by side in the same batch, can differ in
 output length by two orders of magnitude, and neither one is unusual.
 
-| Quantity | Value |
+| For example | Value |
 |---|---|
 | "What is 2+2?" | ~5 output tokens |
 | "Explain the CAP theorem" | ~400 output tokens |
@@ -88,12 +87,19 @@ occupancy  =  172 / 960  =  18%
 Eighteen percent.
 
 We provisioned a batch of eight and got the throughput of roughly one
-and a half. Scale the same distribution up to 64 slots and the
-shortfall is the factor of four we measured, with room to spare.
+and a half. Scale the same spread of lengths up to 66 slots and 18% of
+66 is about twelve: the dozen we started with, predicted from nothing
+but the lengths of the answers.
 
 If you carry one number out of this chapter, carry occupancy rather
 than batch size. Batch size is what you configured. Occupancy is what
 you bought, and nobody puts it on a dashboard.
+
+And notice that nothing in that division knows it is about a GPU. A
+restaurant that seats a table of eight and clears no chair until the
+slowest diner finishes has exactly this problem, and so does a build
+farm that waits for its longest job before it starts the next batch.
+The tool is the division itself: what you used, over what you bought.
 
 <img class="chart" src="img/occupancy-09-the-slot-that-waited.svg" alt="Two stacked timelines of eight batch slots over 120 decode steps. In the static batch, seven slots go dark within the first eleven steps and stay dark while one long sequence runs to 120, leaving 82 percent of the area unused. In the continuous batch, each slot that finishes is immediately refilled by a waiting request, and the area stays almost entirely filled.">
 
@@ -108,10 +114,12 @@ The slots did not fail. They finished. And then they waited, because we
 never built them a way to leave.
 
 <div class="rule" id="iteration-scheduling">
-<span class="rule-id">Rule 8 · Release the slot when the sequence ends, not when the batch does</span>
-Schedule at the granularity of one forward pass, not one request. A
-finished sequence should leave the batch on the step it finishes, and a
-waiting one should take its place immediately.
+<span class="rule-id">Rule 8 · Release a resource when its work ends, not when its group ends</span>
+A group that holds every seat until its slowest member finishes pays
+for empty seats. Measure occupancy, what you used over what you bought,
+and schedule at the granularity at which work actually finishes. For
+LLM serving: evict a sequence on the step it ends, and admit a waiting
+one in its place.
 </div>
 
 ## 6.4 What This Rules Out
@@ -119,7 +127,7 @@ waiting one should take its place immediately.
 This rules out the memory-accounting candidate, and it rules it out
 cleanly, because the arithmetic above never mentions bytes. Not once.
 
-You can hand the scheduler a perfectly measured 64-sequence budget and
+You can hand the scheduler a perfectly measured 66-sequence budget and
 still get 18% occupancy, because the waste is in *time*, not space.
 Every fix aimed at memory (a tighter budget, less fragmentation, a
 bigger card) leaves that number exactly where it is.
@@ -159,9 +167,9 @@ that reacts to what actually finished. Chapter 4 borrowed group commit's
 amortization. This chapter borrows its <em>timing</em>.
 </div>
 
-The idea comes from Orca (OSDI '22), where it is called iteration-level
-scheduling, and it is the largest single throughput win in modern
-inference serving. Not because it makes any kernel faster. Not one
+The idea comes from Orca (OSDI 2022), where it is called
+iteration-level scheduling,[^orca] and it is one of the largest
+throughput wins in inference serving. Not because it makes any kernel faster. Not one
 kernel changed. Because it stops us renting slots to sequences that
 finished their work and had nowhere to go.
 
@@ -210,7 +218,7 @@ needed. See <a href="./experiments.md">Experiments</a>.
    proportional to, and why that makes admission expensive at exactly
    the moment you want it to be cheap.
 
-3. With the loop above and a 64-slot budget, what workload would still
+3. With the loop above and a 66-slot budget, what workload would still
    produce low occupancy? Describe the output-length distribution that
    defeats iteration-level scheduling, and say whether you think it
    occurs in practice.
@@ -254,3 +262,11 @@ to optimize, and it has the rare and pleasant property that the code
 gets shorter.
 
 </div>
+
+[^orca]: G.-I. Yu, J. S. Jeong, G.-W. Kim, S. Kim and B.-G. Chun, "Orca: A
+    Distributed Serving System for Transformer-Based Generative Models,"
+    *OSDI 2022*. Its abstract names this chapter's problem: "requests
+    that have finished earlier than other requests in a batch cannot
+    return to the client, while newly arrived requests have to wait
+    until the current batch completely finishes."
+    <https://www.usenix.org/conference/osdi22/presentation/yu>

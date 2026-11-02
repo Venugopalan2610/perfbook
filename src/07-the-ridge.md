@@ -4,15 +4,21 @@
 
 <img class="chapter-illustration" src="img/illus-07-the-ridge.png" alt="An enormous mountain ridge sweeping up and away, with one tiny figure sitting idle on a rock at the very bottom of the slope.">
 
-I want to show you a machine that costs thirty thousand dollars and
-spends nearly all of its life doing nothing at all.
+I want to show you the most expensive processor in the building
+spending nearly all of its life doing nothing at all.
 
-It is an A100, and it can perform three hundred and twelve trillion
-arithmetic operations every second. We hand it a 7-billion-parameter
-model and ask for a single word. It computes for forty-five
-microseconds. Then it waits for seven milliseconds.
+It is the reference machine's GPU, and it can perform three hundred and
+twelve trillion arithmetic operations every second. We hand it a
+7-billion-parameter model and ask for a single word. It computes for
+forty-five microseconds. Then it waits for seven milliseconds.
 
-<p class="quip">Thirty thousand dollars of silicon, idle 99.4% of the time. Even a landlord would be embarrassed.</p>
+<p class="quip">The most expensive chip in the building, idle 99.4% of the time. Even a landlord would be embarrassed.</p>
+
+Before you go on, make a guess about your own GPU, or the free one in a
+Colab notebook: generating one token at a time, what fraction of its
+peak arithmetic does it actually use? Half? A tenth? Write the number
+down, because this chapter's lab will measure it, and the gap between
+your guess and the measurement is the whole chapter.
 
 Do the fraction. The thing is busy six-tenths of one percent of the
 time.
@@ -58,10 +64,11 @@ this chapter needs in order to compute everything else.
 
 One FLOP per byte is a fact about our workload. To know whether that is
 a lot or a little, we need the matching fact about the hardware, and
-that one we have to be handed. Two numbers off a spec sheet, and one
-ratio between them:
+that one we have to be handed. Two numbers for the reference GPU,
+about what a datacenter card of the early 2020s offered, and one ratio
+between them:
 
-| Quantity | A100 (SXM, fp16) |
+| Quantity | Reference GPU (fp16) |
 |---|---|
 | Peak compute | ~312 TFLOP/s |
 | Peak memory bandwidth | ~2 TB/s |
@@ -101,10 +108,11 @@ The chip finishes its 14 GFLOP in 45 microseconds and then waits 6.95
 milliseconds for the next byte of weight to show up.
 
 <div class="rule" id="ridge-before-flops">
-<span class="rule-id">Rule 6 · Check arithmetic intensity before adding FLOPs</span>
-Below the ridge point, more compute buys nothing. The wait is on
-bytes, not operations. A faster chip with the same memory bandwidth
-generates the same token in the same amount of time.
+<span class="rule-id">Rule 6 · Work per byte decides which resource limits you</span>
+Divide the work by the bytes it moves, and compare that with the
+machine's own ratio of compute to bandwidth. Below it, more compute buys
+nothing: the wait is on bytes. For a GPU: check arithmetic intensity
+before adding FLOPs.
 </div>
 
 ## 4.4 What This Rules Out
@@ -157,9 +165,8 @@ on the way there.
 That identity is the thing to carry out of this chapter. It turns the
 ridge point from a property of the silicon into a number you can type
 into a config file. A ridge of 156 FLOP/byte says, in plain language,
-run about 156 sequences at once. Every serving system in the world
-exposes that number as a tunable, and now you know what it is tuning
-against.
+run about 156 sequences at once. Serving systems expose a maximum batch
+size as a setting, and now you know what it is tuning against.
 
 <div class="aside">
 The clean cancellation is an accident of fp16, where two bytes per
@@ -199,7 +206,7 @@ batched heavily enough to reach the ridge itself.
 
 <div class="aside">
 <strong>Run it.</strong> <code>experiments-gpu/07_roofline.py</code> measures
-your own card's ridge point rather than quoting the A100's, then walks a batch
+your own card's ridge point rather than quoting the reference GPU's, then walks a batch
 size toward it. A free Colab T4 is enough. Predict your ridge, and the percent
 of peak you will get at batch 1, before you look. See
 <a href="./experiments.md">Experiments</a>.

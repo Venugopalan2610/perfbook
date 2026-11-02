@@ -8,14 +8,19 @@ Say we have read chapter 2 and taken it seriously. Fsync-per-record was
 costing 25,000× what the bytes warranted, so we batch. Collect a
 thousand records, fsync once, acknowledge all of them together.
 
-Under load, throughput jumps fifty-fold. We ship it. We are pleased
+On the reference machine an `fsync` is a 100 µs round trip, so syncing
+every record capped us at ten thousand records a second. Now one round
+trip carries a thousand of them, and under load the `fsync` stops being
+the limit at all. We ship it. We are pleased
 with ourselves, and I think reasonably so.
 
 <p class="quip">A hundred seconds. Long enough to make a cup of tea while your database decides whether your write happened.</p>
 
-Then overnight, traffic drops to ten events a second. And the same
-code, unchanged, takes **one hundred seconds** to acknowledge a single
-write.
+Then overnight, traffic drops to ten events a second. Before you read
+the next line, work out how long the same code, unchanged, takes to
+acknowledge a single write.
+
+**One hundred seconds.**
 
 Now, nothing broke. I want to be careful about that, because the
 instinct is to go hunting for the bug. There is no bug. The arithmetic
@@ -66,10 +71,13 @@ constant tax, which is an improvement, but a disappointing one.
 One fact, and chapter 2 already handed it to us: an `fsync` round trip
 costs about the same whether it carries one record or a thousand.
 
-| Path | Cost per fsync |
+| Reference machine | Cost per fsync |
 |---|---|
-| NVMe, one record | ~100 µs |
-| NVMe, a thousand records | ~100 µs |
+| one record | ~100 µs |
+| a thousand records | ~100 µs |
+
+(You measured this yourself in chapter 2: change the `8` to `8192` and
+the `fsync` barely notices.)
 
 Look at that table for a second longer than it seems to deserve,
 because that equality is the entire opportunity.
@@ -113,11 +121,17 @@ That is the pleasing part. The scheme is not a compromise between the
 two cases. It is optimal at both ends, and it got there by refusing to
 answer a question it did not have to answer.
 
+And that is the tool, stated without any storage in it. A tuned
+constant is a guess about the future, frozen into the code. Look
+instead for something the system can *observe* while it runs, here one
+bit, whether the round trip is still in flight, and let that make the
+decision. An observation cannot go out of date. A guess always does.
+
 <div class="rule" id="adaptive-batching">
-<span class="rule-id">Rule 5 · Let the barrier set its own batch size</span>
-Close the batch when the in-flight fsync returns, not when a counter
-hits a constant. The batch size becomes a function of load instead of a
-guess about it.
+<span class="rule-id">Rule 5 · Let something you can observe close the batch, not a constant</span>
+A constant encodes a guess about load. An observation adapts to it. For
+group commit: close the batch when the in-flight `fsync` returns, not
+when a counter hits a number.
 </div>
 
 ## 3.4 What This Rules Out
@@ -136,9 +150,9 @@ At *moderate* load, just under one arrival per fsync-latency window,
 batches regress toward size one anyway, and we find ourselves firing an
 `fsync` for very nearly every record. That is not a correctness
 problem. Latency is fine. Throughput is fine. But it is the maximum
-possible call rate, and on flash media, call rate correlates with write
-amplification, and write amplification is measured in years off the
-drive's life.
+possible call rate: every record pays the device a full flush, which is
+exactly the per-event cost that chapter 2 taught us to stop paying, and
+a device kept flushing that often has less time for anything else.
 
 The fix is a small floor: hold the batch open for a minimum of roughly
 200 µs, even if the in-flight fsync would have returned sooner. That

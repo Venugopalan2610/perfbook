@@ -349,7 +349,7 @@ by running the labs.
 | fsync round trip (NVMe-class) | 100 µs |
 | function call | 1 ns |
 | empty system call | 0.1 µs |
-| GPU compute (fp16) | 300 TFLOP/s |
+| GPU compute (fp16) | 312 TFLOP/s (so the ridge is 156 FLOP/byte; the charts use it) |
 | GPU memory bandwidth | 2 TB/s |
 | GPU memory capacity | 80 GB |
 

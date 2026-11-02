@@ -188,11 +188,11 @@ def roofline():
 roofline()
 
 
-# --- The KV-cache budget bar: chapter 8 -------------------------------
+# --- The KV-cache budget bar: The Cache That Ate the Batch -------------------------------
 def kv_budget_bar():
     card_gb = 80
     weights_gb = 14
-    kv_gb = 64
+    kv_gb = 66   # 80 GB - 14 GB of weights, at 1 GB per 2048-token sequence
     ridge_sequences = 156
     ridge_kv_gb = ridge_sequences * 1  # 1 GB/sequence at 2048 tokens
 
@@ -202,7 +202,7 @@ def kv_budget_bar():
     ax.barh(1, weights_gb, color=MUTED, edgecolor=PAPER, height=0.5, label="weights (14 GB)")
     ax.barh(1, kv_gb, left=weights_gb, color=SIGNAL, edgecolor=PAPER, height=0.5,
             label="KV cache")
-    ax.annotate("64 GB, 64 sequences", (weights_gb + kv_gb, 1), xytext=(10, 0),
+    ax.annotate("66 GB, about 66 sequences", (weights_gb + kv_gb, 1), xytext=(10, 0),
                 textcoords="offset points", fontsize=10, color=SIGNAL, ha="left", va="center",
                 fontweight="bold")
 
@@ -226,7 +226,7 @@ def kv_budget_bar():
     ], loc="center left", frameon=False, fontsize=9.5, bbox_to_anchor=(1.02, 0.5), ncol=1)
 
     ax.set_yticks([0, 1])
-    ax.set_yticklabels(["ridge wants\n(156 seqs)", "this card\n(64 seqs)"], fontsize=10)
+    ax.set_yticklabels(["ridge wants\n(156 seqs)", "this card\n(66 seqs)"], fontsize=10)
     ax.set_xlim(0, weights_gb + ridge_kv_gb + 55)
     ax.set_ylim(-0.35, 1.65)
     ax.set_xlabel("GB")
