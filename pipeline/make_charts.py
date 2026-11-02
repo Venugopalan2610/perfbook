@@ -501,8 +501,65 @@ def same_equation():
     save(fig, "same-equation-13-the-same-equation.svg")
 
 
+# --- The ladder, chapter 1: where a write can stop -------------------
+def write_ladder():
+    # Measured with experiments/01_write_latency on the author's laptop in
+    # 2026, performance power setting, p50 of 1000 writes of 4 KB each.
+    # Dated observations, not reference-machine values: the reference
+    # machine does not model filesystem bookkeeping, so its first two
+    # rungs would cost almost the same.
+    rows = [
+        ("userspace buffer", "YOUR PROCESS", "fwrite()", 49e-9,
+         "lost if your process dies"),
+        ("page cache (RAM)", "THE KERNEL", "write()", 3.9e-6,
+         "lost if the power fails"),
+        ("drive cache", "THE DEVICE", "O_DIRECT", 15.8e-6,
+         "lost if the power fails,\nunless the drive has capacitors"),
+        ("flash / platter", "THE DEVICE", "fsync()", 572e-6,
+         "survives"),
+    ]
+    fig, ax = plt.subplots(figsize=(7.6, 3.4))
+    start = 1e-8
+    for i, (name, owner, call, t, risk) in enumerate(rows):
+        here = name.startswith("page cache")
+        ax.barh(i, t - start, left=start, height=0.56,
+                color=FLAG if here else SIGNAL, edgecolor=PAPER)
+        label = f"{t * 1e9:.0f} ns" if t < 1e-6 else f"{t * 1e6:.1f} µs" if t < 1e-4 else f"{t * 1e6:.0f} µs"
+        ax.annotate(f"{call}  {label}", (t, i), xytext=(6, 0),
+                    textcoords="offset points", fontsize=9.5,
+                    color=FLAG if here else INK, va="center", ha="left",
+                    fontweight="bold" if here else "normal")
+        ax.annotate(risk, (1.02, i), xycoords=("axes fraction", "data"),
+                    fontsize=9, color=MUTED, va="center", ha="left")
+        if here:
+            ax.annotate("your write stops here", (start * 1.4, i - 0.45),
+                        fontsize=9, color=FLAG, va="center", ha="left",
+                        style="italic")
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels([f"{r[0]}\n{r[1].lower()}" for r in rows], fontsize=9.5)
+    ax.invert_yaxis()
+    ax.set_xscale("log")
+    ax.set_xlim(start, 0.1)
+    ax.minorticks_off()
+    ax.tick_params(axis="y", length=0)
+    ax.set_ylim(len(rows) - 0.5, -0.85)
+    ax.set_xticks([1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3])
+    ax.set_xticklabels(["10 ns", "100 ns", "1 µs", "10 µs", "100 µs", "1 ms"], fontsize=9)
+    ax.minorticks_off()
+    ax.set_xlabel("time for one 4 KB write to reach this layer (a laptop, 2026)", fontsize=9.5)
+    ax.grid(True, axis="x", which="major", color=GRATICULE, linewidth=0.7)
+    ax.set_axisbelow(True)
+    ax.set_facecolor(PAPER)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    fig.patch.set_facecolor(PAPER)
+    fig.subplots_adjust(left=0.2, right=0.72)
+    save(fig, "ladder-01-success-too-soon.svg")
+
+
 occupancy_timelines()
 kv_waste_bars()
 launch_overhead_bars()
 speculative_roofline()
 same_equation()
+write_ladder()

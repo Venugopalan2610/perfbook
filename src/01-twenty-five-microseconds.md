@@ -290,31 +290,12 @@ them far less often than you think.
 
 ## 1.6 So Where Is It
 
-Four layers, in the order they would survive:
+Four layers, in the order a write passes through them, top to bottom.
+Each bar is how long one write of four kilobytes took to reach that
+layer on the same 2026 laptop, set for performance, and the right-hand
+column is what takes the layer away from you:
 
-```
-   YOUR PROCESS
- ┌──────────────────┐
- │ userspace buffer │  gone if your process crashes
- └──────────────────┘
-          │  write()        a few µs per 4 KB
-          ▼
-   THE KERNEL
- ┌──────────────────┐
- │   page cache     │  survives a crash
- └──────────────────┘  DIES on power loss
-          │  fsync()        ~100 µs – 10 ms
-          ▼
-   THE DEVICE
- ┌──────────────────┐
- │   drive cache    │  still volatile
- └──────────────────┘
-          │
-          ▼
- ┌──────────────────┐
- │  FLASH / PLATTER │  actually durable
- └──────────────────┘
-```
+<img class="chart" src="img/ladder-01-success-too-soon.svg" alt="A ladder of four layers, top to bottom, with a bar for the time one 4 KB write took to reach each on a laptop in 2026, on a log scale. Userspace buffer, in your process, reached by fwrite in 49 nanoseconds, lost if your process dies. Page cache, RAM in the kernel, reached by write in 3.9 microseconds, lost if the power fails, highlighted as where your write stops. Drive cache, in the device, reached with O_DIRECT in 15.8 microseconds, lost if the power fails unless the drive has capacitors. Flash or platter, reached by write plus fsync in 572 microseconds, survives.">
 
 At a few microseconds, you are at level two. Not three. Not four.
 
