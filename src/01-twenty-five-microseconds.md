@@ -43,7 +43,7 @@ performance, 10 to 15 in power-saving mode. Yours will be in the same
 neighbourhood, a few microseconds or a few tens of them, and nothing
 below depends on which.
 
-<p class="quip">In five microseconds light covers a kilometre and a half. Your four kilobytes did not get as far as the drive.</p>
+<p class="quip">"Success" meant the kernel took your letter. Nobody said anything about delivering it.</p>
 
 Now, once you have seen a number like that a few times, it stops
 registering. It's small, the write worked, the test passed, and there's a
